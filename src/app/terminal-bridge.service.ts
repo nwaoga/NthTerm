@@ -1,0 +1,63 @@
+import { Injectable } from '@angular/core';
+
+export interface TerminalDataEvent {
+  id: string;
+  data: string;
+}
+
+export interface TerminalExitEvent {
+  id: string;
+  exitCode?: number;
+}
+
+interface TerminalApi {
+  createTerminal(options?: { cwd?: string }): Promise<{ id: string }>;
+  writeTerminal(id: string, data: string): Promise<void>;
+  resizeTerminal(id: string, cols: number, rows: number): Promise<void>;
+  disposeTerminal(id: string): Promise<void>;
+  onTerminalData(listener: (event: TerminalDataEvent) => void): () => void;
+  onTerminalExit(listener: (event: TerminalExitEvent) => void): () => void;
+}
+
+@Injectable({ providedIn: 'root' })
+export class TerminalBridgeService {
+  async createSession(options?: { cwd?: string }): Promise<string> {
+    const session = await this.getApi().createTerminal(options);
+    return session.id;
+  }
+
+  sendInput(id: string, data: string): Promise<void> {
+    return this.getApi().writeTerminal(id, data);
+  }
+
+  resizeSession(id: string, cols: number, rows: number): Promise<void> {
+    return this.getApi().resizeTerminal(id, cols, rows);
+  }
+
+  disposeSession(id: string): Promise<void> {
+    return this.getApi().disposeTerminal(id);
+  }
+
+  onData(listener: (event: TerminalDataEvent) => void): () => void {
+    return this.getApi().onTerminalData(listener);
+  }
+
+  onExit(listener: (event: TerminalExitEvent) => void): () => void {
+    return this.getApi().onTerminalExit(listener);
+  }
+
+  private getApi(): TerminalApi {
+    const api = window.nthTermTerminal;
+    if (!api) {
+      throw new Error('Electron terminal bridge is not available.');
+    }
+
+    return api;
+  }
+}
+
+declare global {
+  interface Window {
+    nthTermTerminal?: TerminalApi;
+  }
+}
