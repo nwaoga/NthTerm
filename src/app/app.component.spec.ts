@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { AppComponent } from './app.component';
 import { TerminalBridgeService } from './terminal-bridge.service';
+import { WorkspaceBridgeService } from './workspace-bridge.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -17,6 +18,25 @@ describe('AppComponent', () => {
             disposeSession: async () => undefined,
             onData: () => () => undefined,
             onExit: () => () => undefined,
+          },
+        },
+        {
+          provide: WorkspaceBridgeService,
+          useValue: {
+            getDefaultWorkspace: async () => ({
+              id: 'default',
+              name: 'Default Workspace',
+              cwd: 'C:\\',
+              shell: '',
+              updatedAt: '2026-06-17T00:00:00.000Z',
+            }),
+            saveDefaultWorkspace: async () => ({
+              id: 'default',
+              name: 'Default Workspace',
+              cwd: 'C:\\',
+              shell: '',
+              updatedAt: '2026-06-17T00:00:00.000Z',
+            }),
           },
         },
       ],

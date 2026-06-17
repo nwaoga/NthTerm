@@ -3,8 +3,10 @@ const path = require('node:path');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const pty = require('node-pty');
+const { WorkspaceStore } = require('./workspace-store');
 
 const terminals = new Map();
+const workspaceStore = new WorkspaceStore();
 
 function getShell() {
   if (process.platform === 'win32') {
@@ -99,8 +101,20 @@ function registerTerminalHandlers() {
   });
 }
 
-app.whenReady().then(() => {
+function registerWorkspaceHandlers() {
+  ipcMain.handle('workspace:get-default', () => {
+    return workspaceStore.getDefaultWorkspace();
+  });
+
+  ipcMain.handle('workspace:save-default', (_event, workspace) => {
+    return workspaceStore.saveDefaultWorkspace(workspace);
+  });
+}
+
+app.whenReady().then(async () => {
+  await workspaceStore.init(app.getPath('userData'));
   registerTerminalHandlers();
+  registerWorkspaceHandlers();
   createWindow();
 
   app.on('activate', () => {

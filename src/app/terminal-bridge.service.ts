@@ -47,7 +47,7 @@ export class TerminalBridgeService {
   }
 
   private getApi(): TerminalApi {
-    const api = window.nthTermTerminal;
+    const api = window.nthTermDesktop?.terminal;
     if (!api) {
       throw new Error('Electron terminal bridge is not available.');
     }
@@ -57,7 +57,12 @@ export class TerminalBridgeService {
 }
 
 declare global {
+  interface DesktopApi {
+    terminal?: TerminalApi;
+    workspace?: any;
+  }
+
   interface Window {
-    nthTermTerminal?: TerminalApi;
+    nthTermDesktop?: DesktopApi;
   }
 }

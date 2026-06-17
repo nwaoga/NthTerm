@@ -2,10 +2,40 @@
   <header class="topbar">
     <div>
       <p class="eyebrow">NthTerm</p>
-      <h1>Terminal Workspace Proof</h1>
+      <h1>Workspace Persistence Slice</h1>
     </div>
     <p class="status">{{ status }}</p>
   </header>
+
+  <section class="workspace-panel">
+    <div class="field">
+      <label for="workspace-name">Workspace name</label>
+      <input
+        id="workspace-name"
+        [(ngModel)]="workspaceName"
+        type="text"
+        placeholder="Default Workspace"
+      />
+    </div>
+
+    <div class="field field-wide">
+      <label for="workspace-cwd">Working directory</label>
+      <input
+        id="workspace-cwd"
+        [(ngModel)]="workingDirectory"
+        type="text"
+        placeholder="C:\Users\blakb\Documents\Codex\NthTerm\repo"
+      />
+    </div>
+
+    <div class="actions">
+      <button type="button" class="action-primary" (click)="saveWorkspace()">Save workspace</button>
+      <button type="button" (click)="restoreWorkspace()">Restore saved</button>
+      <button type="button" (click)="relaunchTerminal()">Relaunch terminal</button>
+    </div>
+
+    <p class="meta">Last saved: {{ lastSavedAt || 'Not saved yet' }}</p>
+  </section>
 
   <section class="terminal-panel">
     <div #terminalHost class="terminal-host" aria-label="Interactive terminal"></div>
