@@ -5,30 +5,68 @@ export interface SavedWorkspace {
   name: string;
   cwd: string;
   shell: string;
+  templateId: string;
+  icon: string;
+  accent: string;
+  layoutMode: string;
+  launchProfile: string;
+  sessionSnapshot: {
+    layout: {
+      mode: string;
+      activeTabId: string;
+    };
+    tabs: Array<{
+      id: string;
+      title: string;
+      cwd: string;
+      status: string;
+      accent: string;
+    }>;
+  };
   updatedAt: string;
 }
 
+export interface WorkspaceDraft {
+  id?: string;
+  name: string;
+  cwd: string;
+  shell?: string;
+  templateId?: string;
+  icon?: string;
+  accent?: string;
+  layoutMode?: string;
+  launchProfile?: string;
+  sessionSnapshot?: SavedWorkspace['sessionSnapshot'];
+}
+
 interface WorkspaceApi {
-  getDefaultWorkspace(): Promise<SavedWorkspace>;
-  saveDefaultWorkspace(workspace: {
-    name: string;
-    cwd: string;
-    shell?: string;
-  }): Promise<SavedWorkspace>;
+  listWorkspaces(): Promise<SavedWorkspace[]>;
+  getActiveWorkspace(): Promise<SavedWorkspace>;
+  createWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace>;
+  saveWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace>;
+  setActiveWorkspace(workspaceId: string): Promise<SavedWorkspace>;
 }
 
 @Injectable({ providedIn: 'root' })
 export class WorkspaceBridgeService {
-  getDefaultWorkspace(): Promise<SavedWorkspace> {
-    return this.getApi().getDefaultWorkspace();
+  listWorkspaces(): Promise<SavedWorkspace[]> {
+    return this.getApi().listWorkspaces();
   }
 
-  saveDefaultWorkspace(workspace: {
-    name: string;
-    cwd: string;
-    shell?: string;
-  }): Promise<SavedWorkspace> {
-    return this.getApi().saveDefaultWorkspace(workspace);
+  getActiveWorkspace(): Promise<SavedWorkspace> {
+    return this.getApi().getActiveWorkspace();
+  }
+
+  createWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace> {
+    return this.getApi().createWorkspace(workspace);
+  }
+
+  saveWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace> {
+    return this.getApi().saveWorkspace(workspace);
+  }
+
+  setActiveWorkspace(workspaceId: string): Promise<SavedWorkspace> {
+    return this.getApi().setActiveWorkspace(workspaceId);
   }
 
   private getApi(): WorkspaceApi {

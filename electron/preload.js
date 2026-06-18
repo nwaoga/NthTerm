@@ -18,7 +18,10 @@ contextBridge.exposeInMainWorld('nthTermDesktop', {
     },
   },
   workspace: {
-    getDefaultWorkspace: () => ipcRenderer.invoke('workspace:get-default'),
-    saveDefaultWorkspace: (workspace) => ipcRenderer.invoke('workspace:save-default', workspace),
+    listWorkspaces: () => ipcRenderer.invoke('workspace:list'),
+    getActiveWorkspace: () => ipcRenderer.invoke('workspace:get-active'),
+    createWorkspace: (workspace) => ipcRenderer.invoke('workspace:create', workspace),
+    saveWorkspace: (workspace) => ipcRenderer.invoke('workspace:save', workspace),
+    setActiveWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:set-active', workspaceId),
   },
 });

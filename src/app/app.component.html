@@ -1,43 +1,262 @@
-<main class="shell">
-  <header class="topbar">
-    <div>
-      <p class="eyebrow">NthTerm</p>
-      <h1>Workspace Persistence Slice</h1>
-    </div>
-    <p class="status">{{ status }}</p>
-  </header>
-
-  <section class="workspace-panel">
-    <div class="field">
-      <label for="workspace-name">Workspace name</label>
-      <input
-        id="workspace-name"
-        [(ngModel)]="workspaceName"
-        type="text"
-        placeholder="Default Workspace"
-      />
+<main class="app-shell">
+  <aside class="left-rail">
+    <div class="brand">
+      <div class="brand-mark">N</div>
+      <span>NthTerm</span>
     </div>
 
-    <div class="field field-wide">
-      <label for="workspace-cwd">Working directory</label>
-      <input
-        id="workspace-cwd"
-        [(ngModel)]="workingDirectory"
-        type="text"
-        placeholder="C:\Users\blakb\Documents\Codex\NthTerm\repo"
-      />
+    <section class="rail-section">
+      <p class="rail-title">Sessions</p>
+      <div class="session-list">
+        @for (session of sessions; track trackById($index, session)) {
+          <button
+            type="button"
+            class="session-item"
+            [class.active]="isSessionActive(session)"
+            [attr.data-accent]="session.accent"
+            (click)="selectWorkspace(session.id)"
+          >
+            <span class="session-icon">{{ session.icon === 'cloud' ? '☁' : session.icon === 'spark' ? '✦' : session.icon === 'cap' ? '◧' : session.icon === 'server' ? '⌘' : '•' }}</span>
+            <span>{{ session.name }}</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <section class="rail-section">
+      <p class="rail-title">Templates</p>
+      <div class="template-list">
+        @for (template of templates; track trackByName($index, template)) {
+          <button
+            type="button"
+            class="template-item"
+            [attr.data-accent]="template.accent"
+            (click)="createWorkspaceFromTemplate(template)"
+          >
+            <span class="template-dot"></span>
+            <span>{{ template.name }}</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <section class="rail-section rail-section-spacer">
+      <p class="rail-title">Tools</p>
+      <div class="tool-list">
+        <span>Command History</span>
+        <span>Snippets</span>
+        <span>Environments</span>
+        <span>Appearance</span>
+        <span>Shell</span>
+        <span>Keybindings</span>
+      </div>
+    </section>
+
+    <div class="rail-status">All systems operational</div>
+  </aside>
+
+  <section class="workspace-shell">
+    <header class="shell-toolbar">
+      <div class="workspace-picker">
+        <span class="workspace-picker-icon">☁</span>
+        <span>{{ selectedWorkspace }}</span>
+      </div>
+
+      <div class="toolbar-actions">
+        <button type="button" class="toolbar-pill" (click)="createTab()">+ New Tab</button>
+        <button type="button" class="toolbar-pill muted">Search</button>
+        <button type="button" class="toolbar-pill muted">Command Palette</button>
+      </div>
+    </header>
+
+    <div class="content-layout">
+      <section class="content-main">
+        <nav class="tab-strip" aria-label="Terminal tabs">
+          @for (tab of runtimeTabs; track trackById($index, tab)) {
+            <button
+              type="button"
+              class="tab-pill"
+              [class.active]="isTabActive(tab)"
+              [attr.data-tone]="tab.accent"
+              (click)="selectTab(tab.id)"
+            >
+              <span class="tab-top">{{ tab.title }}</span>
+              <span class="tab-bottom">{{ tab.cwd }} • {{ tab.status }}</span>
+              <span class="tab-close" (click)="closeTab(tab.id, $event)">×</span>
+            </button>
+          }
+          <button type="button" class="tab-add" (click)="createTab()">+</button>
+        </nav>
+
+        <section class="pane-grid">
+          <article class="terminal-card" data-tone="violet">
+            <header class="terminal-card-header">
+              <div>
+                <p class="card-title">API</p>
+                <p class="card-meta">main • {{ status }}</p>
+              </div>
+              <div class="card-actions">
+                <button type="button" (click)="relaunchTerminal()">Restart</button>
+                <button type="button" (click)="saveWorkspace()">Save</button>
+                <button type="button" (click)="restoreWorkspace()">Restore</button>
+              </div>
+            </header>
+
+            <div class="terminal-toolbar">
+              <div class="field">
+                <label for="workspace-name">Workspace</label>
+                <input
+                  id="workspace-name"
+                  [(ngModel)]="workspaceName"
+                  type="text"
+                  placeholder="Workspace name"
+                />
+              </div>
+
+              <div class="field field-wide">
+                <label for="workspace-cwd">Directory</label>
+                <input
+                  id="workspace-cwd"
+                  [(ngModel)]="workingDirectory"
+                  type="text"
+                  placeholder="C:\Users\blakb\Documents\Codex\NthTerm\repo"
+                />
+              </div>
+            </div>
+
+            <div #terminalHost class="terminal-host" aria-label="Interactive terminal"></div>
+          </article>
+
+          @for (card of terminalCards.slice(1); track trackByTitle($index, card)) {
+            <article class="terminal-card placeholder-card" [attr.data-tone]="card.tone">
+              <header class="terminal-card-header">
+                <div>
+                  <p class="card-title">{{ card.title }}</p>
+                  <p class="card-meta">{{ card.subtitle }} • {{ card.detail }} • {{ card.status }}</p>
+                </div>
+                <div class="mini-actions">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </header>
+              <div class="placeholder-body">
+                <p>{{ card.title }} pane</p>
+                <p>This region is part of the new desktop shell layout and will become a live split-pane session in the next story.</p>
+              </div>
+            </article>
+          }
+        </section>
+
+        <section class="bottom-dock">
+          <div class="dock-tabs">
+            @for (tab of utilityTabs; track trackByLabel($index, tab)) {
+              <button type="button" class="dock-tab" [class.active]="tab.active">
+                {{ tab.label }}
+                @if (tab.count) {
+                  <span class="dock-count">{{ tab.count }}</span>
+                }
+              </button>
+            }
+          </div>
+
+          <div class="dock-content">
+            <div class="output-panel">
+              <p>[09:16:01] info: Workspace shell initialized</p>
+              <p>[09:16:02] info: Terminal session attached</p>
+              <p>[09:16:03] info: SQLite workspace state ready</p>
+              <p>[09:16:04] info: Layout shell story in progress</p>
+              <p>[09:16:05] info: Last saved {{ lastSavedAt || 'pending' }}</p>
+            </div>
+
+            <div class="monitor-panel">
+              <div class="metric-ring metric-cpu">
+                <span>CPU</span>
+                <strong>23%</strong>
+              </div>
+              <div class="metric-ring metric-memory">
+                <span>Memory</span>
+                <strong>6.2 GB</strong>
+              </div>
+              <div class="metric-ring metric-disk">
+                <span>Disk</span>
+                <strong>45%</strong>
+              </div>
+              <div class="metric-ring metric-network">
+                <span>Network</span>
+                <strong>12.4 Mbps</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="inspector">
+        <div class="inspector-tabs">
+          <button type="button" [class.active]="activeInspectorTab === 'tab'" (click)="setInspectorTab('tab')">Tab Info</button>
+          <button type="button" [class.active]="activeInspectorTab === 'session'" (click)="setInspectorTab('session')">Session</button>
+        </div>
+
+        <section class="inspector-card">
+          <header class="inspector-header">
+            <div>
+              <p class="card-title">API</p>
+              <p class="card-meta">running</p>
+            </div>
+          </header>
+
+          <div class="inspector-list">
+            @for (item of inspectorItems; track trackByLabel($index, item)) {
+              <div class="inspector-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+            }
+          </div>
+
+          <div class="inspector-actions">
+            <button type="button" class="primary">Restart</button>
+            <button type="button" class="danger">Stop</button>
+            <button type="button">Kill</button>
+          </div>
+        </section>
+
+        <section class="inspector-card compact">
+          <p class="rail-title">Recent Commands</p>
+          <div class="history-list">
+            <div><span>dotnet run</span><strong>09:15</strong></div>
+            <div><span>npm start</span><strong>09:10</strong></div>
+            <div><span>docker compose ps</span><strong>09:09</strong></div>
+            <div><span>git pull</span><strong>08:50</strong></div>
+          </div>
+        </section>
+
+        <section class="inspector-card compact">
+          <p class="rail-title">Environment Variables</p>
+          <div class="history-list">
+            <div><span>DOTNET_ENVIRONMENT</span><strong>Development</strong></div>
+            <div><span>ASPNETCORE_ENVIRONMENT</span><strong>Development</strong></div>
+            <div><span>PATH</span><strong>…\bin</strong></div>
+            <div><span>WORKSPACE</span><strong>{{ selectedWorkspace }}</strong></div>
+          </div>
+        </section>
+      </aside>
     </div>
 
-    <div class="actions">
-      <button type="button" class="action-primary" (click)="saveWorkspace()">Save workspace</button>
-      <button type="button" (click)="restoreWorkspace()">Restore saved</button>
-      <button type="button" (click)="relaunchTerminal()">Relaunch terminal</button>
-    </div>
-
-    <p class="meta">Last saved: {{ lastSavedAt || 'Not saved yet' }}</p>
-  </section>
-
-  <section class="terminal-panel">
-    <div #terminalHost class="terminal-host" aria-label="Interactive terminal"></div>
+    <footer class="status-bar">
+      <div class="status-cluster">
+        <span class="dot"></span>
+        <span>Connected</span>
+      </div>
+      <div class="status-cluster">
+        <span>{{ workspaceName }}</span>
+        <span>{{ runtimeTabs.length }} tabs</span>
+      </div>
+      <div class="status-cluster">
+        <span>Ln 12, Col 1</span>
+        <span>UTF-8</span>
+        <span>PowerShell</span>
+      </div>
+    </footer>
   </section>
 </main>

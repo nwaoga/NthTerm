@@ -102,27 +102,44 @@ function registerTerminalHandlers() {
 }
 
 function registerWorkspaceHandlers() {
-  ipcMain.handle('workspace:get-default', () => {
-    return workspaceStore.getDefaultWorkspace();
+  ipcMain.handle('workspace:list', () => {
+    return workspaceStore.listWorkspaces();
   });
 
-  ipcMain.handle('workspace:save-default', (_event, workspace) => {
-    return workspaceStore.saveDefaultWorkspace(workspace);
+  ipcMain.handle('workspace:get-active', () => {
+    return workspaceStore.getActiveWorkspace();
+  });
+
+  ipcMain.handle('workspace:create', (_event, workspace) => {
+    const created = workspaceStore.createWorkspace(workspace);
+    return workspaceStore.setActiveWorkspace(created.id);
+  });
+
+  ipcMain.handle('workspace:save', (_event, workspace) => {
+    return workspaceStore.saveWorkspace(workspace);
+  });
+
+  ipcMain.handle('workspace:set-active', (_event, workspaceId) => {
+    return workspaceStore.setActiveWorkspace(workspaceId);
   });
 }
 
-app.whenReady().then(async () => {
-  await workspaceStore.init(app.getPath('userData'));
-  registerTerminalHandlers();
-  registerWorkspaceHandlers();
-  createWindow();
+app.whenReady()
+  .then(async () => {
+    await workspaceStore.init(app.getPath('userData'));
+    registerTerminalHandlers();
+    registerWorkspaceHandlers();
+    createWindow();
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  })
+  .catch((error) => {
+    console.error('Failed to initialize NthTerm:', error);
   });
-});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

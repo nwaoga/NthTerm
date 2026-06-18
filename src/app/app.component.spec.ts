@@ -23,18 +23,56 @@ describe('AppComponent', () => {
         {
           provide: WorkspaceBridgeService,
           useValue: {
-            getDefaultWorkspace: async () => ({
+            listWorkspaces: async () => ([
+              {
+                id: 'workspace-1',
+                name: 'Default Workspace',
+                cwd: 'C:\\',
+                shell: '',
+                templateId: 'empty-workspace',
+                icon: 'cloud',
+                accent: 'violet',
+                updatedAt: '2026-06-17T00:00:00.000Z',
+              },
+            ]),
+            getActiveWorkspace: async () => ({
               id: 'default',
               name: 'Default Workspace',
               cwd: 'C:\\',
               shell: '',
+              templateId: 'empty-workspace',
+              icon: 'cloud',
+              accent: 'violet',
               updatedAt: '2026-06-17T00:00:00.000Z',
             }),
-            saveDefaultWorkspace: async () => ({
+            createWorkspace: async () => ({
+              id: 'workspace-2',
+              name: 'Angular App',
+              cwd: 'C:\\Projects\\AngularApp',
+              shell: '',
+              templateId: 'angular-app',
+              icon: 'spark',
+              accent: 'amber',
+              updatedAt: '2026-06-17T00:00:00.000Z',
+            }),
+            saveWorkspace: async () => ({
               id: 'default',
               name: 'Default Workspace',
               cwd: 'C:\\',
               shell: '',
+              templateId: 'empty-workspace',
+              icon: 'cloud',
+              accent: 'violet',
+              updatedAt: '2026-06-17T00:00:00.000Z',
+            }),
+            setActiveWorkspace: async () => ({
+              id: 'default',
+              name: 'Default Workspace',
+              cwd: 'C:\\',
+              shell: '',
+              templateId: 'empty-workspace',
+              icon: 'cloud',
+              accent: 'violet',
               updatedAt: '2026-06-17T00:00:00.000Z',
             }),
           },
