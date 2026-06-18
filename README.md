@@ -30,6 +30,7 @@ Phase 2 is now underway with a first persistence slice:
 - template actions that create Angular, ASP.NET API, Full Stack, Docker Compose, and empty workspaces
 - richer workspace records that now persist layout mode, launch profile, and a lightweight session snapshot for future tab and pane restore
 - a real terminal tab strip that can create, switch, close, and persist tabs per workspace
+- a split-pane shell with persisted 2-up and 2x2 layouts, focused-pane tracking, and pane-to-tab assignments per workspace
 
 ## Development
 
@@ -61,9 +62,11 @@ The current persistence slice stores one default workspace and relaunches the te
 
 The sessions sidebar now supports selecting persisted workspaces and creating new workspaces from starter templates.
 
-Workspace persistence now tracks more than name and directory: each workspace stores restore-oriented metadata that will support real tab and pane restoration in the next stories.
+Workspace persistence now tracks more than name and directory: each workspace stores restore-oriented metadata for tabs, layout mode, focused pane, and pane assignments.
 
 The top tab strip is now backed by persisted workspace snapshot state instead of static placeholder tabs.
+
+The split-pane shell currently restores one live interactive terminal into the focused pane while the other assigned panes show their saved tab context. This keeps PTY ownership simple in Electron main for now, and gives us a clean path to true multi-session panes next.
 
 ## Architecture direction
 
@@ -74,3 +77,4 @@ The top tab strip is now backed by persisted workspace snapshot state instead of
 - The active workspace and workspace list are managed in Electron main and projected into the sidebar through the preload bridge.
 - Workspace records now include lightweight restore metadata so the current shell can grow into real tab and split-pane restoration without redesigning persistence later.
 - Terminal tab actions now update the workspace snapshot directly, so the renderer is beginning to operate against the same restore model that later pane-layout work will use.
+- Pane layout restoration currently uses a focused-pane model: Angular renders the workspace grid and saved pane assignments, while Electron still owns the single active PTY session lifecycle.

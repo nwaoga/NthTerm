@@ -209,6 +209,13 @@ input {
 .toolbar-actions {
   display: flex;
   gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.layout-switch {
+  display: inline-flex;
+  gap: 8px;
 }
 
 .toolbar-pill,
@@ -225,6 +232,12 @@ input {
 
 .toolbar-pill.muted {
   color: #c2cbda;
+}
+
+.toolbar-pill.active {
+  border-color: rgba(189, 111, 255, 0.48);
+  background: rgba(41, 27, 64, 0.88);
+  color: #ffffff;
 }
 
 .content-layout {
@@ -246,6 +259,7 @@ input {
 }
 
 .tab-pill {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -271,6 +285,16 @@ input {
 .tab-bottom {
   color: #96a3ba;
   font-size: 0.82rem;
+  padding-right: 18px;
+}
+
+.tab-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: #93a0b7;
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
 .tab-add {
@@ -287,6 +311,10 @@ input {
   margin-bottom: 12px;
 }
 
+.pane-grid[data-layout='grid-2'] {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
 .terminal-card,
 .bottom-dock,
 .inspector,
@@ -298,12 +326,25 @@ input {
 }
 
 .terminal-card {
+  display: flex;
+  flex-direction: column;
   min-height: 310px;
   overflow: hidden;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
-.terminal-card:first-child {
-  min-height: 420px;
+.terminal-card.focused {
+  transform: translateY(-2px);
+  border-color: rgba(186, 112, 255, 0.36);
+}
+
+.pane-grid[data-layout='grid-2'] .terminal-card {
+  min-height: 360px;
+}
+
+.pane-grid[data-layout='grid-2x2'] .terminal-card {
+  min-height: 260px;
 }
 
 .terminal-card[data-tone='violet'] {
@@ -320,6 +361,10 @@ input {
 
 .terminal-card[data-tone='blue'] {
   box-shadow: inset 0 0 0 1px rgba(64, 144, 255, 0.3), 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.terminal-card[data-tone='slate'] {
+  box-shadow: inset 0 0 0 1px rgba(106, 120, 145, 0.24), 0 24px 60px rgba(0, 0, 0, 0.28);
 }
 
 .terminal-card-header,
@@ -401,7 +446,8 @@ input {
 }
 
 .terminal-host {
-  height: 288px;
+  flex: 1;
+  min-height: 220px;
   padding: 10px 12px 14px;
   overflow: hidden;
 }
@@ -719,5 +765,9 @@ input {
 
   .terminal-toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .layout-switch {
+    width: 100%;
   }
 }

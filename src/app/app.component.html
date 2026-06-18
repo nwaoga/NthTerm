@@ -64,6 +64,24 @@
 
       <div class="toolbar-actions">
         <button type="button" class="toolbar-pill" (click)="createTab()">+ New Tab</button>
+        <div class="layout-switch" aria-label="Layout mode">
+          <button
+            type="button"
+            class="toolbar-pill"
+            [class.active]="layoutMode === 'grid-2'"
+            (click)="setLayoutMode('grid-2')"
+          >
+            2-Up
+          </button>
+          <button
+            type="button"
+            class="toolbar-pill"
+            [class.active]="layoutMode === 'grid-2x2'"
+            (click)="setLayoutMode('grid-2x2')"
+          >
+            2x2
+          </button>
+        </div>
         <button type="button" class="toolbar-pill muted">Search</button>
         <button type="button" class="toolbar-pill muted">Command Palette</button>
       </div>
@@ -88,62 +106,84 @@
           <button type="button" class="tab-add" (click)="createTab()">+</button>
         </nav>
 
-        <section class="pane-grid">
-          <article class="terminal-card" data-tone="violet">
-            <header class="terminal-card-header">
-              <div>
-                <p class="card-title">API</p>
-                <p class="card-meta">main • {{ status }}</p>
-              </div>
-              <div class="card-actions">
-                <button type="button" (click)="relaunchTerminal()">Restart</button>
-                <button type="button" (click)="saveWorkspace()">Save</button>
-                <button type="button" (click)="restoreWorkspace()">Restore</button>
-              </div>
-            </header>
-
-            <div class="terminal-toolbar">
-              <div class="field">
-                <label for="workspace-name">Workspace</label>
-                <input
-                  id="workspace-name"
-                  [(ngModel)]="workspaceName"
-                  type="text"
-                  placeholder="Workspace name"
-                />
-              </div>
-
-              <div class="field field-wide">
-                <label for="workspace-cwd">Directory</label>
-                <input
-                  id="workspace-cwd"
-                  [(ngModel)]="workingDirectory"
-                  type="text"
-                  placeholder="C:\Users\blakb\Documents\Codex\NthTerm\repo"
-                />
-              </div>
-            </div>
-
-            <div #terminalHost class="terminal-host" aria-label="Interactive terminal"></div>
-          </article>
-
-          @for (card of terminalCards.slice(1); track trackByTitle($index, card)) {
-            <article class="terminal-card placeholder-card" [attr.data-tone]="card.tone">
+        <section class="pane-grid" [attr.data-layout]="layoutMode">
+          @for (pane of runtimePanes; track trackById($index, pane)) {
+            <article
+              class="terminal-card"
+              [class.focused]="isPaneFocused(pane)"
+              [class.placeholder-card]="!getPaneTab(pane)"
+              [attr.data-tone]="getPaneTone(pane)"
+              (click)="focusPane(pane.id)"
+            >
               <header class="terminal-card-header">
                 <div>
-                  <p class="card-title">{{ card.title }}</p>
-                  <p class="card-meta">{{ card.subtitle }} • {{ card.detail }} • {{ card.status }}</p>
+                  <p class="card-title">
+                    {{ getPaneTab(pane)?.title || ('Pane ' + ($index + 1)) }}
+                  </p>
+                  <p class="card-meta">
+                    {{ isPaneFocused(pane) ? 'focused' : 'standby' }}
+                    @if (getPaneTab(pane)) {
+                      <span> • {{ getPaneTab(pane)?.status }}</span>
+                    }
+                  </p>
                 </div>
-                <div class="mini-actions">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
+                @if (isPaneFocused(pane) && getPaneTab(pane)) {
+                  <div class="card-actions">
+                    <button type="button" (click)="relaunchTerminal(); $event.stopPropagation()">Restart</button>
+                    <button type="button" (click)="saveWorkspace(); $event.stopPropagation()">Save</button>
+                    <button type="button" (click)="restoreWorkspace(); $event.stopPropagation()">Restore</button>
+                  </div>
+                } @else {
+                  <div class="mini-actions">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                }
               </header>
-              <div class="placeholder-body">
-                <p>{{ card.title }} pane</p>
-                <p>This region is part of the new desktop shell layout and will become a live split-pane session in the next story.</p>
-              </div>
+
+              @if (isPaneFocused(pane) && getPaneTab(pane)) {
+                <div class="terminal-toolbar" (click)="$event.stopPropagation()">
+                  <div class="field">
+                    <label for="workspace-name">Workspace</label>
+                    <input
+                      id="workspace-name"
+                      [(ngModel)]="workspaceName"
+                      type="text"
+                      placeholder="Workspace name"
+                    />
+                  </div>
+
+                  <div class="field field-wide">
+                    <label for="workspace-cwd">Directory</label>
+                    <input
+                      id="workspace-cwd"
+                      [(ngModel)]="workingDirectory"
+                      type="text"
+                      placeholder="C:\Users\blakb\Documents\Codex\NthTerm\repo"
+                    />
+                  </div>
+                </div>
+
+                <div
+                  #terminalHost
+                  class="terminal-host"
+                  aria-label="Interactive terminal"
+                  (click)="$event.stopPropagation()"
+                ></div>
+              } @else if (getPaneTab(pane)) {
+                <div class="placeholder-body">
+                  <p>{{ getPaneTab(pane)?.cwd }}</p>
+                  <p>
+                    {{ getPaneTab(pane)?.title }} is assigned here. Click this pane to focus it and attach the live terminal.
+                  </p>
+                </div>
+              } @else {
+                <div class="placeholder-body">
+                  <p>Empty pane</p>
+                  <p>Focus this pane, then pick a tab or create a new one to assign a terminal session here.</p>
+                </div>
+              }
             </article>
           }
         </section>
@@ -200,8 +240,8 @@
         <section class="inspector-card">
           <header class="inspector-header">
             <div>
-              <p class="card-title">API</p>
-              <p class="card-meta">running</p>
+              <p class="card-title">{{ getFocusedTab()?.title || 'No Tab Selected' }}</p>
+              <p class="card-meta">{{ getFocusedTab()?.status || 'idle' }}</p>
             </div>
           </header>
 
@@ -251,6 +291,7 @@
       <div class="status-cluster">
         <span>{{ workspaceName }}</span>
         <span>{{ runtimeTabs.length }} tabs</span>
+        <span>{{ runtimePanes.length }} panes</span>
       </div>
       <div class="status-cluster">
         <span>Ln 12, Col 1</span>

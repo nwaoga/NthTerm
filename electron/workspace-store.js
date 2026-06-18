@@ -291,6 +291,13 @@ class WorkspaceStore {
       layout: {
         mode: 'grid-2x2',
         activeTabId: 'tab-api',
+        focusedPaneId: 'pane-1',
+        panes: [
+          { id: 'pane-1', tabId: 'tab-api' },
+          { id: 'pane-2', tabId: 'tab-db' },
+          { id: 'pane-3', tabId: null },
+          { id: 'pane-4', tabId: null },
+        ],
       },
       tabs: [
         { id: 'tab-api', title: `${name} API`, cwd, status: 'running', accent: 'violet' },

@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
@@ -41,13 +42,9 @@ interface RuntimeTab {
   accent: string;
 }
 
-interface TerminalCard {
-  title: string;
-  subtitle: string;
-  status: string;
-  detail: string;
-  tone: 'violet' | 'amber' | 'cyan' | 'blue';
-  terminal?: boolean;
+interface RuntimePane {
+  id: string;
+  tabId: string | null;
 }
 
 interface UtilityTab {
@@ -61,6 +58,8 @@ interface InspectorItem {
   value: string;
 }
 
+type LayoutMode = 'grid-2' | 'grid-2x2';
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule],
@@ -68,7 +67,7 @@ interface InspectorItem {
   styleUrl: './app.component.css'
 })
 export class AppComponent implements AfterViewInit {
-  @ViewChild('terminalHost', { static: true })
+  @ViewChild('terminalHost')
   private terminalHost?: ElementRef<HTMLDivElement>;
 
   protected status = 'Loading workspace...';
@@ -79,9 +78,12 @@ export class AppComponent implements AfterViewInit {
   protected selectedWorkspaceId = '';
   protected activeInspectorTab: 'tab' | 'session' = 'tab';
   protected activeTabId = '';
+  protected focusedPaneId = 'pane-1';
+  protected layoutMode: LayoutMode = 'grid-2x2';
 
   protected sessions: SessionListItem[] = [];
   protected runtimeTabs: RuntimeTab[] = [];
+  protected runtimePanes: RuntimePane[] = [];
 
   protected readonly templates: TemplateListItem[] = [
     {
@@ -121,13 +123,6 @@ export class AppComponent implements AfterViewInit {
     },
   ];
 
-  protected readonly terminalCards: TerminalCard[] = [
-    { title: 'API', subtitle: 'main', status: 'running', detail: '7192', tone: 'violet', terminal: true },
-    { title: 'Angular', subtitle: 'main', status: 'running', detail: '4200', tone: 'amber' },
-    { title: 'Database', subtitle: 'local', status: 'running', detail: '5432', tone: 'cyan' },
-    { title: 'Docker', subtitle: 'up', status: 'running', detail: '4 containers', tone: 'blue' },
-  ];
-
   protected readonly utilityTabs: UtilityTab[] = [
     { label: 'Output', active: true },
     { label: 'Problems', count: 2 },
@@ -148,8 +143,10 @@ export class AppComponent implements AfterViewInit {
     layoutMode: 'grid-2x2',
     launchProfile: 'manual',
     tabCount: 0,
+    paneCount: 0,
   };
 
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly ngZone = inject(NgZone);
   private readonly terminalBridge = inject(TerminalBridgeService);
@@ -164,13 +161,6 @@ export class AppComponent implements AfterViewInit {
   private activeWorkspace?: SavedWorkspace;
 
   async ngAfterViewInit(): Promise<void> {
-    if (!this.terminalHost) {
-      this.status = 'Terminal host was not found.';
-      return;
-    }
-
-    this.createTerminalSurface();
-
     const [workspaces, activeWorkspace] = await Promise.all([
       this.workspaceBridge.listWorkspaces(),
       this.workspaceBridge.getActiveWorkspace(),
@@ -178,20 +168,12 @@ export class AppComponent implements AfterViewInit {
 
     this.sessions = workspaces.map((workspace) => this.mapSession(workspace));
     this.applyWorkspace(activeWorkspace);
-    await this.restoreActiveTabSession();
-
-    this.resizeObserver = new ResizeObserver(() => this.syncTerminalSize());
-    this.resizeObserver.observe(this.terminalHost.nativeElement);
+    await this.restoreFocusedPaneSession();
 
     this.destroyRef.onDestroy(() => {
-      this.removeDataListener?.();
-      this.removeExitListener?.();
-      this.resizeObserver?.disconnect();
+      this.disposeTerminalSession();
       this.terminal?.dispose();
-
-      if (this.sessionId) {
-        void this.terminalBridge.disposeSession(this.sessionId);
-      }
+      this.resizeObserver?.disconnect();
     });
   }
 
@@ -213,16 +195,16 @@ export class AppComponent implements AfterViewInit {
 
     const restored = await this.workspaceBridge.setActiveWorkspace(this.selectedWorkspaceId);
     this.applyWorkspace(restored);
-    await this.restoreActiveTabSession();
+    await this.restoreFocusedPaneSession();
   }
 
   protected async relaunchTerminal(): Promise<void> {
-    const activeTab = this.getActiveTab();
-    if (!activeTab) {
+    const focusedTab = this.getFocusedPaneTab();
+    if (!focusedTab) {
       return;
     }
 
-    await this.startTerminalSession(activeTab.cwd);
+    await this.startTerminalSession(focusedTab.cwd);
   }
 
   protected async selectWorkspace(workspaceId: string): Promise<void> {
@@ -232,7 +214,7 @@ export class AppComponent implements AfterViewInit {
 
     const workspace = await this.workspaceBridge.setActiveWorkspace(workspaceId);
     this.applyWorkspace(workspace);
-    await this.restoreActiveTabSession();
+    await this.restoreFocusedPaneSession();
   }
 
   protected async createWorkspaceFromTemplate(template: TemplateListItem): Promise<void> {
@@ -248,7 +230,7 @@ export class AppComponent implements AfterViewInit {
 
     this.applyWorkspace(created);
     await this.refreshSessions();
-    await this.restoreActiveTabSession();
+    await this.restoreFocusedPaneSession();
   }
 
   protected async createTab(): Promise<void> {
@@ -267,25 +249,23 @@ export class AppComponent implements AfterViewInit {
 
     this.runtimeTabs = [...this.runtimeTabs, nextTab];
     this.activeTabId = nextTab.id;
-    this.workspaceSummary.tabCount = this.runtimeTabs.length;
+    this.assignTabToPane(this.focusedPaneId, nextTab.id);
+    this.updateWorkspaceSummary();
     await this.persistWorkspaceState();
     await this.startTerminalSession(nextTab.cwd);
   }
 
   protected async selectTab(tabId: string): Promise<void> {
-    if (tabId === this.activeTabId) {
+    const tab = this.runtimeTabs.find((item) => item.id === tabId);
+    if (!tab) {
       return;
     }
 
     this.activeTabId = tabId;
-    const activeTab = this.getActiveTab();
-    if (!activeTab) {
-      return;
-    }
-
-    this.workingDirectory = activeTab.cwd;
+    this.assignTabToPane(this.focusedPaneId, tabId);
+    this.workingDirectory = tab.cwd;
     await this.persistWorkspaceState();
-    await this.startTerminalSession(activeTab.cwd);
+    await this.startTerminalSession(tab.cwd);
   }
 
   protected async closeTab(tabId: string, event?: MouseEvent): Promise<void> {
@@ -298,18 +278,54 @@ export class AppComponent implements AfterViewInit {
 
     const remainingTabs = this.runtimeTabs.filter((tab) => tab.id !== tabId);
     this.runtimeTabs = remainingTabs;
+    this.runtimePanes = this.runtimePanes.map((pane) => ({
+      ...pane,
+      tabId: pane.tabId === tabId ? null : pane.tabId,
+    }));
 
     if (this.activeTabId === tabId) {
-      this.activeTabId = remainingTabs[0].id;
-      const activeTab = this.getActiveTab();
-      if (activeTab) {
-        this.workingDirectory = activeTab.cwd;
-        await this.startTerminalSession(activeTab.cwd);
-      }
+      const fallbackTab = remainingTabs[0];
+      this.activeTabId = fallbackTab.id;
+      this.assignTabToPane(this.focusedPaneId, fallbackTab.id);
+      this.workingDirectory = fallbackTab.cwd;
+      await this.startTerminalSession(fallbackTab.cwd);
     }
 
-    this.workspaceSummary.tabCount = this.runtimeTabs.length;
+    this.updateWorkspaceSummary();
     await this.persistWorkspaceState();
+  }
+
+  protected async setLayoutMode(mode: LayoutMode): Promise<void> {
+    if (this.layoutMode === mode) {
+      return;
+    }
+
+    this.layoutMode = mode;
+    this.runtimePanes = this.buildPanesForMode(mode, this.runtimeTabs, this.runtimePanes);
+    if (!this.runtimePanes.some((pane) => pane.id === this.focusedPaneId)) {
+      this.focusedPaneId = this.runtimePanes[0]?.id || 'pane-1';
+    }
+
+    this.updateWorkspaceSummary();
+    await this.persistWorkspaceState();
+    await this.restoreFocusedPaneSession();
+  }
+
+  protected async focusPane(paneId: string): Promise<void> {
+    if (paneId === this.focusedPaneId) {
+      return;
+    }
+
+    this.focusedPaneId = paneId;
+    const focusedTab = this.getFocusedPaneTab();
+
+    if (focusedTab) {
+      this.activeTabId = focusedTab.id;
+      this.workingDirectory = focusedTab.cwd;
+    }
+
+    await this.persistWorkspaceState();
+    await this.restoreFocusedPaneSession();
   }
 
   protected setInspectorTab(tab: 'tab' | 'session'): void {
@@ -322,6 +338,22 @@ export class AppComponent implements AfterViewInit {
 
   protected isTabActive(tab: RuntimeTab): boolean {
     return tab.id === this.activeTabId;
+  }
+
+  protected isPaneFocused(pane: RuntimePane): boolean {
+    return pane.id === this.focusedPaneId;
+  }
+
+  protected getPaneTab(pane: RuntimePane): RuntimeTab | undefined {
+    return pane.tabId ? this.runtimeTabs.find((tab) => tab.id === pane.tabId) : undefined;
+  }
+
+  protected getPaneTone(pane: RuntimePane): string {
+    return this.getPaneTab(pane)?.accent || 'slate';
+  }
+
+  protected getFocusedTab(): RuntimeTab | undefined {
+    return this.getFocusedPaneTab();
   }
 
   protected trackByName(_index: number, item: { name: string }): string {
@@ -368,12 +400,17 @@ export class AppComponent implements AfterViewInit {
       cwd: this.workingDirectory.trim(),
       icon: currentSession?.icon || 'cloud',
       accent: currentSession?.accent || 'slate',
-      layoutMode: this.workspaceSummary.layoutMode,
+      layoutMode: this.layoutMode,
       launchProfile: this.workspaceSummary.launchProfile,
       sessionSnapshot: {
         layout: {
-          mode: this.workspaceSummary.layoutMode,
+          mode: this.layoutMode,
           activeTabId: this.activeTabId,
+          focusedPaneId: this.focusedPaneId,
+          panes: this.runtimePanes.map((pane) => ({
+            id: pane.id,
+            tabId: pane.tabId,
+          })),
         },
         tabs: this.runtimeTabs.map((tab) => ({
           id: tab.id,
@@ -395,7 +432,18 @@ export class AppComponent implements AfterViewInit {
     };
   }
 
-  private createTerminalSurface(): void {
+  private async recreateTerminalSurface(): Promise<void> {
+    this.terminal?.dispose();
+    this.terminal = undefined;
+    this.fitAddon = undefined;
+
+    this.changeDetectorRef.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    if (!this.terminalHost) {
+      return;
+    }
+
     this.fitAddon = new FitAddon();
     this.terminal = new Terminal({
       cursorBlink: true,
@@ -410,24 +458,30 @@ export class AppComponent implements AfterViewInit {
     });
 
     this.terminal.loadAddon(this.fitAddon);
-    this.terminal.open(this.terminalHost!.nativeElement);
-
+    this.terminal.open(this.terminalHost.nativeElement);
     this.terminal.onData((data) => {
       if (this.sessionId) {
         void this.terminalBridge.sendInput(this.sessionId, data);
       }
     });
+
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = new ResizeObserver(() => this.syncTerminalSize());
+    this.resizeObserver.observe(this.terminalHost.nativeElement);
   }
 
-  private async restoreActiveTabSession(): Promise<void> {
-    const activeTab = this.getActiveTab();
-    if (!activeTab) {
-      this.status = 'No workspace tabs are available.';
+  private async restoreFocusedPaneSession(): Promise<void> {
+    const focusedTab = this.getFocusedPaneTab();
+    if (!focusedTab) {
+      this.status = 'Focused pane does not have a tab assigned.';
+      await this.recreateTerminalSurface();
       return;
     }
 
-    this.workingDirectory = activeTab.cwd;
-    await this.startTerminalSession(activeTab.cwd);
+    this.activeTabId = focusedTab.id;
+    this.workingDirectory = focusedTab.cwd;
+    await this.recreateTerminalSurface();
+    await this.startTerminalSession(focusedTab.cwd);
   }
 
   private async persistWorkspaceState(): Promise<void> {
@@ -440,29 +494,59 @@ export class AppComponent implements AfterViewInit {
     await this.refreshSessions();
   }
 
-  private getActiveTab(): RuntimeTab | undefined {
-    return this.runtimeTabs.find((tab) => tab.id === this.activeTabId) || this.runtimeTabs[0];
+  private getFocusedPaneTab(): RuntimeTab | undefined {
+    const focusedPane = this.runtimePanes.find((pane) => pane.id === this.focusedPaneId);
+    if (!focusedPane?.tabId) {
+      return undefined;
+    }
+
+    return this.runtimeTabs.find((tab) => tab.id === focusedPane.tabId);
+  }
+
+  private assignTabToPane(paneId: string, tabId: string): void {
+    this.runtimePanes = this.runtimePanes.map((pane) =>
+      pane.id === paneId ? { ...pane, tabId } : pane
+    );
+  }
+
+  private buildPanesForMode(
+    mode: LayoutMode,
+    tabs: RuntimeTab[],
+    existingPanes: RuntimePane[]
+  ): RuntimePane[] {
+    const paneIds = mode === 'grid-2'
+      ? ['pane-1', 'pane-2']
+      : ['pane-1', 'pane-2', 'pane-3', 'pane-4'];
+
+    return paneIds.map((paneId, index) => {
+      const existing = existingPanes.find((pane) => pane.id === paneId);
+      return {
+        id: paneId,
+        tabId: existing?.tabId ?? tabs[index]?.id ?? null,
+      };
+    });
+  }
+
+  private updateWorkspaceSummary(): void {
+    this.workspaceSummary = {
+      layoutMode: this.layoutMode,
+      launchProfile: this.workspaceSummary.launchProfile,
+      tabCount: this.runtimeTabs.length,
+      paneCount: this.runtimePanes.length,
+    };
   }
 
   private async startTerminalSession(cwd: string): Promise<void> {
     const targetDirectory = cwd.trim();
-    if (!targetDirectory) {
+    if (!targetDirectory || !this.terminal || !this.fitAddon) {
       this.status = 'Working directory is required.';
       return;
     }
 
     this.status = `Launching terminal in ${targetDirectory}...`;
-
-    if (this.sessionId) {
-      await this.terminalBridge.disposeSession(this.sessionId);
-      this.sessionId = undefined;
-    }
-
-    this.removeDataListener?.();
-    this.removeExitListener?.();
-
-    this.terminal?.clear();
-    this.terminal?.reset();
+    this.disposeTerminalSession();
+    this.terminal.clear();
+    this.terminal.reset();
 
     this.sessionId = await this.terminalBridge.createSession({ cwd: targetDirectory });
     this.registerTerminalListeners();
@@ -484,6 +568,18 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
+  private disposeTerminalSession(): void {
+    this.removeDataListener?.();
+    this.removeExitListener?.();
+    this.removeDataListener = undefined;
+    this.removeExitListener = undefined;
+
+    if (this.sessionId) {
+      void this.terminalBridge.disposeSession(this.sessionId);
+      this.sessionId = undefined;
+    }
+  }
+
   private applyWorkspace(workspace: SavedWorkspace): void {
     this.activeWorkspace = workspace;
     this.workspaceName = workspace.name;
@@ -496,29 +592,41 @@ export class AppComponent implements AfterViewInit {
       status: tab.status,
       accent: tab.accent,
     })) || [];
+    this.layoutMode = (workspace.sessionSnapshot?.layout?.mode as LayoutMode) || 'grid-2x2';
+    this.runtimePanes = this.buildPanesForMode(
+      this.layoutMode,
+      this.runtimeTabs,
+      workspace.sessionSnapshot?.layout?.panes || []
+    );
+    this.focusedPaneId =
+      workspace.sessionSnapshot?.layout?.focusedPaneId ||
+      this.runtimePanes[0]?.id ||
+      'pane-1';
+
+    const focusedTab = this.getFocusedPaneTab();
     this.activeTabId =
+      focusedTab?.id ||
       workspace.sessionSnapshot?.layout?.activeTabId ||
       this.runtimeTabs[0]?.id ||
       '';
-
-    const activeTab = this.getActiveTab();
-    this.workingDirectory = activeTab?.cwd || workspace.cwd;
+    this.workingDirectory = focusedTab?.cwd || workspace.cwd;
     this.lastSavedAt = workspace.updatedAt;
     this.workspaceSummary = {
-      layoutMode: workspace.layoutMode || 'grid-2x2',
+      layoutMode: workspace.layoutMode || this.layoutMode,
       launchProfile: workspace.launchProfile || 'manual',
       tabCount: this.runtimeTabs.length,
+      paneCount: this.runtimePanes.length,
     };
 
     this.inspectorItems = [
       { label: 'Shell', value: 'PowerShell 7.4.2' },
       { label: 'Directory', value: this.workingDirectory },
       { label: 'Template', value: workspace.templateId || 'custom' },
-      { label: 'Layout', value: workspace.layoutMode || 'grid-2x2' },
+      { label: 'Layout', value: this.layoutMode },
       { label: 'Launch Profile', value: workspace.launchProfile || 'manual' },
-      { label: 'Git Branch', value: 'main' },
-      { label: 'Active Tab', value: activeTab?.title || 'n/a' },
-      { label: 'Process', value: `${this.workspaceSummary.tabCount} session tab(s)` },
+      { label: 'Focused Pane', value: this.focusedPaneId },
+      { label: 'Active Tab', value: focusedTab?.title || 'n/a' },
+      { label: 'Process', value: `${this.workspaceSummary.tabCount} tab(s) across ${this.workspaceSummary.paneCount} pane(s)` },
       { label: 'Started', value: 'Restored on launch' },
     ];
   }

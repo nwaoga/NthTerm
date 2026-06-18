@@ -14,6 +14,11 @@ export interface SavedWorkspace {
     layout: {
       mode: string;
       activeTabId: string;
+      focusedPaneId: string;
+      panes: Array<{
+        id: string;
+        tabId: string | null;
+      }>;
     };
     tabs: Array<{
       id: string;
