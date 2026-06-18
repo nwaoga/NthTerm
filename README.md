@@ -2,6 +2,8 @@
 
 NthTerm is a cross-platform terminal workspace manager built with Angular, Electron, xterm.js, node-pty, and SQLite.
 
+The goal is to make it easy to create, save, restore, and manage rich terminal workspaces with multiple tabs, pane layouts, startup context, and session-aware tooling.
+
 ## Product direction
 
 NthTerm is headed toward a rich desktop workspace experience for developers and operators:
@@ -19,20 +21,25 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Phase 1 is complete with a working Electron shell that renders a real interactive terminal.
+Current milestone: Phase 2 desktop shell and workspace persistence.
 
-Phase 2 is now underway with a first persistence slice:
+Working today:
 
-- a SQLite-backed default workspace record stored from Electron main
-- preload APIs for loading and saving workspace state
-- Angular controls for workspace name, working directory, save, restore, and terminal relaunch
-- a sessions sidebar backed by persisted workspaces instead of placeholder entries
-- template actions that create Angular, ASP.NET API, Full Stack, Docker Compose, and empty workspaces
-- richer workspace records that now persist layout mode, launch profile, and a lightweight session snapshot for future tab and pane restore
-- a real terminal tab strip that can create, switch, close, and persist tabs per workspace
-- a split-pane shell with persisted 2-up and 2x2 layouts, focused-pane tracking, and pane-to-tab assignments per workspace
+- Electron opens and renders a real interactive terminal
+- PTY lifecycle is managed in Electron main through `node-pty`
+- workspace state is stored in SQLite through an Electron-managed persistence layer
+- the app supports multiple named workspaces and starter templates
+- each workspace can persist tabs, layout mode, focused pane, and pane-to-tab assignments
+- the shell currently supports `2-up` and `2x2` pane layouts
+- the focused pane restores the live xterm session while the other panes show saved assignment context
 
-## Development
+In progress:
+
+- richer inspector actions and session metadata
+- utility panels for output, problems, search, and command history
+- deeper multi-pane runtime behavior beyond the current focused-pane model
+
+## Quick start
 
 Install dependencies:
 
@@ -40,7 +47,7 @@ Install dependencies:
 npm install
 ```
 
-Run the Angular renderer and Electron shell together:
+Run Angular and Electron together for local development:
 
 ```bash
 npm start
@@ -52,21 +59,23 @@ Build the Angular app:
 npm run build
 ```
 
-Launch Electron against the built app:
+Launch Electron against the production build:
 
 ```bash
 npm run desktop
 ```
 
-The current persistence slice stores one default workspace and relaunches the terminal using the saved working directory.
+## Notes
 
-The sessions sidebar now supports selecting persisted workspaces and creating new workspaces from starter templates.
+The current persistence slice stores restore-oriented workspace metadata, including:
 
-Workspace persistence now tracks more than name and directory: each workspace stores restore-oriented metadata for tabs, layout mode, focused pane, and pane assignments.
+- workspace identity and working directory
+- template and visual metadata
+- launch profile and layout mode
+- tab snapshot data
+- focused pane and pane assignments
 
-The top tab strip is now backed by persisted workspace snapshot state instead of static placeholder tabs.
-
-The split-pane shell currently restores one live interactive terminal into the focused pane while the other assigned panes show their saved tab context. This keeps PTY ownership simple in Electron main for now, and gives us a clean path to true multi-session panes next.
+The split-pane shell currently restores one live interactive terminal into the focused pane while the other assigned panes show saved tab context. This keeps PTY ownership simple in Electron main for now and gives the project a clean path toward true concurrent pane sessions later.
 
 ## Architecture direction
 
@@ -75,6 +84,6 @@ The split-pane shell currently restores one live interactive terminal into the f
 - xterm.js provides the terminal UI.
 - SQLite persistence runs in Electron main and is exposed through the preload bridge.
 - The active workspace and workspace list are managed in Electron main and projected into the sidebar through the preload bridge.
-- Workspace records now include lightweight restore metadata so the current shell can grow into real tab and split-pane restoration without redesigning persistence later.
-- Terminal tab actions now update the workspace snapshot directly, so the renderer is beginning to operate against the same restore model that later pane-layout work will use.
+- Workspace records include restore metadata so the shell can grow into deeper tab and split-pane restoration without redesigning persistence later.
+- Terminal tab actions update the workspace snapshot directly.
 - Pane layout restoration currently uses a focused-pane model: Angular renders the workspace grid and saved pane assignments, while Electron still owns the single active PTY session lifecycle.
