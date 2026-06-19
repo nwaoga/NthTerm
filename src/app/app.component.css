@@ -1,6 +1,7 @@
 :host {
   display: block;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   color: #e6edf7;
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
@@ -13,7 +14,8 @@ input {
 .app-shell {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background:
     radial-gradient(circle at top center, rgba(119, 67, 219, 0.16), transparent 28%),
     linear-gradient(180deg, #0b0d16 0%, #0a1020 56%, #09111d 100%);
@@ -178,6 +180,8 @@ input {
   display: grid;
   grid-template-rows: auto 1fr auto;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .shell-toolbar {
@@ -244,10 +248,15 @@ input {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 270px;
   min-height: 0;
+  overflow: hidden;
 }
 
 .content-main {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden auto;
   padding: 14px 16px 10px;
 }
 
@@ -309,6 +318,7 @@ input {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 12px;
+  min-height: 0;
 }
 
 .pane-grid[data-layout='grid-2'] {
@@ -447,7 +457,8 @@ input {
 
 .terminal-host {
   flex: 1;
-  min-height: 220px;
+  min-height: 0;
+  height: 0;
   padding: 10px 12px 14px;
   overflow: hidden;
 }

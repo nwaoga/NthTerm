@@ -184,6 +184,7 @@ export class AppComponent implements AfterViewInit {
   private activeWorkspace?: SavedWorkspace;
   private uptimeIntervalId?: number;
   private terminalInputBuffer = '';
+  private resizeDebounceId?: ReturnType<typeof setTimeout>;
 
   async ngAfterViewInit(): Promise<void> {
     const [workspaces, activeWorkspace] = await Promise.all([
@@ -204,6 +205,7 @@ export class AppComponent implements AfterViewInit {
       this.disposeTerminalSession();
       this.terminal?.dispose();
       this.resizeObserver?.disconnect();
+      clearTimeout(this.resizeDebounceId);
       if (this.uptimeIntervalId) {
         window.clearInterval(this.uptimeIntervalId);
       }
@@ -664,7 +666,10 @@ export class AppComponent implements AfterViewInit {
     });
 
     this.resizeObserver?.disconnect();
-    this.resizeObserver = new ResizeObserver(() => this.syncTerminalSize());
+    this.resizeObserver = new ResizeObserver(() => {
+      clearTimeout(this.resizeDebounceId);
+      this.resizeDebounceId = setTimeout(() => this.syncTerminalSize(), 60);
+    });
     this.resizeObserver.observe(this.terminalHost.nativeElement);
   }
 
@@ -852,8 +857,15 @@ export class AppComponent implements AfterViewInit {
       return;
     }
 
-    this.fitTerminal();
-    void this.terminalBridge.resizeSession(this.sessionId, this.terminal.cols, this.terminal.rows);
+    const sessionId = this.sessionId;
+    this.ngZone.runOutsideAngular(() => {
+      requestAnimationFrame(() => {
+        this.fitAddon?.fit();
+        if (this.terminal && sessionId) {
+          void this.terminalBridge.resizeSession(sessionId, this.terminal.cols, this.terminal.rows);
+        }
+      });
+    });
   }
 
   private updateTabStatus(tabId: string, status: string): void {
