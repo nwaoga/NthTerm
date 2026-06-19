@@ -529,6 +529,22 @@ input {
   padding: 14px;
 }
 
+.dock-content-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  gap: 14px;
+}
+
+.monitor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.monitor-panel .utility-panel-header {
+  margin-bottom: 12px;
+}
+
 .utility-panel {
   min-height: 170px;
   max-height: 220px;
@@ -939,6 +955,10 @@ input {
 
   .inspector {
     margin: 0 16px 12px;
+  }
+
+  .dock-content-split {
+    grid-template-columns: 1fr;
   }
 }
 

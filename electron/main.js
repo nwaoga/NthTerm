@@ -4,6 +4,7 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const pty = require('node-pty');
 const { WorkspaceStore } = require('./workspace-store');
+const { formatEnvironment, getSystemMetrics } = require('./system-monitor');
 
 const terminals = new Map();
 const workspaceStore = new WorkspaceStore();
@@ -101,12 +102,16 @@ function registerTerminalHandlers() {
     const id = crypto.randomUUID();
     const cwd = options.cwd || os.homedir();
     const startedAt = new Date().toISOString();
+    const env = {
+      ...process.env,
+      ...(options.workspaceName ? { NTH_TERM_WORKSPACE: options.workspaceName } : {}),
+    };
     const terminal = pty.spawn(shell.file, shell.args, {
       name: 'xterm-256color',
       cols: 120,
       rows: 32,
       cwd,
-      env: process.env,
+      env,
     });
     const info = {
       id,
@@ -124,6 +129,7 @@ function registerTerminalHandlers() {
     terminals.set(id, {
       terminal,
       info,
+      env,
       ownerWebContentsId: event.sender.id,
     });
     sendTerminalInfo(event.sender, info);
@@ -194,6 +200,21 @@ function registerTerminalHandlers() {
   });
 }
 
+function registerSystemHandlers() {
+  ipcMain.handle('system:get-metrics', async () => {
+    return getSystemMetrics();
+  });
+
+  ipcMain.handle('system:get-session-environment', (_event, sessionId) => {
+    const entry = terminals.get(sessionId);
+    if (!entry?.env) {
+      return [];
+    }
+
+    return formatEnvironment(entry.env);
+  });
+}
+
 function registerWorkspaceHandlers() {
   ipcMain.handle('workspace:list', () => {
     return workspaceStore.listWorkspaces();
@@ -222,6 +243,7 @@ app.whenReady()
     await workspaceStore.init(app.getPath('userData'));
     registerTerminalHandlers();
     registerWorkspaceHandlers();
+    registerSystemHandlers();
     createWindow();
 
     app.on('activate', () => {

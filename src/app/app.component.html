@@ -208,20 +208,46 @@
           <div class="dock-content">
             @switch (activeUtilityTab) {
               @case ('output') {
-                <div class="utility-panel output-panel">
-                  <header class="utility-panel-header">
-                    <p class="rail-title">Application Output</p>
-                    <button type="button" class="utility-action" (click)="clearOutput()">Clear</button>
-                  </header>
-                  @if (outputLines.length) {
-                    @for (line of outputLines; track line.id) {
-                      <p [attr.data-level]="line.level">
-                        [{{ formatClock(line.timestamp) }}] {{ line.level }}: {{ line.message }}
-                      </p>
+                <div class="dock-content-split">
+                  <div class="utility-panel output-panel">
+                    <header class="utility-panel-header">
+                      <p class="rail-title">Application Output</p>
+                      <button type="button" class="utility-action" (click)="clearOutput()">Clear</button>
+                    </header>
+                    @if (outputLines.length) {
+                      @for (line of outputLines; track line.id) {
+                        <p [attr.data-level]="line.level">
+                          [{{ formatClock(line.timestamp) }}] {{ line.level }}: {{ line.message }}
+                        </p>
+                      }
+                    } @else {
+                      <p class="utility-empty">Output from workspace and terminal lifecycle events will appear here.</p>
                     }
-                  } @else {
-                    <p class="utility-empty">Output from workspace and terminal lifecycle events will appear here.</p>
-                  }
+                  </div>
+
+                  <div class="monitor-panel">
+                    <header class="utility-panel-header">
+                      <p class="rail-title">System Monitor</p>
+                    </header>
+                    <div class="monitor-grid">
+                      <div class="metric-ring metric-cpu">
+                        <span>CPU</span>
+                        <strong>{{ formatMetric(systemMetrics?.cpuPercent, '%') }}</strong>
+                      </div>
+                      <div class="metric-ring metric-memory">
+                        <span>Memory</span>
+                        <strong>{{ formatMetric(systemMetrics?.memoryUsedGb, ' GB') }}</strong>
+                      </div>
+                      <div class="metric-ring metric-disk">
+                        <span>Disk</span>
+                        <strong>{{ formatMetric(systemMetrics?.diskPercent, '%') }}</strong>
+                      </div>
+                      <div class="metric-ring metric-network">
+                        <span>Network</span>
+                        <strong>{{ formatMetric(systemMetrics?.networkMbps, ' Mbps') }}</strong>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               }
               @case ('problems') {
@@ -359,10 +385,16 @@
         <section class="inspector-card compact">
           <p class="rail-title">Environment Variables</p>
           <div class="history-list">
-            <div><span>DOTNET_ENVIRONMENT</span><strong>Development</strong></div>
-            <div><span>ASPNETCORE_ENVIRONMENT</span><strong>Development</strong></div>
-            <div><span>PATH</span><strong>…\bin</strong></div>
-            <div><span>WORKSPACE</span><strong>{{ selectedWorkspace }}</strong></div>
+            @if (getVisibleEnvironmentVariables().length) {
+              @for (entry of getVisibleEnvironmentVariables(); track entry.name) {
+                <div>
+                  <span>{{ entry.name }}</span>
+                  <strong>{{ entry.value }}</strong>
+                </div>
+              }
+            } @else {
+              <p class="utility-empty compact">Environment variables from the active terminal session will appear here.</p>
+            }
           </div>
         </section>
       </aside>

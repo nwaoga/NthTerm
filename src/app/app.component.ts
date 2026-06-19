@@ -14,6 +14,11 @@ import { Terminal } from '@xterm/xterm';
 
 import { TerminalBridgeService, TerminalInfo } from './terminal-bridge.service';
 import {
+  EnvironmentVariable,
+  SystemBridgeService,
+  SystemMetrics,
+} from './system-bridge.service';
+import {
   SavedWorkspace,
   WorkspaceBridgeService,
   WorkspaceDraft,
@@ -113,6 +118,8 @@ export class AppComponent implements AfterViewInit {
   protected outputLines: OutputLine[] = [];
   protected problems: ProblemEntry[] = [];
   protected commandHistory: CommandHistoryEntry[] = [];
+  protected systemMetrics: SystemMetrics | null = null;
+  protected environmentVariables: EnvironmentVariable[] = [];
   protected activeTabId = '';
   protected focusedPaneId = 'pane-1';
   protected layoutMode: LayoutMode = 'grid-2x2';
@@ -173,6 +180,7 @@ export class AppComponent implements AfterViewInit {
   private readonly ngZone = inject(NgZone);
   private readonly terminalBridge = inject(TerminalBridgeService);
   private readonly workspaceBridge = inject(WorkspaceBridgeService);
+  private readonly systemBridge = inject(SystemBridgeService);
 
   private terminal?: Terminal;
   private fitAddon?: FitAddon;
@@ -183,6 +191,7 @@ export class AppComponent implements AfterViewInit {
   private removeInfoListener?: () => void;
   private activeWorkspace?: SavedWorkspace;
   private uptimeIntervalId?: number;
+  private metricsIntervalId?: number;
   private terminalInputBuffer = '';
   private resizeDebounceId?: ReturnType<typeof setTimeout>;
 
@@ -197,6 +206,7 @@ export class AppComponent implements AfterViewInit {
     await this.restoreFocusedPaneSession();
     this.appendOutput('Workspace shell initialized', 'info');
     this.appendOutput(`Loaded workspace "${activeWorkspace.name}"`, 'info');
+    this.startSystemMonitoring();
     this.uptimeIntervalId = window.setInterval(() => {
       this.changeDetectorRef.markForCheck();
     }, 1000);
@@ -206,6 +216,9 @@ export class AppComponent implements AfterViewInit {
       this.terminal?.dispose();
       this.resizeObserver?.disconnect();
       clearTimeout(this.resizeDebounceId);
+      if (this.metricsIntervalId) {
+        window.clearInterval(this.metricsIntervalId);
+      }
       if (this.uptimeIntervalId) {
         window.clearInterval(this.uptimeIntervalId);
       }
@@ -264,6 +277,7 @@ export class AppComponent implements AfterViewInit {
     const focusedTab = this.getFocusedPaneTab();
     this.disposeTerminalSession();
     this.sessionInfo = null;
+    this.environmentVariables = [];
     this.status = 'Terminal session killed.';
     this.appendOutput(this.status, 'warn');
 
@@ -498,6 +512,18 @@ export class AppComponent implements AfterViewInit {
 
   protected clearOutput(): void {
     this.outputLines = [];
+  }
+
+  protected formatMetric(value: number | null | undefined, suffix = ''): string {
+    if (value === null || value === undefined || Number.isNaN(value)) {
+      return 'n/a';
+    }
+
+    return `${value}${suffix}`;
+  }
+
+  protected getVisibleEnvironmentVariables(): EnvironmentVariable[] {
+    return this.environmentVariables.slice(0, 12);
   }
 
   protected isSessionActive(session: SessionListItem): boolean {
@@ -755,10 +781,14 @@ export class AppComponent implements AfterViewInit {
     this.terminal.clear();
     this.terminal.reset();
 
-    this.sessionId = await this.terminalBridge.createSession({ cwd: targetDirectory });
+    this.sessionId = await this.terminalBridge.createSession({
+      cwd: targetDirectory,
+      workspaceName: this.workspaceName,
+    });
     this.sessionInfo = await this.terminalBridge.getSessionInfo(this.sessionId);
     this.registerTerminalListeners();
     this.syncTerminalSize();
+    await this.refreshEnvironmentVariables();
     const focusedTab = this.getFocusedPaneTab();
     if (focusedTab) {
       this.updateTabStatus(focusedTab.id, 'running');
@@ -872,6 +902,35 @@ export class AppComponent implements AfterViewInit {
     this.runtimeTabs = this.runtimeTabs.map((tab) =>
       tab.id === tabId ? { ...tab, status } : tab
     );
+  }
+
+  private startSystemMonitoring(): void {
+    void this.refreshSystemMetrics();
+    this.metricsIntervalId = window.setInterval(() => {
+      void this.refreshSystemMetrics();
+    }, 3000);
+  }
+
+  private async refreshSystemMetrics(): Promise<void> {
+    try {
+      this.systemMetrics = await this.systemBridge.getMetrics();
+      this.changeDetectorRef.markForCheck();
+    } catch {
+      this.systemMetrics = null;
+    }
+  }
+
+  private async refreshEnvironmentVariables(): Promise<void> {
+    if (!this.sessionId) {
+      this.environmentVariables = [];
+      return;
+    }
+
+    try {
+      this.environmentVariables = await this.systemBridge.getSessionEnvironment(this.sessionId);
+    } catch {
+      this.environmentVariables = [];
+    }
   }
 
   private formatTimestamp(value?: string | null): string {

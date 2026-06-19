@@ -31,4 +31,8 @@ contextBridge.exposeInMainWorld('nthTermDesktop', {
     saveWorkspace: (workspace) => ipcRenderer.invoke('workspace:save', workspace),
     setActiveWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:set-active', workspaceId),
   },
+  system: {
+    getMetrics: () => ipcRenderer.invoke('system:get-metrics'),
+    getSessionEnvironment: (sessionId) => ipcRenderer.invoke('system:get-session-environment', sessionId),
+  },
 });
