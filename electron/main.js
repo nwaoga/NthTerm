@@ -47,7 +47,27 @@ function getShell() {
 }
 
 function sendTerminalInfo(webContents, info) {
-  webContents.send('terminal:info', { ...info });
+  safeSend(webContents, 'terminal:info', { ...info });
+}
+
+function safeSend(webContents, channel, payload) {
+  if (!webContents || webContents.isDestroyed()) {
+    return false;
+  }
+
+  webContents.send(channel, payload);
+  return true;
+}
+
+function disposeTerminalsForWebContents(webContentsId) {
+  for (const [id, entry] of terminals.entries()) {
+    if (entry.ownerWebContentsId !== webContentsId) {
+      continue;
+    }
+
+    terminals.delete(id);
+    entry.terminal?.kill();
+  }
 }
 
 function createWindow() {
@@ -101,8 +121,16 @@ function registerTerminalHandlers() {
       detectedPort: null,
     };
 
-    terminals.set(id, { terminal, info });
+    terminals.set(id, {
+      terminal,
+      info,
+      ownerWebContentsId: event.sender.id,
+    });
     sendTerminalInfo(event.sender, info);
+
+    event.sender.once('destroyed', () => {
+      disposeTerminalsForWebContents(event.sender.id);
+    });
 
     terminal.onData((data) => {
       const entry = terminals.get(id);
@@ -117,7 +145,7 @@ function registerTerminalHandlers() {
         sendTerminalInfo(event.sender, entry.info);
       }
 
-      event.sender.send('terminal:data', { id, data });
+      safeSend(event.sender, 'terminal:data', { id, data });
     });
 
     terminal.onExit(({ exitCode }) => {
@@ -131,7 +159,7 @@ function registerTerminalHandlers() {
       entry.info.endedAt = new Date().toISOString();
       entry.terminal = null;
       sendTerminalInfo(event.sender, entry.info);
-      event.sender.send('terminal:exit', { id, exitCode });
+      safeSend(event.sender, 'terminal:exit', { id, exitCode });
     });
 
     return { id };
