@@ -47,10 +47,39 @@ interface RuntimePane {
   tabId: string | null;
 }
 
+type UtilityPanelId = 'output' | 'problems' | 'search' | 'command-history';
+
 interface UtilityTab {
+  id: UtilityPanelId;
   label: string;
   count?: number;
-  active?: boolean;
+}
+
+interface OutputLine {
+  id: string;
+  timestamp: string;
+  level: 'info' | 'warn' | 'error';
+  message: string;
+}
+
+interface ProblemEntry {
+  id: string;
+  severity: 'error' | 'warning';
+  message: string;
+  source: string;
+  timestamp: string;
+}
+
+interface CommandHistoryEntry {
+  id: string;
+  command: string;
+  timestamp: string;
+  tabTitle: string;
+}
+
+interface SearchResultGroup {
+  label: string;
+  items: { id: string; title: string; detail: string }[];
 }
 
 interface InspectorItem {
@@ -79,6 +108,11 @@ export class AppComponent implements AfterViewInit {
   protected selectedWorkspace = '';
   protected selectedWorkspaceId = '';
   protected activeInspectorTab: 'tab' | 'session' = 'tab';
+  protected activeUtilityTab: UtilityPanelId = 'output';
+  protected searchQuery = '';
+  protected outputLines: OutputLine[] = [];
+  protected problems: ProblemEntry[] = [];
+  protected commandHistory: CommandHistoryEntry[] = [];
   protected activeTabId = '';
   protected focusedPaneId = 'pane-1';
   protected layoutMode: LayoutMode = 'grid-2x2';
@@ -126,12 +160,6 @@ export class AppComponent implements AfterViewInit {
     },
   ];
 
-  protected readonly utilityTabs: UtilityTab[] = [
-    { label: 'Output', active: true },
-    { label: 'Problems', count: 2 },
-    { label: 'Search' },
-    { label: 'Command History' },
-  ];
 
   protected workspaceSummary = {
     layoutMode: 'grid-2x2',
@@ -155,6 +183,7 @@ export class AppComponent implements AfterViewInit {
   private removeInfoListener?: () => void;
   private activeWorkspace?: SavedWorkspace;
   private uptimeIntervalId?: number;
+  private terminalInputBuffer = '';
 
   async ngAfterViewInit(): Promise<void> {
     const [workspaces, activeWorkspace] = await Promise.all([
@@ -165,6 +194,8 @@ export class AppComponent implements AfterViewInit {
     this.sessions = workspaces.map((workspace) => this.mapSession(workspace));
     this.applyWorkspace(activeWorkspace);
     await this.restoreFocusedPaneSession();
+    this.appendOutput('Workspace shell initialized', 'info');
+    this.appendOutput(`Loaded workspace "${activeWorkspace.name}"`, 'info');
     this.uptimeIntervalId = window.setInterval(() => {
       this.changeDetectorRef.markForCheck();
     }, 1000);
@@ -188,6 +219,7 @@ export class AppComponent implements AfterViewInit {
     this.applyWorkspace(saved);
     await this.refreshSessions();
     this.status = `Saved workspace to ${saved.cwd}`;
+    this.appendOutput(this.status, 'info');
   }
 
   protected async restoreWorkspace(): Promise<void> {
@@ -198,6 +230,7 @@ export class AppComponent implements AfterViewInit {
     const restored = await this.workspaceBridge.setActiveWorkspace(this.selectedWorkspaceId);
     this.applyWorkspace(restored);
     await this.restoreFocusedPaneSession();
+    this.appendOutput(`Restored workspace "${restored.name}"`, 'info');
   }
 
   protected async relaunchTerminal(): Promise<void> {
@@ -217,6 +250,7 @@ export class AppComponent implements AfterViewInit {
 
     await this.terminalBridge.interruptSession(this.sessionId);
     this.status = 'Sent interrupt signal to terminal.';
+    this.appendOutput(this.status, 'warn');
   }
 
   protected async killTerminal(): Promise<void> {
@@ -229,6 +263,7 @@ export class AppComponent implements AfterViewInit {
     this.disposeTerminalSession();
     this.sessionInfo = null;
     this.status = 'Terminal session killed.';
+    this.appendOutput(this.status, 'warn');
 
     if (focusedTab) {
       this.updateTabStatus(focusedTab.id, 'stopped');
@@ -244,6 +279,7 @@ export class AppComponent implements AfterViewInit {
     const workspace = await this.workspaceBridge.setActiveWorkspace(workspaceId);
     this.applyWorkspace(workspace);
     await this.restoreFocusedPaneSession();
+    this.appendOutput(`Switched to workspace "${workspace.name}"`, 'info');
   }
 
   protected async createWorkspaceFromTemplate(template: TemplateListItem): Promise<void> {
@@ -260,6 +296,7 @@ export class AppComponent implements AfterViewInit {
     this.applyWorkspace(created);
     await this.refreshSessions();
     await this.restoreFocusedPaneSession();
+    this.appendOutput(`Created workspace "${created.name}" from template`, 'info');
   }
 
   protected async createTab(): Promise<void> {
@@ -302,6 +339,7 @@ export class AppComponent implements AfterViewInit {
 
     if (this.runtimeTabs.length <= 1) {
       this.status = 'At least one tab must remain open.';
+      this.appendOutput(this.status, 'warn');
       return;
     }
 
@@ -359,6 +397,105 @@ export class AppComponent implements AfterViewInit {
 
   protected setInspectorTab(tab: 'tab' | 'session'): void {
     this.activeInspectorTab = tab;
+  }
+
+  protected setUtilityTab(tab: UtilityPanelId): void {
+    this.activeUtilityTab = tab;
+  }
+
+  protected openUtilityPanel(tab: UtilityPanelId): void {
+    this.activeUtilityTab = tab;
+  }
+
+  protected getUtilityTabs(): UtilityTab[] {
+    return [
+      { id: 'output', label: 'Output' },
+      { id: 'problems', label: 'Problems', count: this.problems.length || undefined },
+      { id: 'search', label: 'Search' },
+      { id: 'command-history', label: 'Command History', count: this.commandHistory.length || undefined },
+    ];
+  }
+
+  protected getRecentCommands(): CommandHistoryEntry[] {
+    return this.commandHistory.slice(0, 8);
+  }
+
+  protected getSearchResultGroups(): SearchResultGroup[] {
+    const query = this.searchQuery.trim().toLowerCase();
+    if (!query) {
+      return [];
+    }
+
+    const matches = (value: string): boolean => value.toLowerCase().includes(query);
+    const groups: SearchResultGroup[] = [];
+
+    const workspaceMatches = this.sessions
+      .filter((session) => matches(session.name))
+      .map((session) => ({
+        id: session.id,
+        title: session.name,
+        detail: 'Workspace',
+      }));
+
+    if (workspaceMatches.length) {
+      groups.push({ label: 'Workspaces', items: workspaceMatches });
+    }
+
+    const tabMatches = this.runtimeTabs
+      .filter((tab) => matches(tab.title) || matches(tab.cwd))
+      .map((tab) => ({
+        id: tab.id,
+        title: tab.title,
+        detail: tab.cwd,
+      }));
+
+    if (tabMatches.length) {
+      groups.push({ label: 'Tabs', items: tabMatches });
+    }
+
+    const commandMatches = this.commandHistory
+      .filter((entry) => matches(entry.command) || matches(entry.tabTitle))
+      .map((entry) => ({
+        id: entry.id,
+        title: entry.command,
+        detail: `${entry.tabTitle} • ${this.formatClock(entry.timestamp)}`,
+      }));
+
+    if (commandMatches.length) {
+      groups.push({ label: 'Commands', items: commandMatches });
+    }
+
+    const outputMatches = this.outputLines
+      .filter((line) => matches(line.message))
+      .slice(-20)
+      .map((line) => ({
+        id: line.id,
+        title: line.message,
+        detail: `${line.level} • ${this.formatClock(line.timestamp)}`,
+      }));
+
+    if (outputMatches.length) {
+      groups.push({ label: 'Output', items: outputMatches });
+    }
+
+    return groups;
+  }
+
+  protected async rerunCommand(command: string): Promise<void> {
+    if (!this.sessionId || !command.trim()) {
+      return;
+    }
+
+    await this.terminalBridge.sendInput(this.sessionId, `${command}\r`);
+    this.appendOutput(`Re-ran command: ${command}`, 'info');
+  }
+
+  protected clearProblems(): void {
+    this.problems = [];
+  }
+
+  protected clearOutput(): void {
+    this.outputLines = [];
   }
 
   protected isSessionActive(session: SessionListItem): boolean {
@@ -520,6 +657,7 @@ export class AppComponent implements AfterViewInit {
     this.terminal.loadAddon(this.fitAddon);
     this.terminal.open(this.terminalHost.nativeElement);
     this.terminal.onData((data) => {
+      this.trackTerminalInput(data);
       if (this.sessionId) {
         void this.terminalBridge.sendInput(this.sessionId, data);
       }
@@ -534,6 +672,7 @@ export class AppComponent implements AfterViewInit {
     const focusedTab = this.getFocusedPaneTab();
     if (!focusedTab) {
       this.status = 'Focused pane does not have a tab assigned.';
+      this.appendOutput(this.status, 'warn');
       this.sessionInfo = null;
       await this.recreateTerminalSurface();
       return;
@@ -601,10 +740,12 @@ export class AppComponent implements AfterViewInit {
     const targetDirectory = cwd.trim();
     if (!targetDirectory || !this.terminal || !this.fitAddon) {
       this.status = 'Working directory is required.';
+      this.appendOutput(this.status, 'warn');
       return;
     }
 
     this.status = `Launching terminal in ${targetDirectory}...`;
+    this.appendOutput(this.status, 'info');
     this.disposeTerminalSession();
     this.terminal.clear();
     this.terminal.reset();
@@ -618,6 +759,7 @@ export class AppComponent implements AfterViewInit {
       this.updateTabStatus(focusedTab.id, 'running');
     }
     this.status = `Connected to ${targetDirectory}`;
+    this.appendOutput(`Terminal session attached to ${targetDirectory}`, 'info');
   }
 
   private registerTerminalListeners(): void {
@@ -630,6 +772,7 @@ export class AppComponent implements AfterViewInit {
     this.removeDataListener = this.terminalBridge.onData((event) => {
       if (event.id === this.sessionId) {
         this.ngZone.runOutsideAngular(() => this.terminal?.write(event.data));
+        this.ngZone.run(() => this.scanTerminalOutputForProblems(event.data));
       }
     });
 
@@ -640,6 +783,7 @@ export class AppComponent implements AfterViewInit {
           this.updateTabStatus(focusedTab.id, 'stopped');
         }
         this.status = `Terminal exited (${event.exitCode ?? 'unknown'})`;
+        this.appendOutput(this.status, event.exitCode ? 'error' : 'info');
       }
     });
   }
@@ -747,5 +891,123 @@ export class AppComponent implements AfterViewInit {
     }
 
     return `${seconds}s`;
+  }
+
+  private appendOutput(message: string, level: OutputLine['level'] = 'info'): void {
+    const trimmed = message.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    this.outputLines = [
+      ...this.outputLines,
+      {
+        id: `output-${Date.now()}-${this.outputLines.length}`,
+        timestamp: new Date().toISOString(),
+        level,
+        message: trimmed,
+      },
+    ].slice(-200);
+  }
+
+  private trackTerminalInput(data: string): void {
+    for (const char of data) {
+      if (char === '\r' || char === '\n') {
+        this.commitTerminalInput();
+        continue;
+      }
+
+      if (char === '\u007f') {
+        this.terminalInputBuffer = this.terminalInputBuffer.slice(0, -1);
+        continue;
+      }
+
+      if (char >= ' ' && char !== '\u007f') {
+        this.terminalInputBuffer += char;
+      }
+    }
+  }
+
+  private commitTerminalInput(): void {
+    const command = this.terminalInputBuffer.trim();
+    this.terminalInputBuffer = '';
+
+    if (!command) {
+      return;
+    }
+
+    const focusedTab = this.getFocusedTab();
+    this.commandHistory = [
+      {
+        id: `cmd-${Date.now()}-${this.commandHistory.length}`,
+        command,
+        timestamp: new Date().toISOString(),
+        tabTitle: focusedTab?.title || this.workspaceName || 'Terminal',
+      },
+      ...this.commandHistory,
+    ].slice(0, 100);
+  }
+
+  private scanTerminalOutputForProblems(data: string): void {
+    const focusedTab = this.getFocusedTab();
+    const source = focusedTab?.title || this.workspaceName || 'Terminal';
+    const lines = data.split(/\r?\n/);
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) {
+        continue;
+      }
+
+      const severity = this.detectProblemSeverity(line);
+      if (!severity) {
+        continue;
+      }
+
+      const duplicate = this.problems.some(
+        (problem) => problem.message === line && problem.source === source
+      );
+      if (duplicate) {
+        continue;
+      }
+
+      this.problems = [
+        {
+          id: `problem-${Date.now()}-${this.problems.length}`,
+          severity,
+          message: line,
+          source,
+          timestamp: new Date().toISOString(),
+        },
+        ...this.problems,
+      ].slice(0, 100);
+    }
+  }
+
+  private detectProblemSeverity(line: string): ProblemEntry['severity'] | null {
+    const normalized = line.toLowerCase();
+
+    if (
+      /\berror\b/.test(normalized) ||
+      /\bfailed\b/.test(normalized) ||
+      /\bfailure\b/.test(normalized) ||
+      normalized.includes('exception') ||
+      normalized.includes('err!')
+    ) {
+      return 'error';
+    }
+
+    if (/\bwarn(?:ing)?\b/.test(normalized)) {
+      return 'warning';
+    }
+
+    return null;
+  }
+
+  protected formatClock(value: string): string {
+    return new Date(value).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 }
