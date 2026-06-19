@@ -680,6 +680,11 @@ input {
   background: rgba(164, 39, 54, 0.8);
 }
 
+.inspector-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .history-list {
   display: flex;
   flex-direction: column;

@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 
-import { TerminalBridgeService } from './terminal-bridge.service';
+import { TerminalBridgeService, TerminalInfo } from './terminal-bridge.service';
 import {
   SavedWorkspace,
   WorkspaceBridgeService,
@@ -58,6 +58,8 @@ interface InspectorItem {
   value: string;
 }
 
+interface RuntimeSessionInfo extends TerminalInfo {}
+
 type LayoutMode = 'grid-2' | 'grid-2x2';
 
 @Component({
@@ -80,6 +82,7 @@ export class AppComponent implements AfterViewInit {
   protected activeTabId = '';
   protected focusedPaneId = 'pane-1';
   protected layoutMode: LayoutMode = 'grid-2x2';
+  protected sessionInfo: RuntimeSessionInfo | null = null;
 
   protected sessions: SessionListItem[] = [];
   protected runtimeTabs: RuntimeTab[] = [];
@@ -130,15 +133,6 @@ export class AppComponent implements AfterViewInit {
     { label: 'Command History' },
   ];
 
-  protected inspectorItems: InspectorItem[] = [
-    { label: 'Shell', value: 'PowerShell 7.4.2' },
-    { label: 'Directory', value: 'Loading...' },
-    { label: 'Git Branch', value: 'main' },
-    { label: 'Process', value: 'nthterm terminal session' },
-    { label: 'Started', value: 'Today' },
-    { label: 'Port', value: 'Auto-detected' },
-  ];
-
   protected workspaceSummary = {
     layoutMode: 'grid-2x2',
     launchProfile: 'manual',
@@ -158,7 +152,9 @@ export class AppComponent implements AfterViewInit {
   private resizeObserver?: ResizeObserver;
   private removeDataListener?: () => void;
   private removeExitListener?: () => void;
+  private removeInfoListener?: () => void;
   private activeWorkspace?: SavedWorkspace;
+  private uptimeIntervalId?: number;
 
   async ngAfterViewInit(): Promise<void> {
     const [workspaces, activeWorkspace] = await Promise.all([
@@ -169,11 +165,17 @@ export class AppComponent implements AfterViewInit {
     this.sessions = workspaces.map((workspace) => this.mapSession(workspace));
     this.applyWorkspace(activeWorkspace);
     await this.restoreFocusedPaneSession();
+    this.uptimeIntervalId = window.setInterval(() => {
+      this.changeDetectorRef.markForCheck();
+    }, 1000);
 
     this.destroyRef.onDestroy(() => {
       this.disposeTerminalSession();
       this.terminal?.dispose();
       this.resizeObserver?.disconnect();
+      if (this.uptimeIntervalId) {
+        window.clearInterval(this.uptimeIntervalId);
+      }
     });
   }
 
@@ -204,7 +206,34 @@ export class AppComponent implements AfterViewInit {
       return;
     }
 
+    this.updateTabStatus(focusedTab.id, 'restarting');
     await this.startTerminalSession(focusedTab.cwd);
+  }
+
+  protected async interruptTerminal(): Promise<void> {
+    if (!this.sessionId) {
+      return;
+    }
+
+    await this.terminalBridge.interruptSession(this.sessionId);
+    this.status = 'Sent interrupt signal to terminal.';
+  }
+
+  protected async killTerminal(): Promise<void> {
+    const currentSessionId = this.sessionId;
+    if (!currentSessionId) {
+      return;
+    }
+
+    const focusedTab = this.getFocusedPaneTab();
+    this.disposeTerminalSession();
+    this.sessionInfo = null;
+    this.status = 'Terminal session killed.';
+
+    if (focusedTab) {
+      this.updateTabStatus(focusedTab.id, 'stopped');
+      await this.persistWorkspaceState();
+    }
   }
 
   protected async selectWorkspace(workspaceId: string): Promise<void> {
@@ -356,6 +385,37 @@ export class AppComponent implements AfterViewInit {
     return this.getFocusedPaneTab();
   }
 
+  protected getInspectorItems(): InspectorItem[] {
+    const focusedTab = this.getFocusedTab();
+    if (this.activeInspectorTab === 'session') {
+      return [
+        { label: 'Shell', value: this.sessionInfo?.shell || 'n/a' },
+        { label: 'Session Id', value: this.sessionInfo?.id || 'n/a' },
+        { label: 'PID', value: this.sessionInfo?.pid?.toString() || 'n/a' },
+        { label: 'Started', value: this.formatTimestamp(this.sessionInfo?.startedAt) },
+        { label: 'Uptime', value: this.formatUptime(this.sessionInfo?.startedAt, this.sessionInfo?.endedAt) },
+        { label: 'Last Activity', value: this.formatTimestamp(this.sessionInfo?.lastActiveAt) },
+        { label: 'Port', value: this.sessionInfo?.detectedPort?.toString() || 'Not detected' },
+        { label: 'Exit Code', value: this.sessionInfo?.exitCode?.toString() ?? 'n/a' },
+      ];
+    }
+
+    return [
+      { label: 'Directory', value: focusedTab?.cwd || this.workingDirectory || 'n/a' },
+      { label: 'Workspace', value: this.workspaceName || 'n/a' },
+      { label: 'Template', value: this.activeWorkspace?.templateId || 'custom' },
+      { label: 'Layout', value: this.layoutMode },
+      { label: 'Focused Pane', value: this.focusedPaneId },
+      { label: 'Launch Profile', value: this.workspaceSummary.launchProfile || 'manual' },
+      { label: 'Status', value: focusedTab?.status || 'idle' },
+      { label: 'Last Saved', value: this.lastSavedAt || 'pending' },
+    ];
+  }
+
+  protected canControlSession(): boolean {
+    return Boolean(this.sessionId);
+  }
+
   protected trackByName(_index: number, item: { name: string }): string {
     return item.name;
   }
@@ -474,6 +534,7 @@ export class AppComponent implements AfterViewInit {
     const focusedTab = this.getFocusedPaneTab();
     if (!focusedTab) {
       this.status = 'Focused pane does not have a tab assigned.';
+      this.sessionInfo = null;
       await this.recreateTerminalSurface();
       return;
     }
@@ -549,12 +610,23 @@ export class AppComponent implements AfterViewInit {
     this.terminal.reset();
 
     this.sessionId = await this.terminalBridge.createSession({ cwd: targetDirectory });
+    this.sessionInfo = await this.terminalBridge.getSessionInfo(this.sessionId);
     this.registerTerminalListeners();
     this.syncTerminalSize();
+    const focusedTab = this.getFocusedPaneTab();
+    if (focusedTab) {
+      this.updateTabStatus(focusedTab.id, 'running');
+    }
     this.status = `Connected to ${targetDirectory}`;
   }
 
   private registerTerminalListeners(): void {
+    this.removeInfoListener = this.terminalBridge.onInfo((event) => {
+      if (event.id === this.sessionId) {
+        this.sessionInfo = event;
+      }
+    });
+
     this.removeDataListener = this.terminalBridge.onData((event) => {
       if (event.id === this.sessionId) {
         this.ngZone.runOutsideAngular(() => this.terminal?.write(event.data));
@@ -563,14 +635,20 @@ export class AppComponent implements AfterViewInit {
 
     this.removeExitListener = this.terminalBridge.onExit((event) => {
       if (event.id === this.sessionId) {
+        const focusedTab = this.getFocusedPaneTab();
+        if (focusedTab) {
+          this.updateTabStatus(focusedTab.id, 'stopped');
+        }
         this.status = `Terminal exited (${event.exitCode ?? 'unknown'})`;
       }
     });
   }
 
   private disposeTerminalSession(): void {
+    this.removeInfoListener?.();
     this.removeDataListener?.();
     this.removeExitListener?.();
+    this.removeInfoListener = undefined;
     this.removeDataListener = undefined;
     this.removeExitListener = undefined;
 
@@ -617,18 +695,6 @@ export class AppComponent implements AfterViewInit {
       tabCount: this.runtimeTabs.length,
       paneCount: this.runtimePanes.length,
     };
-
-    this.inspectorItems = [
-      { label: 'Shell', value: 'PowerShell 7.4.2' },
-      { label: 'Directory', value: this.workingDirectory },
-      { label: 'Template', value: workspace.templateId || 'custom' },
-      { label: 'Layout', value: this.layoutMode },
-      { label: 'Launch Profile', value: workspace.launchProfile || 'manual' },
-      { label: 'Focused Pane', value: this.focusedPaneId },
-      { label: 'Active Tab', value: focusedTab?.title || 'n/a' },
-      { label: 'Process', value: `${this.workspaceSummary.tabCount} tab(s) across ${this.workspaceSummary.paneCount} pane(s)` },
-      { label: 'Started', value: 'Restored on launch' },
-    ];
   }
 
   private fitTerminal(): void {
@@ -644,5 +710,42 @@ export class AppComponent implements AfterViewInit {
 
     this.fitTerminal();
     void this.terminalBridge.resizeSession(this.sessionId, this.terminal.cols, this.terminal.rows);
+  }
+
+  private updateTabStatus(tabId: string, status: string): void {
+    this.runtimeTabs = this.runtimeTabs.map((tab) =>
+      tab.id === tabId ? { ...tab, status } : tab
+    );
+  }
+
+  private formatTimestamp(value?: string | null): string {
+    if (!value) {
+      return 'n/a';
+    }
+
+    return new Date(value).toLocaleString();
+  }
+
+  private formatUptime(startedAt?: string | null, endedAt?: string | null): string {
+    if (!startedAt) {
+      return 'n/a';
+    }
+
+    const start = new Date(startedAt).getTime();
+    const end = endedAt ? new Date(endedAt).getTime() : Date.now();
+    const totalSeconds = Math.max(0, Math.floor((end - start) / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    }
+
+    return `${seconds}s`;
   }
 }

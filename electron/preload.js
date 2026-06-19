@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld('nthTermDesktop', {
     createTerminal: (options) => ipcRenderer.invoke('terminal:create', options),
     writeTerminal: (id, data) => ipcRenderer.invoke('terminal:write', id, data),
     resizeTerminal: (id, cols, rows) => ipcRenderer.invoke('terminal:resize', id, cols, rows),
+    getTerminalInfo: (id) => ipcRenderer.invoke('terminal:get-info', id),
+    interruptTerminal: (id) => ipcRenderer.invoke('terminal:interrupt', id),
     disposeTerminal: (id) => ipcRenderer.invoke('terminal:dispose', id),
     onTerminalData: (listener) => {
       const wrapped = (_event, payload) => listener(payload);
@@ -15,6 +17,11 @@ contextBridge.exposeInMainWorld('nthTermDesktop', {
       const wrapped = (_event, payload) => listener(payload);
       ipcRenderer.on('terminal:exit', wrapped);
       return () => ipcRenderer.removeListener('terminal:exit', wrapped);
+    },
+    onTerminalInfo: (listener) => {
+      const wrapped = (_event, payload) => listener(payload);
+      ipcRenderer.on('terminal:info', wrapped);
+      return () => ipcRenderer.removeListener('terminal:info', wrapped);
     },
   },
   workspace: {

@@ -10,13 +10,29 @@ export interface TerminalExitEvent {
   exitCode?: number;
 }
 
+export interface TerminalInfo {
+  id: string;
+  pid: number | null;
+  cwd: string;
+  shell: string;
+  status: string;
+  startedAt: string | null;
+  lastActiveAt: string | null;
+  endedAt: string | null;
+  exitCode: number | null;
+  detectedPort: number | null;
+}
+
 interface TerminalApi {
   createTerminal(options?: { cwd?: string }): Promise<{ id: string }>;
   writeTerminal(id: string, data: string): Promise<void>;
   resizeTerminal(id: string, cols: number, rows: number): Promise<void>;
+  getTerminalInfo(id: string): Promise<TerminalInfo | null>;
+  interruptTerminal(id: string): Promise<void>;
   disposeTerminal(id: string): Promise<void>;
   onTerminalData(listener: (event: TerminalDataEvent) => void): () => void;
   onTerminalExit(listener: (event: TerminalExitEvent) => void): () => void;
+  onTerminalInfo(listener: (event: TerminalInfo) => void): () => void;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -34,6 +50,14 @@ export class TerminalBridgeService {
     return this.getApi().resizeTerminal(id, cols, rows);
   }
 
+  getSessionInfo(id: string): Promise<TerminalInfo | null> {
+    return this.getApi().getTerminalInfo(id);
+  }
+
+  interruptSession(id: string): Promise<void> {
+    return this.getApi().interruptTerminal(id);
+  }
+
   disposeSession(id: string): Promise<void> {
     return this.getApi().disposeTerminal(id);
   }
@@ -44,6 +68,10 @@ export class TerminalBridgeService {
 
   onExit(listener: (event: TerminalExitEvent) => void): () => void {
     return this.getApi().onTerminalExit(listener);
+  }
+
+  onInfo(listener: (event: TerminalInfo) => void): () => void {
+    return this.getApi().onTerminalInfo(listener);
   }
 
   private getApi(): TerminalApi {

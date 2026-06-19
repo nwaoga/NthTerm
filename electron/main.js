@@ -8,6 +8,23 @@ const { WorkspaceStore } = require('./workspace-store');
 const terminals = new Map();
 const workspaceStore = new WorkspaceStore();
 
+function parseDetectedPort(data) {
+  const patterns = [
+    /https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0):(\d{2,5})/i,
+    /\b(?:localhost|127\.0\.0\.1|0\.0\.0\.0):(\d{2,5})\b/i,
+    /\bport(?:\s+is|\s*=|\s+)?\s*(\d{2,5})\b/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = data.match(pattern);
+    if (match) {
+      return Number(match[1]);
+    }
+  }
+
+  return null;
+}
+
 function getShell() {
   if (process.platform === 'win32') {
     return {
@@ -27,6 +44,10 @@ function getShell() {
     file: process.env.SHELL || '/bin/bash',
     args: [],
   };
+}
+
+function sendTerminalInfo(webContents, info) {
+  webContents.send('terminal:info', { ...info });
 }
 
 function createWindow() {
@@ -58,22 +79,58 @@ function registerTerminalHandlers() {
   ipcMain.handle('terminal:create', (event, options = {}) => {
     const shell = getShell();
     const id = crypto.randomUUID();
+    const cwd = options.cwd || os.homedir();
+    const startedAt = new Date().toISOString();
     const terminal = pty.spawn(shell.file, shell.args, {
       name: 'xterm-256color',
       cols: 120,
       rows: 32,
-      cwd: options.cwd || os.homedir(),
+      cwd,
       env: process.env,
     });
+    const info = {
+      id,
+      pid: terminal.pid,
+      cwd,
+      shell: path.basename(shell.file),
+      status: 'running',
+      startedAt,
+      lastActiveAt: startedAt,
+      endedAt: null,
+      exitCode: null,
+      detectedPort: null,
+    };
 
-    terminals.set(id, terminal);
+    terminals.set(id, { terminal, info });
+    sendTerminalInfo(event.sender, info);
 
     terminal.onData((data) => {
+      const entry = terminals.get(id);
+      if (!entry) {
+        return;
+      }
+
+      entry.info.lastActiveAt = new Date().toISOString();
+      const detectedPort = parseDetectedPort(data);
+      if (detectedPort && entry.info.detectedPort !== detectedPort) {
+        entry.info.detectedPort = detectedPort;
+        sendTerminalInfo(event.sender, entry.info);
+      }
+
       event.sender.send('terminal:data', { id, data });
     });
 
     terminal.onExit(({ exitCode }) => {
-      terminals.delete(id);
+      const entry = terminals.get(id);
+      if (!entry) {
+        return;
+      }
+
+      entry.info.status = 'stopped';
+      entry.info.exitCode = exitCode;
+      entry.info.endedAt = new Date().toISOString();
+      entry.terminal = null;
+      sendTerminalInfo(event.sender, entry.info);
       event.sender.send('terminal:exit', { id, exitCode });
     });
 
@@ -81,23 +138,31 @@ function registerTerminalHandlers() {
   });
 
   ipcMain.handle('terminal:write', (_event, id, data) => {
-    terminals.get(id)?.write(data);
+    terminals.get(id)?.terminal?.write(data);
   });
 
   ipcMain.handle('terminal:resize', (_event, id, cols, rows) => {
     if (cols > 0 && rows > 0) {
-      terminals.get(id)?.resize(cols, rows);
+      terminals.get(id)?.terminal?.resize(cols, rows);
     }
   });
 
+  ipcMain.handle('terminal:get-info', (_event, id) => {
+    return terminals.get(id)?.info ?? null;
+  });
+
+  ipcMain.handle('terminal:interrupt', (_event, id) => {
+    terminals.get(id)?.terminal?.write('\u0003');
+  });
+
   ipcMain.handle('terminal:dispose', (_event, id) => {
-    const terminal = terminals.get(id);
-    if (!terminal) {
+    const entry = terminals.get(id);
+    if (!entry) {
       return;
     }
 
     terminals.delete(id);
-    terminal.kill();
+    entry.terminal?.kill();
   });
 }
 

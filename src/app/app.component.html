@@ -246,7 +246,7 @@
           </header>
 
           <div class="inspector-list">
-            @for (item of inspectorItems; track trackByLabel($index, item)) {
+            @for (item of getInspectorItems(); track trackByLabel($index, item)) {
               <div class="inspector-row">
                 <span>{{ item.label }}</span>
                 <strong>{{ item.value }}</strong>
@@ -255,9 +255,9 @@
           </div>
 
           <div class="inspector-actions">
-            <button type="button" class="primary">Restart</button>
-            <button type="button" class="danger">Stop</button>
-            <button type="button">Kill</button>
+            <button type="button" class="primary" (click)="relaunchTerminal()" [disabled]="!getFocusedTab()">Restart</button>
+            <button type="button" class="danger" (click)="interruptTerminal()" [disabled]="!canControlSession()">Stop</button>
+            <button type="button" (click)="killTerminal()" [disabled]="!canControlSession()">Kill</button>
           </div>
         </section>
 
