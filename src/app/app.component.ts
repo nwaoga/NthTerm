@@ -149,6 +149,8 @@ export class AppComponent implements AfterViewInit {
   protected commandPaletteOpen = false;
   protected commandPaletteQuery = '';
   protected commandPaletteIndex = 0;
+  protected editingSessionId = '';
+  protected editingSessionName = '';
   protected activeTabId = '';
   protected focusedPaneId = 'pane-1';
   protected layoutMode: LayoutMode = 'grid-2x2';
@@ -333,6 +335,81 @@ export class AppComponent implements AfterViewInit {
     this.applyWorkspace(workspace);
     await this.restoreFocusedPaneSession();
     this.appendOutput(`Switched to workspace "${workspace.name}"`, 'info');
+  }
+
+  protected startRenameSession(session: SessionListItem, event: MouseEvent): void {
+    event.stopPropagation();
+    this.editingSessionId = session.id;
+    this.editingSessionName = session.name;
+  }
+
+  protected cancelRenameSession(): void {
+    this.editingSessionId = '';
+    this.editingSessionName = '';
+  }
+
+  protected async commitRenameSession(sessionId: string): Promise<void> {
+    const nextName = this.editingSessionName.trim();
+    const current = this.sessions.find((session) => session.id === sessionId);
+    this.cancelRenameSession();
+
+    if (!current || !nextName || nextName === current.name) {
+      return;
+    }
+
+    const result = await this.workspaceBridge.renameWorkspace(sessionId, nextName);
+    if (!result || 'error' in result) {
+      this.status = 'Workspace name is required.';
+      this.appendOutput(this.status, 'warn');
+      return;
+    }
+
+    await this.refreshSessions();
+    if (sessionId === this.selectedWorkspaceId) {
+      this.workspaceName = result.name;
+      this.selectedWorkspace = result.name;
+    }
+    this.appendOutput(`Renamed workspace to "${result.name}"`, 'info');
+  }
+
+  protected async deleteSession(session: SessionListItem, event: MouseEvent): Promise<void> {
+    event.stopPropagation();
+
+    if (this.sessions.length <= 1) {
+      this.status = 'At least one workspace must remain.';
+      this.appendOutput(this.status, 'warn');
+      return;
+    }
+
+    if (!confirm(`Delete workspace "${session.name}"? This cannot be undone.`)) {
+      return;
+    }
+
+    if (session.id === this.selectedWorkspaceId) {
+      await this.persistWorkspaceState();
+      this.disposeTerminalSession();
+    }
+
+    const result = await this.workspaceBridge.deleteWorkspace(session.id);
+    if (!result) {
+      this.status = 'Workspace could not be deleted.';
+      this.appendOutput(this.status, 'warn');
+      return;
+    }
+
+    if ('error' in result) {
+      this.status = 'At least one workspace must remain.';
+      this.appendOutput(this.status, 'warn');
+      return;
+    }
+
+    await this.refreshSessions();
+    if (result.activeWorkspace) {
+      this.applyWorkspace(result.activeWorkspace);
+      await this.restoreFocusedPaneSession();
+    }
+
+    this.appendOutput(`Deleted workspace "${result.deletedName}"`, 'info');
   }
 
   protected async createWorkspaceFromTemplate(template: TemplateListItem): Promise<void> {

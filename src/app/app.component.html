@@ -9,16 +9,49 @@
       <p class="rail-title">Sessions</p>
       <div class="session-list">
         @for (session of sessions; track trackById($index, session)) {
-          <button
-            type="button"
-            class="session-item"
+          <div
+            class="session-row"
             [class.active]="isSessionActive(session)"
             [attr.data-accent]="session.accent"
-            (click)="selectWorkspace(session.id)"
           >
-            <span class="session-icon">{{ session.icon === 'cloud' ? '☁' : session.icon === 'spark' ? '✦' : session.icon === 'cap' ? '◧' : session.icon === 'server' ? '⌘' : '•' }}</span>
-            <span>{{ session.name }}</span>
-          </button>
+            @if (editingSessionId === session.id) {
+              <input
+                class="session-rename-input"
+                [(ngModel)]="editingSessionName"
+                type="text"
+                (keydown.enter)="commitRenameSession(session.id)"
+                (keydown.escape)="cancelRenameSession()"
+                (blur)="commitRenameSession(session.id)"
+              />
+            } @else {
+              <button
+                type="button"
+                class="session-item"
+                (click)="selectWorkspace(session.id)"
+              >
+                <span class="session-icon">{{ session.icon === 'cloud' ? '☁' : session.icon === 'spark' ? '✦' : session.icon === 'cap' ? '◧' : session.icon === 'server' ? '⌘' : '•' }}</span>
+                <span class="session-name">{{ session.name }}</span>
+              </button>
+              <div class="session-actions">
+                <button
+                  type="button"
+                  class="session-action"
+                  title="Rename workspace"
+                  (click)="startRenameSession(session, $event)"
+                >
+                  Rename
+                </button>
+                <button
+                  type="button"
+                  class="session-action danger"
+                  title="Delete workspace"
+                  (click)="deleteSession(session, $event)"
+                >
+                  Delete
+                </button>
+              </div>
+            }
+          </div>
         }
       </div>
     </section>

@@ -46,9 +46,10 @@ Keyboard shortcuts:
 
 Next up (Phase 4):
 
-- workspace rename/delete flows
 - session history and richer recovery metadata
 - deeper multi-pane runtime behavior beyond the current focused-pane model
+
+Workspace rename and delete are available from the sessions sidebar.
 
 ## Quick start
 

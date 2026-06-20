@@ -270,6 +270,14 @@ function registerWorkspaceHandlers() {
   ipcMain.handle('workspace:set-active', (_event, workspaceId) => {
     return workspaceStore.setActiveWorkspace(workspaceId);
   });
+
+  ipcMain.handle('workspace:rename', (_event, workspaceId, name) => {
+    return workspaceStore.renameWorkspace(workspaceId, name);
+  });
+
+  ipcMain.handle('workspace:delete', (_event, workspaceId) => {
+    return workspaceStore.deleteWorkspace(workspaceId);
+  });
 }
 
 function registerAppHandlers() {

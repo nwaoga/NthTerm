@@ -306,6 +306,60 @@ class WorkspaceStore {
     return this.getActiveWorkspace();
   }
 
+  renameWorkspace(id, name) {
+    const trimmed = (name || '').trim();
+    if (!trimmed) {
+      return { error: 'INVALID_NAME' };
+    }
+
+    const current = this.getWorkspace(id);
+    if (!current) {
+      return null;
+    }
+
+    const updatedAt = new Date().toISOString();
+    this.db.run(
+      `
+        UPDATE workspace_state
+        SET name = ?, updated_at = ?
+        WHERE id = ?
+      `,
+      [trimmed, updatedAt, id]
+    );
+
+    this.persist();
+    return this.getWorkspace(id);
+  }
+
+  deleteWorkspace(id) {
+    const workspaces = this.listWorkspaces();
+    if (workspaces.length <= 1) {
+      return { error: 'LAST_WORKSPACE' };
+    }
+
+    const workspace = this.getWorkspace(id);
+    if (!workspace) {
+      return null;
+    }
+
+    const activeId = this.getAppState('activeWorkspaceId');
+    this.db.run(`DELETE FROM workspace_state WHERE id = ?`, [id]);
+    this.persist();
+
+    if (activeId === id) {
+      const [nextWorkspace] = this.listWorkspaces();
+      if (nextWorkspace) {
+        this.setActiveWorkspace(nextWorkspace.id);
+      }
+    }
+
+    return {
+      deletedId: id,
+      deletedName: workspace.name,
+      activeWorkspace: this.getActiveWorkspace(),
+    };
+  }
+
   migrateDefaultWorkspace() {
     const legacyResult = this.db.exec(`
       SELECT id, name, cwd, shell, updated_at

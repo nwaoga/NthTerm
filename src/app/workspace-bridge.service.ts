@@ -46,6 +46,16 @@ export interface WorkspaceDraft {
   sessionSnapshot?: SavedWorkspace['sessionSnapshot'];
 }
 
+export interface WorkspaceDeleteResult {
+  deletedId: string;
+  deletedName: string;
+  activeWorkspace: SavedWorkspace | null;
+}
+
+export interface WorkspaceRenameResult extends SavedWorkspace {
+  error?: string;
+}
+
 interface WorkspaceApi {
   listWorkspaces(): Promise<SavedWorkspace[]>;
   getActiveWorkspace(): Promise<SavedWorkspace>;
@@ -53,6 +63,8 @@ interface WorkspaceApi {
   createWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace>;
   saveWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace>;
   setActiveWorkspace(workspaceId: string): Promise<SavedWorkspace>;
+  renameWorkspace(workspaceId: string, name: string): Promise<WorkspaceRenameResult | null>;
+  deleteWorkspace(workspaceId: string): Promise<WorkspaceDeleteResult | { error: string } | null>;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -79,6 +91,14 @@ export class WorkspaceBridgeService {
 
   setActiveWorkspace(workspaceId: string): Promise<SavedWorkspace> {
     return this.getApi().setActiveWorkspace(workspaceId);
+  }
+
+  renameWorkspace(workspaceId: string, name: string): Promise<WorkspaceRenameResult | null> {
+    return this.getApi().renameWorkspace(workspaceId, name);
+  }
+
+  deleteWorkspace(workspaceId: string): Promise<WorkspaceDeleteResult | { error: string } | null> {
+    return this.getApi().deleteWorkspace(workspaceId);
   }
 
   private getApi(): WorkspaceApi {
