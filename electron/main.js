@@ -8,6 +8,7 @@ const { formatEnvironment, getSystemMetrics } = require('./system-monitor');
 
 const terminals = new Map();
 const workspaceStore = new WorkspaceStore();
+let isQuitting = false;
 
 function parseDetectedPort(data) {
   const patterns = [
@@ -45,6 +46,35 @@ function getShell() {
     file: process.env.SHELL || '/bin/bash',
     args: [],
   };
+}
+
+function resolveShell(preference) {
+  const normalized = (preference || '').trim().toLowerCase();
+  if (!normalized) {
+    return getShell();
+  }
+
+  if (normalized === 'powershell' || normalized === 'powershell.exe') {
+    return { file: 'powershell.exe', args: ['-NoLogo'] };
+  }
+
+  if (normalized === 'cmd' || normalized === 'cmd.exe') {
+    return { file: 'cmd.exe', args: [] };
+  }
+
+  if (normalized === 'bash' || normalized === 'bash.exe') {
+    return process.platform === 'win32'
+      ? { file: 'bash.exe', args: [] }
+      : { file: '/bin/bash', args: [] };
+  }
+
+  if (normalized === 'zsh' || normalized === 'zsh.exe') {
+    return process.platform === 'win32'
+      ? { file: 'zsh.exe', args: [] }
+      : { file: '/bin/zsh', args: [] };
+  }
+
+  return getShell();
 }
 
 function sendTerminalInfo(webContents, info) {
@@ -98,9 +128,9 @@ function createWindow() {
 
 function registerTerminalHandlers() {
   ipcMain.handle('terminal:create', (event, options = {}) => {
-    const shell = getShell();
+    const shell = resolveShell(options.shell);
     const id = crypto.randomUUID();
-    const cwd = options.cwd || os.homedir();
+    const cwd = workspaceStore.resolveLaunchDirectory(options.cwd);
     const startedAt = new Date().toISOString();
     const env = {
       ...process.env,
@@ -220,6 +250,10 @@ function registerWorkspaceHandlers() {
     return workspaceStore.listWorkspaces();
   });
 
+  ipcMain.handle('workspace:get-launch', () => {
+    return workspaceStore.getLaunchWorkspace();
+  });
+
   ipcMain.handle('workspace:get-active', () => {
     return workspaceStore.getActiveWorkspace();
   });
@@ -238,12 +272,20 @@ function registerWorkspaceHandlers() {
   });
 }
 
+function registerAppHandlers() {
+  ipcMain.handle('app:quit-ready', () => {
+    isQuitting = true;
+    app.quit();
+  });
+}
+
 app.whenReady()
   .then(async () => {
     await workspaceStore.init(app.getPath('userData'));
     registerTerminalHandlers();
     registerWorkspaceHandlers();
     registerSystemHandlers();
+    registerAppHandlers();
     createWindow();
 
     app.on('activate', () => {
@@ -255,6 +297,27 @@ app.whenReady()
   .catch((error) => {
     console.error('Failed to initialize NthTerm:', error);
   });
+
+app.on('before-quit', (event) => {
+  if (isQuitting) {
+    return;
+  }
+
+  event.preventDefault();
+
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (!window.isDestroyed()) {
+      window.webContents.send('app:before-quit');
+    }
+  }
+
+  setTimeout(() => {
+    if (!isQuitting) {
+      isQuitting = true;
+      app.quit();
+    }
+  }, 2000);
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

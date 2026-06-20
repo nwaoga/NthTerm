@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('nthTermDesktop', {
   workspace: {
     listWorkspaces: () => ipcRenderer.invoke('workspace:list'),
     getActiveWorkspace: () => ipcRenderer.invoke('workspace:get-active'),
+    getLaunchWorkspace: () => ipcRenderer.invoke('workspace:get-launch'),
     createWorkspace: (workspace) => ipcRenderer.invoke('workspace:create', workspace),
     saveWorkspace: (workspace) => ipcRenderer.invoke('workspace:save', workspace),
     setActiveWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:set-active', workspaceId),
@@ -34,5 +35,13 @@ contextBridge.exposeInMainWorld('nthTermDesktop', {
   system: {
     getMetrics: () => ipcRenderer.invoke('system:get-metrics'),
     getSessionEnvironment: (sessionId) => ipcRenderer.invoke('system:get-session-environment', sessionId),
+  },
+  app: {
+    quitReady: () => ipcRenderer.invoke('app:quit-ready'),
+    onBeforeQuit: (listener) => {
+      const wrapped = () => listener();
+      ipcRenderer.on('app:before-quit', wrapped);
+      return () => ipcRenderer.removeListener('app:before-quit', wrapped);
+    },
   },
 });

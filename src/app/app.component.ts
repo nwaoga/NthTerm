@@ -4,6 +4,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  HostListener,
   NgZone,
   ViewChild,
   inject,
@@ -12,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 
+import { AppBridgeService } from './app-bridge.service';
 import { TerminalBridgeService, TerminalInfo } from './terminal-bridge.service';
 import {
   EnvironmentVariable,
@@ -45,6 +47,8 @@ interface RuntimeTab {
   cwd: string;
   status: string;
   accent: string;
+  shell: string;
+  startupCommand: string;
 }
 
 interface RuntimePane {
@@ -84,7 +88,26 @@ interface CommandHistoryEntry {
 
 interface SearchResultGroup {
   label: string;
-  items: { id: string; title: string; detail: string }[];
+  items: { id: string; title: string; detail: string; kind?: PaletteEntryKind }[];
+}
+
+type PaletteEntryKind =
+  | 'action'
+  | 'workspace'
+  | 'tab'
+  | 'template'
+  | 'command'
+  | 'output'
+  | 'problem'
+  | 'pane';
+
+interface PaletteEntry {
+  id: string;
+  kind: PaletteEntryKind;
+  group: string;
+  label: string;
+  detail: string;
+  shortcut?: string;
 }
 
 interface InspectorItem {
@@ -106,6 +129,9 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('terminalHost')
   private terminalHost?: ElementRef<HTMLDivElement>;
 
+  @ViewChild('paletteInput')
+  private paletteInput?: ElementRef<HTMLInputElement>;
+
   protected status = 'Loading workspace...';
   protected workspaceName = '';
   protected workingDirectory = '';
@@ -120,6 +146,9 @@ export class AppComponent implements AfterViewInit {
   protected commandHistory: CommandHistoryEntry[] = [];
   protected systemMetrics: SystemMetrics | null = null;
   protected environmentVariables: EnvironmentVariable[] = [];
+  protected commandPaletteOpen = false;
+  protected commandPaletteQuery = '';
+  protected commandPaletteIndex = 0;
   protected activeTabId = '';
   protected focusedPaneId = 'pane-1';
   protected layoutMode: LayoutMode = 'grid-2x2';
@@ -128,6 +157,14 @@ export class AppComponent implements AfterViewInit {
   protected sessions: SessionListItem[] = [];
   protected runtimeTabs: RuntimeTab[] = [];
   protected runtimePanes: RuntimePane[] = [];
+
+  protected readonly shellOptions = [
+    { value: '', label: 'System Default' },
+    { value: 'powershell', label: 'PowerShell' },
+    { value: 'cmd', label: 'Command Prompt' },
+    { value: 'bash', label: 'Bash' },
+    { value: 'zsh', label: 'Zsh' },
+  ];
 
   protected readonly templates: TemplateListItem[] = [
     {
@@ -181,6 +218,8 @@ export class AppComponent implements AfterViewInit {
   private readonly terminalBridge = inject(TerminalBridgeService);
   private readonly workspaceBridge = inject(WorkspaceBridgeService);
   private readonly systemBridge = inject(SystemBridgeService);
+  private readonly appBridge = inject(AppBridgeService);
+  private removeBeforeQuitListener?: () => void;
 
   private terminal?: Terminal;
   private fitAddon?: FitAddon;
@@ -196,22 +235,19 @@ export class AppComponent implements AfterViewInit {
   private resizeDebounceId?: ReturnType<typeof setTimeout>;
 
   async ngAfterViewInit(): Promise<void> {
-    const [workspaces, activeWorkspace] = await Promise.all([
-      this.workspaceBridge.listWorkspaces(),
-      this.workspaceBridge.getActiveWorkspace(),
-    ]);
+    const workspaces = await this.workspaceBridge.listWorkspaces();
+    const launchWorkspace = await this.workspaceBridge.getLaunchWorkspace();
 
     this.sessions = workspaces.map((workspace) => this.mapSession(workspace));
-    this.applyWorkspace(activeWorkspace);
-    await this.restoreFocusedPaneSession();
-    this.appendOutput('Workspace shell initialized', 'info');
-    this.appendOutput(`Loaded workspace "${activeWorkspace.name}"`, 'info');
+    await this.restoreLastWorkspaceOnLaunch(launchWorkspace);
+    this.registerShutdownPersistence();
     this.startSystemMonitoring();
     this.uptimeIntervalId = window.setInterval(() => {
       this.changeDetectorRef.markForCheck();
     }, 1000);
 
     this.destroyRef.onDestroy(() => {
+      this.removeBeforeQuitListener?.();
       this.disposeTerminalSession();
       this.terminal?.dispose();
       this.resizeObserver?.disconnect();
@@ -255,7 +291,7 @@ export class AppComponent implements AfterViewInit {
     }
 
     this.updateTabStatus(focusedTab.id, 'restarting');
-    await this.startTerminalSession(focusedTab.cwd);
+    await this.startTerminalSession(focusedTab);
   }
 
   protected async interruptTerminal(): Promise<void> {
@@ -292,6 +328,7 @@ export class AppComponent implements AfterViewInit {
       return;
     }
 
+    await this.persistWorkspaceState();
     const workspace = await this.workspaceBridge.setActiveWorkspace(workspaceId);
     this.applyWorkspace(workspace);
     await this.restoreFocusedPaneSession();
@@ -299,6 +336,10 @@ export class AppComponent implements AfterViewInit {
   }
 
   protected async createWorkspaceFromTemplate(template: TemplateListItem): Promise<void> {
+    if (this.selectedWorkspaceId) {
+      await this.persistWorkspaceState();
+    }
+
     const created = await this.workspaceBridge.createWorkspace({
       name: this.buildWorkspaceName(template.name),
       cwd: template.cwd,
@@ -327,6 +368,8 @@ export class AppComponent implements AfterViewInit {
       cwd: this.workingDirectory,
       status: 'running',
       accent: this.sessions.find((session) => session.id === this.selectedWorkspaceId)?.accent || 'violet',
+      shell: '',
+      startupCommand: '',
     };
 
     this.runtimeTabs = [...this.runtimeTabs, nextTab];
@@ -334,7 +377,7 @@ export class AppComponent implements AfterViewInit {
     this.assignTabToPane(this.focusedPaneId, nextTab.id);
     this.updateWorkspaceSummary();
     await this.persistWorkspaceState();
-    await this.startTerminalSession(nextTab.cwd);
+    await this.startTerminalSession(nextTab);
   }
 
   protected async selectTab(tabId: string): Promise<void> {
@@ -347,7 +390,25 @@ export class AppComponent implements AfterViewInit {
     this.assignTabToPane(this.focusedPaneId, tabId);
     this.workingDirectory = tab.cwd;
     await this.persistWorkspaceState();
-    await this.startTerminalSession(tab.cwd);
+    await this.startTerminalSession(tab);
+  }
+
+  protected updateFocusedTabCwd(value: string): void {
+    this.workingDirectory = value;
+    this.updateFocusedTabField('cwd', value);
+  }
+
+  protected updateFocusedTabShell(value: string): void {
+    this.updateFocusedTabField('shell', value);
+  }
+
+  protected updateFocusedTabStartupCommand(value: string): void {
+    this.updateFocusedTabField('startupCommand', value);
+  }
+
+  protected getFocusedTabShellLabel(): string {
+    const shell = this.getFocusedTab()?.shell || '';
+    return this.shellOptions.find((option) => option.value === shell)?.label || 'System Default';
   }
 
   protected async closeTab(tabId: string, event?: MouseEvent): Promise<void> {
@@ -371,7 +432,7 @@ export class AppComponent implements AfterViewInit {
       this.activeTabId = fallbackTab.id;
       this.assignTabToPane(this.focusedPaneId, fallbackTab.id);
       this.workingDirectory = fallbackTab.cwd;
-      await this.startTerminalSession(fallbackTab.cwd);
+      await this.startTerminalSession(fallbackTab);
     }
 
     this.updateWorkspaceSummary();
@@ -423,6 +484,153 @@ export class AppComponent implements AfterViewInit {
     this.activeUtilityTab = tab;
   }
 
+  protected openCommandPalette(focusSearch = false): void {
+    this.commandPaletteOpen = true;
+    this.commandPaletteIndex = 0;
+    if (!focusSearch) {
+      this.commandPaletteQuery = '';
+    }
+
+    setTimeout(() => {
+      this.paletteInput?.nativeElement.focus();
+      this.paletteInput?.nativeElement.select();
+    });
+  }
+
+  protected openGlobalSearch(): void {
+    this.openUtilityPanel('search');
+    this.commandPaletteQuery = this.searchQuery;
+    this.openCommandPalette(true);
+  }
+
+  protected closeCommandPalette(): void {
+    this.commandPaletteOpen = false;
+    this.commandPaletteQuery = '';
+    this.commandPaletteIndex = 0;
+  }
+
+  protected onCommandPaletteQueryChange(): void {
+    this.commandPaletteIndex = 0;
+    this.searchQuery = this.commandPaletteQuery;
+  }
+
+  protected getFilteredPaletteEntries(): PaletteEntry[] {
+    const query = this.commandPaletteQuery.trim().toLowerCase();
+    const entries = [...this.getPaletteActionEntries(), ...this.getPaletteSearchEntries()];
+
+    if (!query) {
+      return entries;
+    }
+
+    return entries.filter((entry) => {
+      const haystack = `${entry.label} ${entry.detail} ${entry.group}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
+  protected isPaletteEntryActive(index: number): boolean {
+    return index === this.commandPaletteIndex;
+  }
+
+  protected async executePaletteEntry(entry: PaletteEntry): Promise<void> {
+    this.closeCommandPalette();
+
+    switch (entry.kind) {
+      case 'action':
+        await this.runPaletteAction(entry.id);
+        break;
+      case 'workspace':
+        await this.selectWorkspace(entry.id);
+        break;
+      case 'tab':
+        await this.selectTab(entry.id);
+        break;
+      case 'template': {
+        const template = this.templates.find((item) => item.templateId === entry.id);
+        if (template) {
+          await this.createWorkspaceFromTemplate(template);
+        }
+        break;
+      }
+      case 'command':
+        await this.rerunCommand(entry.label);
+        break;
+      case 'output':
+        this.openUtilityPanel('output');
+        this.appendOutput(`Search match: ${entry.label}`, 'info');
+        break;
+      case 'problem':
+        this.openUtilityPanel('problems');
+        break;
+      case 'pane':
+        await this.focusPane(entry.id);
+        break;
+    }
+  }
+
+  protected async executeSearchResult(item: SearchResultGroup['items'][number]): Promise<void> {
+    const entry: PaletteEntry = {
+      id: item.id,
+      kind: item.kind || 'action',
+      group: 'Search',
+      label: item.title,
+      detail: item.detail,
+    };
+
+    await this.executePaletteEntry(entry);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  protected handleGlobalKeydown(event: KeyboardEvent): void {
+    const key = event.key.toLowerCase();
+    const withCtrl = event.ctrlKey || event.metaKey;
+
+    if (withCtrl && event.shiftKey && key === 'p') {
+      event.preventDefault();
+      this.openCommandPalette();
+      return;
+    }
+
+    if (withCtrl && event.shiftKey && key === 'f') {
+      event.preventDefault();
+      this.openGlobalSearch();
+      return;
+    }
+
+    if (!this.commandPaletteOpen) {
+      return;
+    }
+
+    const entries = this.getFilteredPaletteEntries();
+
+    if (key === 'escape') {
+      event.preventDefault();
+      this.closeCommandPalette();
+      return;
+    }
+
+    if (key === 'arrowdown') {
+      event.preventDefault();
+      this.commandPaletteIndex = entries.length
+        ? (this.commandPaletteIndex + 1) % entries.length
+        : 0;
+      return;
+    }
+
+    if (key === 'arrowup') {
+      event.preventDefault();
+      this.commandPaletteIndex = entries.length
+        ? (this.commandPaletteIndex - 1 + entries.length) % entries.length
+        : 0;
+      return;
+    }
+
+    if (key === 'enter' && entries.length) {
+      event.preventDefault();
+      void this.executePaletteEntry(entries[this.commandPaletteIndex]);
+    }
+  }
+
   protected getUtilityTabs(): UtilityTab[] {
     return [
       { id: 'output', label: 'Output' },
@@ -437,64 +645,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   protected getSearchResultGroups(): SearchResultGroup[] {
-    const query = this.searchQuery.trim().toLowerCase();
-    if (!query) {
-      return [];
-    }
-
-    const matches = (value: string): boolean => value.toLowerCase().includes(query);
-    const groups: SearchResultGroup[] = [];
-
-    const workspaceMatches = this.sessions
-      .filter((session) => matches(session.name))
-      .map((session) => ({
-        id: session.id,
-        title: session.name,
-        detail: 'Workspace',
-      }));
-
-    if (workspaceMatches.length) {
-      groups.push({ label: 'Workspaces', items: workspaceMatches });
-    }
-
-    const tabMatches = this.runtimeTabs
-      .filter((tab) => matches(tab.title) || matches(tab.cwd))
-      .map((tab) => ({
-        id: tab.id,
-        title: tab.title,
-        detail: tab.cwd,
-      }));
-
-    if (tabMatches.length) {
-      groups.push({ label: 'Tabs', items: tabMatches });
-    }
-
-    const commandMatches = this.commandHistory
-      .filter((entry) => matches(entry.command) || matches(entry.tabTitle))
-      .map((entry) => ({
-        id: entry.id,
-        title: entry.command,
-        detail: `${entry.tabTitle} • ${this.formatClock(entry.timestamp)}`,
-      }));
-
-    if (commandMatches.length) {
-      groups.push({ label: 'Commands', items: commandMatches });
-    }
-
-    const outputMatches = this.outputLines
-      .filter((line) => matches(line.message))
-      .slice(-20)
-      .map((line) => ({
-        id: line.id,
-        title: line.message,
-        detail: `${line.level} • ${this.formatClock(line.timestamp)}`,
-      }));
-
-    if (outputMatches.length) {
-      groups.push({ label: 'Output', items: outputMatches });
-    }
-
-    return groups;
+    return this.buildSearchResultGroups(this.searchQuery);
   }
 
   protected async rerunCommand(command: string): Promise<void> {
@@ -567,6 +718,8 @@ export class AppComponent implements AfterViewInit {
 
     return [
       { label: 'Directory', value: focusedTab?.cwd || this.workingDirectory || 'n/a' },
+      { label: 'Shell', value: this.getFocusedTabShellLabel() },
+      { label: 'Startup Command', value: focusedTab?.startupCommand?.trim() || 'None' },
       { label: 'Workspace', value: this.workspaceName || 'n/a' },
       { label: 'Template', value: this.activeWorkspace?.templateId || 'custom' },
       { label: 'Layout', value: this.layoutMode },
@@ -643,6 +796,8 @@ export class AppComponent implements AfterViewInit {
           cwd: tab.cwd,
           status: tab.status,
           accent: tab.accent,
+          shell: tab.shell || '',
+          startupCommand: tab.startupCommand || '',
         })),
       },
     };
@@ -712,7 +867,18 @@ export class AppComponent implements AfterViewInit {
     this.activeTabId = focusedTab.id;
     this.workingDirectory = focusedTab.cwd;
     await this.recreateTerminalSurface();
-    await this.startTerminalSession(focusedTab.cwd);
+    await this.startTerminalSession(focusedTab);
+  }
+
+  private updateFocusedTabField(field: 'cwd' | 'shell' | 'startupCommand', value: string): void {
+    const focusedTab = this.getFocusedTab();
+    if (!focusedTab) {
+      return;
+    }
+
+    this.runtimeTabs = this.runtimeTabs.map((tab) =>
+      tab.id === focusedTab.id ? { ...tab, [field]: value } : tab
+    );
   }
 
   private async persistWorkspaceState(): Promise<void> {
@@ -767,8 +933,9 @@ export class AppComponent implements AfterViewInit {
     };
   }
 
-  private async startTerminalSession(cwd: string): Promise<void> {
-    const targetDirectory = cwd.trim();
+  private async startTerminalSession(tab?: RuntimeTab): Promise<void> {
+    const focusedTab = tab || this.getFocusedPaneTab();
+    const targetDirectory = focusedTab?.cwd?.trim() || this.workingDirectory.trim();
     if (!targetDirectory || !this.terminal || !this.fitAddon) {
       this.status = 'Working directory is required.';
       this.appendOutput(this.status, 'warn');
@@ -784,17 +951,35 @@ export class AppComponent implements AfterViewInit {
     this.sessionId = await this.terminalBridge.createSession({
       cwd: targetDirectory,
       workspaceName: this.workspaceName,
+      shell: focusedTab?.shell || '',
     });
     this.sessionInfo = await this.terminalBridge.getSessionInfo(this.sessionId);
     this.registerTerminalListeners();
     this.syncTerminalSize();
     await this.refreshEnvironmentVariables();
-    const focusedTab = this.getFocusedPaneTab();
     if (focusedTab) {
       this.updateTabStatus(focusedTab.id, 'running');
     }
     this.status = `Connected to ${targetDirectory}`;
     this.appendOutput(`Terminal session attached to ${targetDirectory}`, 'info');
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await this.runStartupCommands(focusedTab?.startupCommand);
+  }
+
+  private async runStartupCommands(commands?: string): Promise<void> {
+    if (!commands?.trim() || !this.sessionId) {
+      return;
+    }
+
+    const lines = commands
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    for (const line of lines) {
+      await this.terminalBridge.sendInput(this.sessionId, `${line}\r`);
+      this.appendOutput(`Ran startup command: ${line}`, 'info');
+    }
   }
 
   private registerTerminalListeners(): void {
@@ -848,6 +1033,8 @@ export class AppComponent implements AfterViewInit {
       cwd: tab.cwd,
       status: tab.status,
       accent: tab.accent,
+      shell: tab.shell || '',
+      startupCommand: tab.startupCommand || '',
     })) || [];
     this.layoutMode = (workspace.sessionSnapshot?.layout?.mode as LayoutMode) || 'grid-2x2';
     this.runtimePanes = this.buildPanesForMode(
@@ -904,6 +1091,37 @@ export class AppComponent implements AfterViewInit {
     );
   }
 
+  private async restoreLastWorkspaceOnLaunch(workspace: SavedWorkspace): Promise<void> {
+    this.applyWorkspace(workspace);
+    await this.restoreFocusedPaneSession();
+    this.appendOutput('Workspace shell initialized', 'info');
+    this.appendOutput(`Restored last workspace "${workspace.name}"`, 'info');
+  }
+
+  private registerShutdownPersistence(): void {
+    try {
+      this.removeBeforeQuitListener = this.appBridge.onBeforeQuit(() => {
+        void this.persistWorkspaceOnShutdown();
+      });
+    } catch {
+      this.removeBeforeQuitListener = undefined;
+    }
+  }
+
+  private async persistWorkspaceOnShutdown(): Promise<void> {
+    if (!this.selectedWorkspaceId) {
+      void this.appBridge.quitReady();
+      return;
+    }
+
+    try {
+      await this.workspaceBridge.saveWorkspace(this.currentWorkspaceDraft());
+      await this.workspaceBridge.setActiveWorkspace(this.selectedWorkspaceId);
+    } finally {
+      await this.appBridge.quitReady();
+    }
+  }
+
   private startSystemMonitoring(): void {
     void this.refreshSystemMetrics();
     this.metricsIntervalId = window.setInterval(() => {
@@ -930,6 +1148,205 @@ export class AppComponent implements AfterViewInit {
       this.environmentVariables = await this.systemBridge.getSessionEnvironment(this.sessionId);
     } catch {
       this.environmentVariables = [];
+    }
+  }
+
+  private getPaletteActionEntries(): PaletteEntry[] {
+    return [
+      { id: 'save-workspace', kind: 'action', group: 'Workspace', label: 'Save Workspace', detail: 'Persist the current workspace layout and tabs' },
+      { id: 'restore-workspace', kind: 'action', group: 'Workspace', label: 'Restore Workspace', detail: 'Reload the active workspace from SQLite' },
+      { id: 'new-tab', kind: 'action', group: 'Workspace', label: 'New Tab', detail: 'Create a terminal tab in the focused pane' },
+      { id: 'restart-terminal', kind: 'action', group: 'Terminal', label: 'Restart Terminal', detail: 'Restart the focused pane session' },
+      { id: 'stop-terminal', kind: 'action', group: 'Terminal', label: 'Stop Terminal', detail: 'Send Ctrl+C to the active PTY' },
+      { id: 'kill-terminal', kind: 'action', group: 'Terminal', label: 'Kill Terminal', detail: 'Dispose the active PTY session' },
+      { id: 'open-output', kind: 'action', group: 'View', label: 'Show Output Panel', detail: 'Open the bottom output utility tab' },
+      { id: 'open-problems', kind: 'action', group: 'View', label: 'Show Problems Panel', detail: 'Open detected terminal problems' },
+      { id: 'open-search', kind: 'action', group: 'View', label: 'Show Search Panel', detail: 'Open global workspace search', shortcut: 'Ctrl+Shift+F' },
+      { id: 'open-history', kind: 'action', group: 'View', label: 'Show Command History', detail: 'Open recent terminal commands' },
+      { id: 'inspector-tab', kind: 'action', group: 'View', label: 'Show Tab Inspector', detail: 'Focus tab metadata in the right rail' },
+      { id: 'inspector-session', kind: 'action', group: 'View', label: 'Show Session Inspector', detail: 'Focus live PTY metadata in the right rail' },
+      { id: 'layout-2', kind: 'action', group: 'Layout', label: 'Switch to 2-Up Layout', detail: 'Use a two-pane terminal grid' },
+      { id: 'layout-2x2', kind: 'action', group: 'Layout', label: 'Switch to 2x2 Layout', detail: 'Use a four-pane terminal grid' },
+      { id: 'open-palette', kind: 'action', group: 'Navigation', label: 'Open Command Palette', detail: 'Show workspace commands and search', shortcut: 'Ctrl+Shift+P' },
+    ];
+  }
+
+  private getPaletteSearchEntries(): PaletteEntry[] {
+    return this.buildSearchResultGroups(this.commandPaletteQuery).flatMap((group) =>
+      group.items.map((item) => ({
+        id: item.id,
+        kind: item.kind || 'action',
+        group: group.label,
+        label: item.title,
+        detail: item.detail,
+      }))
+    );
+  }
+
+  private buildSearchResultGroups(queryValue: string): SearchResultGroup[] {
+    const query = queryValue.trim().toLowerCase();
+    if (!query) {
+      return [];
+    }
+
+    const matches = (value: string): boolean => value.toLowerCase().includes(query);
+    const groups: SearchResultGroup[] = [];
+
+    const workspaceMatches = this.sessions
+      .filter((session) => matches(session.name))
+      .map((session) => ({
+        id: session.id,
+        title: session.name,
+        detail: 'Workspace',
+        kind: 'workspace' as PaletteEntryKind,
+      }));
+
+    if (workspaceMatches.length) {
+      groups.push({ label: 'Workspaces', items: workspaceMatches });
+    }
+
+    const templateMatches = this.templates
+      .filter((template) => matches(template.name) || matches(template.cwd))
+      .map((template) => ({
+        id: template.templateId,
+        title: template.name,
+        detail: template.cwd,
+        kind: 'template' as PaletteEntryKind,
+      }));
+
+    if (templateMatches.length) {
+      groups.push({ label: 'Templates', items: templateMatches });
+    }
+
+    const tabMatches = this.runtimeTabs
+      .filter((tab) => matches(tab.title) || matches(tab.cwd) || matches(tab.status))
+      .map((tab) => ({
+        id: tab.id,
+        title: tab.title,
+        detail: tab.cwd,
+        kind: 'tab' as PaletteEntryKind,
+      }));
+
+    if (tabMatches.length) {
+      groups.push({ label: 'Tabs', items: tabMatches });
+    }
+
+    const paneMatches = this.runtimePanes
+      .map((pane, index) => {
+        const tab = this.getPaneTab(pane);
+        return {
+          pane,
+          index,
+          tab,
+        };
+      })
+      .filter(({ pane, tab }) =>
+        matches(pane.id) ||
+        matches(tab?.title || '') ||
+        matches(tab?.cwd || '') ||
+        matches(`pane ${pane.id}`)
+      )
+      .map(({ pane, index, tab }) => ({
+        id: pane.id,
+        title: tab?.title || `Pane ${index + 1}`,
+        detail: tab?.cwd || 'Unassigned pane',
+        kind: 'pane' as PaletteEntryKind,
+      }));
+
+    if (paneMatches.length) {
+      groups.push({ label: 'Panes', items: paneMatches });
+    }
+
+    const commandMatches = this.commandHistory
+      .filter((entry) => matches(entry.command) || matches(entry.tabTitle))
+      .map((entry) => ({
+        id: entry.id,
+        title: entry.command,
+        detail: `${entry.tabTitle} • ${this.formatClock(entry.timestamp)}`,
+        kind: 'command' as PaletteEntryKind,
+      }));
+
+    if (commandMatches.length) {
+      groups.push({ label: 'Commands', items: commandMatches });
+    }
+
+    const problemMatches = this.problems
+      .filter((problem) => matches(problem.message) || matches(problem.source) || matches(problem.severity))
+      .map((problem) => ({
+        id: problem.id,
+        title: problem.message,
+        detail: `${problem.severity} • ${problem.source}`,
+        kind: 'problem' as PaletteEntryKind,
+      }));
+
+    if (problemMatches.length) {
+      groups.push({ label: 'Problems', items: problemMatches });
+    }
+
+    const outputMatches = this.outputLines
+      .filter((line) => matches(line.message) || matches(line.level))
+      .slice(-20)
+      .map((line) => ({
+        id: line.id,
+        title: line.message,
+        detail: `${line.level} • ${this.formatClock(line.timestamp)}`,
+        kind: 'output' as PaletteEntryKind,
+      }));
+
+    if (outputMatches.length) {
+      groups.push({ label: 'Output', items: outputMatches });
+    }
+
+    return groups;
+  }
+
+  private async runPaletteAction(actionId: string): Promise<void> {
+    switch (actionId) {
+      case 'save-workspace':
+        await this.saveWorkspace();
+        break;
+      case 'restore-workspace':
+        await this.restoreWorkspace();
+        break;
+      case 'new-tab':
+        await this.createTab();
+        break;
+      case 'restart-terminal':
+        await this.relaunchTerminal();
+        break;
+      case 'stop-terminal':
+        await this.interruptTerminal();
+        break;
+      case 'kill-terminal':
+        await this.killTerminal();
+        break;
+      case 'open-output':
+        this.openUtilityPanel('output');
+        break;
+      case 'open-problems':
+        this.openUtilityPanel('problems');
+        break;
+      case 'open-search':
+        this.openUtilityPanel('search');
+        break;
+      case 'open-history':
+        this.openUtilityPanel('command-history');
+        break;
+      case 'inspector-tab':
+        this.setInspectorTab('tab');
+        break;
+      case 'inspector-session':
+        this.setInspectorTab('session');
+        break;
+      case 'layout-2':
+        await this.setLayoutMode('grid-2');
+        break;
+      case 'layout-2x2':
+        await this.setLayoutMode('grid-2x2');
+        break;
+      case 'open-palette':
+        this.openCommandPalette();
+        break;
     }
   }
 

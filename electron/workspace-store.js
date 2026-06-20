@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const initSqlJs = require('sql.js');
@@ -136,6 +137,81 @@ class WorkspaceStore {
     }
 
     return this.getWorkspace(activeId);
+  }
+
+  getLaunchWorkspace() {
+    let workspace = this.getActiveWorkspace();
+
+    if (!workspace) {
+      [workspace] = this.listWorkspaces();
+    }
+
+    if (!workspace) {
+      return null;
+    }
+
+    const normalized = this.normalizeWorkspaceForLaunch(workspace);
+    const pathsChanged =
+      normalized.cwd !== workspace.cwd ||
+      JSON.stringify(normalized.sessionSnapshot) !== JSON.stringify(workspace.sessionSnapshot);
+
+    if (pathsChanged) {
+      this.saveWorkspace({
+        id: normalized.id,
+        name: normalized.name,
+        cwd: normalized.cwd,
+        shell: normalized.shell,
+        templateId: normalized.templateId,
+        icon: normalized.icon,
+        accent: normalized.accent,
+        layoutMode: normalized.layoutMode,
+        launchProfile: normalized.launchProfile,
+        sessionSnapshot: normalized.sessionSnapshot,
+      });
+      this.setActiveWorkspace(normalized.id);
+      return this.getWorkspace(normalized.id);
+    }
+
+    return normalized;
+  }
+
+  resolveExistingDirectory(candidate) {
+    if (!candidate) {
+      return null;
+    }
+
+    try {
+      const resolved = path.resolve(candidate);
+      if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+        return resolved;
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
+  }
+
+  resolveLaunchDirectory(candidate) {
+    return this.resolveExistingDirectory(candidate) || os.homedir();
+  }
+
+  normalizeWorkspaceForLaunch(workspace) {
+    const resolvedCwd = this.resolveLaunchDirectory(workspace.cwd);
+    const snapshot = workspace.sessionSnapshot || this.buildDefaultSnapshot(workspace.name, resolvedCwd);
+    const tabs = (snapshot.tabs || []).map((tab) => ({
+      ...tab,
+      cwd: this.resolveLaunchDirectory(tab.cwd || workspace.cwd),
+    }));
+
+    return {
+      ...workspace,
+      cwd: resolvedCwd,
+      sessionSnapshot: {
+        ...snapshot,
+        tabs,
+      },
+    };
   }
 
   createWorkspace(workspace) {
@@ -300,8 +376,8 @@ class WorkspaceStore {
         ],
       },
       tabs: [
-        { id: 'tab-api', title: `${name} API`, cwd, status: 'running', accent: 'violet' },
-        { id: 'tab-db', title: `${name} Database`, cwd, status: 'idle', accent: 'cyan' },
+        { id: 'tab-api', title: `${name} API`, cwd, status: 'running', accent: 'violet', shell: '', startupCommand: '' },
+        { id: 'tab-db', title: `${name} Database`, cwd, status: 'idle', accent: 'cyan', shell: '', startupCommand: '' },
       ],
     };
   }

@@ -26,6 +26,8 @@ export interface SavedWorkspace {
       cwd: string;
       status: string;
       accent: string;
+      shell?: string;
+      startupCommand?: string;
     }>;
   };
   updatedAt: string;
@@ -47,6 +49,7 @@ export interface WorkspaceDraft {
 interface WorkspaceApi {
   listWorkspaces(): Promise<SavedWorkspace[]>;
   getActiveWorkspace(): Promise<SavedWorkspace>;
+  getLaunchWorkspace(): Promise<SavedWorkspace>;
   createWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace>;
   saveWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace>;
   setActiveWorkspace(workspaceId: string): Promise<SavedWorkspace>;
@@ -60,6 +63,10 @@ export class WorkspaceBridgeService {
 
   getActiveWorkspace(): Promise<SavedWorkspace> {
     return this.getApi().getActiveWorkspace();
+  }
+
+  getLaunchWorkspace(): Promise<SavedWorkspace> {
+    return this.getApi().getLaunchWorkspace();
   }
 
   createWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace> {

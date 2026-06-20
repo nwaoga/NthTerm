@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 
+import type { AppApi } from './app-bridge.service';
 import type { SystemApi } from './system-bridge.service';
 
 export interface TerminalDataEvent {
@@ -26,7 +27,7 @@ export interface TerminalInfo {
 }
 
 interface TerminalApi {
-  createTerminal(options?: { cwd?: string; workspaceName?: string }): Promise<{ id: string }>;
+  createTerminal(options?: { cwd?: string; workspaceName?: string; shell?: string }): Promise<{ id: string }>;
   writeTerminal(id: string, data: string): Promise<void>;
   resizeTerminal(id: string, cols: number, rows: number): Promise<void>;
   getTerminalInfo(id: string): Promise<TerminalInfo | null>;
@@ -39,7 +40,7 @@ interface TerminalApi {
 
 @Injectable({ providedIn: 'root' })
 export class TerminalBridgeService {
-  async createSession(options?: { cwd?: string; workspaceName?: string }): Promise<string> {
+  async createSession(options?: { cwd?: string; workspaceName?: string; shell?: string }): Promise<string> {
     const session = await this.getApi().createTerminal(options);
     return session.id;
   }
@@ -91,6 +92,7 @@ declare global {
     terminal?: TerminalApi;
     workspace?: any;
     system?: SystemApi;
+    app?: AppApi;
   }
 
   interface Window {

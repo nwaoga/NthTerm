@@ -82,8 +82,8 @@
             2x2
           </button>
         </div>
-        <button type="button" class="toolbar-pill muted" (click)="openUtilityPanel('search')">Search</button>
-        <button type="button" class="toolbar-pill muted">Command Palette</button>
+        <button type="button" class="toolbar-pill muted" (click)="openGlobalSearch()">Search</button>
+        <button type="button" class="toolbar-pill muted" (click)="openCommandPalette()">Command Palette</button>
       </div>
     </header>
 
@@ -158,9 +158,34 @@
                     <label for="workspace-cwd">Directory</label>
                     <input
                       id="workspace-cwd"
-                      [(ngModel)]="workingDirectory"
+                      [ngModel]="workingDirectory"
+                      (ngModelChange)="updateFocusedTabCwd($event)"
                       type="text"
                       placeholder="C:\Users\blakb\Documents\Codex\NthTerm\repo"
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label for="tab-shell">Shell</label>
+                    <select
+                      id="tab-shell"
+                      [ngModel]="getFocusedTab()?.shell || ''"
+                      (ngModelChange)="updateFocusedTabShell($event)"
+                    >
+                      @for (option of shellOptions; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div class="field field-wide">
+                    <label for="tab-startup">Startup Command</label>
+                    <input
+                      id="tab-startup"
+                      [ngModel]="getFocusedTab()?.startupCommand || ''"
+                      (ngModelChange)="updateFocusedTabStartupCommand($event)"
+                      type="text"
+                      placeholder="npm start"
                     />
                   </div>
                 </div>
@@ -285,6 +310,7 @@
                     <span>Search workspaces, tabs, commands, and output</span>
                     <input
                       [(ngModel)]="searchQuery"
+                      (ngModelChange)="commandPaletteQuery = searchQuery"
                       type="search"
                       placeholder="Search NthTerm..."
                     />
@@ -296,10 +322,10 @@
                           <section class="search-group">
                             <p class="rail-title">{{ group.label }}</p>
                             @for (item of group.items; track item.id) {
-                              <div class="search-result-row">
+                              <button type="button" class="search-result-row" (click)="executeSearchResult(item)">
                                 <strong>{{ item.title }}</strong>
                                 <span>{{ item.detail }}</span>
-                              </div>
+                              </button>
                             }
                           </section>
                         }
@@ -417,4 +443,53 @@
       </div>
     </footer>
   </section>
+
+  @if (commandPaletteOpen) {
+    <div class="command-palette-backdrop" (click)="closeCommandPalette()">
+      <div class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette" (click)="$event.stopPropagation()">
+        <label class="command-palette-input">
+          <span>Command Palette</span>
+          <input
+            #paletteInput
+            [(ngModel)]="commandPaletteQuery"
+            (ngModelChange)="onCommandPaletteQueryChange()"
+            type="search"
+            placeholder="Type a command or search workspaces, tabs, commands..."
+          />
+        </label>
+
+        <div class="command-palette-results">
+          @if (getFilteredPaletteEntries().length) {
+            @for (entry of getFilteredPaletteEntries(); track entry.id; let index = $index) {
+              @if (index === 0 || getFilteredPaletteEntries()[index - 1].group !== entry.group) {
+                <p class="palette-group-label">{{ entry.group }}</p>
+              }
+              <button
+                type="button"
+                class="palette-result-row"
+                [class.active]="isPaletteEntryActive(index)"
+                (click)="executePaletteEntry(entry)"
+              >
+                <span class="palette-result-main">
+                  <strong>{{ entry.label }}</strong>
+                  <span>{{ entry.detail }}</span>
+                </span>
+                @if (entry.shortcut) {
+                  <kbd>{{ entry.shortcut }}</kbd>
+                }
+              </button>
+            }
+          } @else {
+            <p class="utility-empty">No matching commands or workspace results.</p>
+          }
+        </div>
+
+        <div class="command-palette-footer">
+          <span>↑↓ navigate</span>
+          <span>Enter run</span>
+          <span>Esc close</span>
+        </div>
+      </div>
+    </div>
+  }
 </main>
