@@ -28,6 +28,7 @@
                 type="button"
                 class="session-item"
                 (click)="selectWorkspace(session.id)"
+                (dblclick)="startRenameSession(session, $event)"
               >
                 <span class="session-icon">{{ session.icon === 'cloud' ? '☁' : session.icon === 'spark' ? '✦' : session.icon === 'cap' ? '◧' : session.icon === 'server' ? '⌘' : '•' }}</span>
                 <span class="session-name">{{ session.name }}</span>
@@ -35,19 +36,21 @@
               <div class="session-actions">
                 <button
                   type="button"
-                  class="session-action"
+                  class="session-action-icon"
                   title="Rename workspace"
+                  aria-label="Rename workspace"
                   (click)="startRenameSession(session, $event)"
                 >
-                  Rename
+                  ✎
                 </button>
                 <button
                   type="button"
-                  class="session-action danger"
+                  class="session-action-icon session-action-icon-danger"
                   title="Delete workspace"
+                  aria-label="Delete workspace"
                   (click)="deleteSession(session, $event)"
                 >
-                  Delete
+                  ×
                 </button>
               </div>
             }
@@ -79,16 +82,29 @@
         <span class="tool-link" (click)="openUtilityPanel('command-history')">Command History</span>
         <span>Snippets</span>
         <span>Environments</span>
-        <span>Appearance</span>
+        <button type="button" class="tool-link tool-button" (click)="togglePreferences()">Appearance</button>
         <span>Shell</span>
         <span>Keybindings</span>
       </div>
+      @if (preferencesOpen) {
+        <div class="preferences-card">
+          <p class="rail-title">Preferences</p>
+          <label class="preference-toggle">
+            <input
+              type="checkbox"
+              [checked]="utilityPanelVisible"
+              (change)="setUtilityPanelPreference($any($event.target).checked)"
+            />
+            <span>Show bottom panel</span>
+          </label>
+        </div>
+      }
     </section>
 
     <div class="rail-status">All systems operational</div>
   </aside>
 
-  <section class="workspace-shell">
+  <section class="workspace-shell" [class.utility-dock-visible]="utilityPanelVisible">
     <header class="shell-toolbar">
       <div class="workspace-picker">
         <span class="workspace-picker-icon">☁</span>
@@ -117,6 +133,17 @@
         </div>
         <button type="button" class="toolbar-pill muted" (click)="openGlobalSearch()">Search</button>
         <button type="button" class="toolbar-pill muted" (click)="openCommandPalette()">Command Palette</button>
+        <div class="view-menu" (click)="$event.stopPropagation()">
+          <button type="button" class="toolbar-pill muted" (click)="toggleViewMenu($event)">View</button>
+          @if (viewMenuOpen) {
+            <div class="view-menu-dropdown" role="menu">
+              <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('output')">Output</button>
+              <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('problems')">Problems</button>
+              <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('search')">Search</button>
+              <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('command-history')">Command History</button>
+            </div>
+          }
+        </div>
       </div>
     </header>
 
@@ -139,10 +166,65 @@
           <button type="button" class="tab-add" (click)="createTab()">+</button>
         </nav>
 
-        <section class="pane-grid" [attr.data-layout]="layoutMode">
-          @for (pane of runtimePanes; track trackById($index, pane)) {
+        <section
+          #paneGrid
+          class="pane-grid"
+          [class.pane-grid-resizing]="paneResizeMode !== null"
+          [attr.data-layout]="layoutMode"
+          [style.--pane-col-split.%]="paneColSplit"
+          [style.--pane-row-split.%]="paneRowSplit"
+        >
+          @if (layoutMode === 'grid-2') {
+            @if (getPaneById('pane-1'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 0 }" />
+            }
+            <div
+              class="pane-resize-handle pane-resize-col"
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize panes"
+              (mousedown)="startPaneResize($event, 'col')"
+            ></div>
+            @if (getPaneById('pane-2'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 1 }" />
+            }
+          } @else {
+            @if (getPaneById('pane-1'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 0 }" />
+            }
+            @if (getPaneById('pane-2'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 1 }" />
+            }
+            <div
+              class="pane-resize-handle pane-resize-col"
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize panes horizontally"
+              (mousedown)="startPaneResize($event, 'col')"
+            ></div>
+            <div
+              class="pane-resize-handle pane-resize-row"
+              role="separator"
+              aria-orientation="horizontal"
+              aria-label="Resize panes vertically"
+              (mousedown)="startPaneResize($event, 'row')"
+            ></div>
+            @if (getPaneById('pane-3'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 2 }" />
+            }
+            @if (getPaneById('pane-4'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 3 }" />
+            }
+          }
+        </section>
+
+        <ng-template #paneCard let-pane="pane" let-index="index">
             <article
-              class="terminal-card"
+              class="terminal-card pane-slot"
+              [class.pane-slot-1]="index === 0"
+              [class.pane-slot-2]="index === 1"
+              [class.pane-slot-3]="index === 2"
+              [class.pane-slot-4]="index === 3"
               [class.focused]="isPaneFocused(pane)"
               [class.placeholder-card]="!getPaneTab(pane)"
               [attr.data-tone]="getPaneTone(pane)"
@@ -151,7 +233,7 @@
               <header class="terminal-card-header">
                 <div>
                   <p class="card-title">
-                    {{ getPaneTab(pane)?.title || ('Pane ' + ($index + 1)) }}
+                    {{ getPaneTab(pane)?.title || ('Pane ' + (index + 1)) }}
                   </p>
                   <p class="card-meta">
                     {{ isPaneFocused(pane) ? 'focused' : 'standby' }}
@@ -243,156 +325,7 @@
                 </div>
               }
             </article>
-          }
-        </section>
-
-        <section class="bottom-dock">
-          <div class="dock-tabs">
-            @for (tab of getUtilityTabs(); track tab.id) {
-              <button
-                type="button"
-                class="dock-tab"
-                [class.active]="activeUtilityTab === tab.id"
-                (click)="setUtilityTab(tab.id)"
-              >
-                {{ tab.label }}
-                @if (tab.count) {
-                  <span class="dock-count">{{ tab.count }}</span>
-                }
-              </button>
-            }
-          </div>
-
-          <div class="dock-content">
-            @switch (activeUtilityTab) {
-              @case ('output') {
-                <div class="dock-content-split">
-                  <div class="utility-panel output-panel">
-                    <header class="utility-panel-header">
-                      <p class="rail-title">Application Output</p>
-                      <button type="button" class="utility-action" (click)="clearOutput()">Clear</button>
-                    </header>
-                    @if (outputLines.length) {
-                      @for (line of outputLines; track line.id) {
-                        <p [attr.data-level]="line.level">
-                          [{{ formatClock(line.timestamp) }}] {{ line.level }}: {{ line.message }}
-                        </p>
-                      }
-                    } @else {
-                      <p class="utility-empty">Output from workspace and terminal lifecycle events will appear here.</p>
-                    }
-                  </div>
-
-                  <div class="monitor-panel">
-                    <header class="utility-panel-header">
-                      <p class="rail-title">System Monitor</p>
-                    </header>
-                    <div class="monitor-grid">
-                      <div class="metric-ring metric-cpu">
-                        <span>CPU</span>
-                        <strong>{{ formatMetric(systemMetrics?.cpuPercent, '%') }}</strong>
-                      </div>
-                      <div class="metric-ring metric-memory">
-                        <span>Memory</span>
-                        <strong>{{ formatMetric(systemMetrics?.memoryUsedGb, ' GB') }}</strong>
-                      </div>
-                      <div class="metric-ring metric-disk">
-                        <span>Disk</span>
-                        <strong>{{ formatMetric(systemMetrics?.diskPercent, '%') }}</strong>
-                      </div>
-                      <div class="metric-ring metric-network">
-                        <span>Network</span>
-                        <strong>{{ formatMetric(systemMetrics?.networkMbps, ' Mbps') }}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-              @case ('problems') {
-                <div class="utility-panel problems-panel">
-                  <header class="utility-panel-header">
-                    <p class="rail-title">Problems</p>
-                    <button type="button" class="utility-action" (click)="clearProblems()">Clear</button>
-                  </header>
-                  @if (problems.length) {
-                    <div class="problems-list">
-                      @for (problem of problems; track problem.id) {
-                        <article class="problem-row" [attr.data-severity]="problem.severity">
-                          <div class="problem-main">
-                            <span class="problem-severity">{{ problem.severity }}</span>
-                            <strong>{{ problem.message }}</strong>
-                          </div>
-                          <div class="problem-meta">
-                            <span>{{ problem.source }}</span>
-                            <span>{{ formatClock(problem.timestamp) }}</span>
-                          </div>
-                        </article>
-                      }
-                    </div>
-                  } @else {
-                    <p class="utility-empty">No problems detected yet. Terminal errors and warnings will show up here.</p>
-                  }
-                </div>
-              }
-              @case ('search') {
-                <div class="utility-panel search-panel">
-                  <header class="utility-panel-header">
-                    <p class="rail-title">Workspace Search</p>
-                  </header>
-                  <label class="search-field">
-                    <span>Search workspaces, tabs, commands, and output</span>
-                    <input
-                      [(ngModel)]="searchQuery"
-                      (ngModelChange)="commandPaletteQuery = searchQuery"
-                      type="search"
-                      placeholder="Search NthTerm..."
-                    />
-                  </label>
-                  @if (searchQuery.trim()) {
-                    @if (getSearchResultGroups().length) {
-                      <div class="search-results">
-                        @for (group of getSearchResultGroups(); track group.label) {
-                          <section class="search-group">
-                            <p class="rail-title">{{ group.label }}</p>
-                            @for (item of group.items; track item.id) {
-                              <button type="button" class="search-result-row" (click)="executeSearchResult(item)">
-                                <strong>{{ item.title }}</strong>
-                                <span>{{ item.detail }}</span>
-                              </button>
-                            }
-                          </section>
-                        }
-                      </div>
-                    } @else {
-                      <p class="utility-empty">No matches for "{{ searchQuery.trim() }}".</p>
-                    }
-                  } @else {
-                    <p class="utility-empty">Type to search across workspaces, tabs, command history, and output logs.</p>
-                  }
-                </div>
-              }
-              @case ('command-history') {
-                <div class="utility-panel history-panel">
-                  <header class="utility-panel-header">
-                    <p class="rail-title">Command History</p>
-                  </header>
-                  @if (commandHistory.length) {
-                    <div class="history-list dock-history-list">
-                      @for (entry of commandHistory; track entry.id) {
-                        <button type="button" class="history-row" (click)="rerunCommand(entry.command)">
-                          <span>{{ entry.command }}</span>
-                          <strong>{{ entry.tabTitle }} • {{ formatClock(entry.timestamp) }}</strong>
-                        </button>
-                      }
-                    </div>
-                  } @else {
-                    <p class="utility-empty">Commands entered in the focused terminal will appear here.</p>
-                  }
-                </div>
-              }
-            }
-          </div>
-        </section>
+        </ng-template>
       </section>
 
       <aside class="inspector">
@@ -458,6 +391,156 @@
         </section>
       </aside>
     </div>
+
+    @if (utilityPanelVisible) {
+      <section class="bottom-dock">
+        <div class="dock-tabs">
+          @for (tab of getUtilityTabs(); track tab.id) {
+            <button
+              type="button"
+              class="dock-tab"
+              [class.active]="activeUtilityTab === tab.id"
+              (click)="setUtilityTab(tab.id)"
+            >
+              {{ tab.label }}
+              @if (tab.count) {
+                <span class="dock-count">{{ tab.count }}</span>
+              }
+            </button>
+          }
+        </div>
+
+        <div class="dock-content">
+          @switch (activeUtilityTab) {
+            @case ('output') {
+              <div class="dock-content-split">
+                <div class="utility-panel output-panel">
+                  <header class="utility-panel-header">
+                    <p class="rail-title">Application Output</p>
+                    <button type="button" class="utility-action" (click)="clearOutput()">Clear</button>
+                  </header>
+                  @if (outputLines.length) {
+                    @for (line of outputLines; track line.id) {
+                      <p [attr.data-level]="line.level">
+                        [{{ formatClock(line.timestamp) }}] {{ line.level }}: {{ line.message }}
+                      </p>
+                    }
+                  } @else {
+                    <p class="utility-empty">Output from workspace and terminal lifecycle events will appear here.</p>
+                  }
+                </div>
+
+                <div class="monitor-panel">
+                  <header class="utility-panel-header">
+                    <p class="rail-title">System Monitor</p>
+                  </header>
+                  <div class="monitor-grid">
+                    <div class="metric-ring metric-cpu">
+                      <span>CPU</span>
+                      <strong>{{ formatMetric(systemMetrics?.cpuPercent, '%') }}</strong>
+                    </div>
+                    <div class="metric-ring metric-memory">
+                      <span>Memory</span>
+                      <strong>{{ formatMetric(systemMetrics?.memoryUsedGb, ' GB') }}</strong>
+                    </div>
+                    <div class="metric-ring metric-disk">
+                      <span>Disk</span>
+                      <strong>{{ formatMetric(systemMetrics?.diskPercent, '%') }}</strong>
+                    </div>
+                    <div class="metric-ring metric-network">
+                      <span>Network</span>
+                      <strong>{{ formatMetric(systemMetrics?.networkMbps, ' Mbps') }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            @case ('problems') {
+              <div class="utility-panel problems-panel">
+                <header class="utility-panel-header">
+                  <p class="rail-title">Problems</p>
+                  <button type="button" class="utility-action" (click)="clearProblems()">Clear</button>
+                </header>
+                @if (problems.length) {
+                  <div class="problems-list">
+                    @for (problem of problems; track problem.id) {
+                      <article class="problem-row" [attr.data-severity]="problem.severity">
+                        <div class="problem-main">
+                          <span class="problem-severity">{{ problem.severity }}</span>
+                          <strong>{{ problem.message }}</strong>
+                        </div>
+                        <div class="problem-meta">
+                          <span>{{ problem.source }}</span>
+                          <span>{{ formatClock(problem.timestamp) }}</span>
+                        </div>
+                      </article>
+                    }
+                  </div>
+                } @else {
+                  <p class="utility-empty">No problems detected yet. Terminal errors and warnings will show up here.</p>
+                }
+              </div>
+            }
+            @case ('search') {
+              <div class="utility-panel search-panel">
+                <header class="utility-panel-header">
+                  <p class="rail-title">Workspace Search</p>
+                </header>
+                <label class="search-field">
+                  <span>Search workspaces, tabs, commands, and output</span>
+                  <input
+                    [(ngModel)]="searchQuery"
+                    (ngModelChange)="commandPaletteQuery = searchQuery"
+                    type="search"
+                    placeholder="Search NthTerm..."
+                  />
+                </label>
+                @if (searchQuery.trim()) {
+                  @if (getSearchResultGroups().length) {
+                    <div class="search-results">
+                      @for (group of getSearchResultGroups(); track group.label) {
+                        <section class="search-group">
+                          <p class="rail-title">{{ group.label }}</p>
+                          @for (item of group.items; track item.id) {
+                            <button type="button" class="search-result-row" (click)="executeSearchResult(item)">
+                              <strong>{{ item.title }}</strong>
+                              <span>{{ item.detail }}</span>
+                            </button>
+                          }
+                        </section>
+                      }
+                    </div>
+                  } @else {
+                    <p class="utility-empty">No matches for "{{ searchQuery.trim() }}".</p>
+                  }
+                } @else {
+                  <p class="utility-empty">Type to search across workspaces, tabs, command history, and output logs.</p>
+                }
+              </div>
+            }
+            @case ('command-history') {
+              <div class="utility-panel history-panel">
+                <header class="utility-panel-header">
+                  <p class="rail-title">Command History</p>
+                </header>
+                @if (commandHistory.length) {
+                  <div class="history-list dock-history-list">
+                    @for (entry of commandHistory; track entry.id) {
+                      <button type="button" class="history-row" (click)="rerunCommand(entry.command)">
+                        <span>{{ entry.command }}</span>
+                        <strong>{{ entry.tabTitle }} • {{ formatClock(entry.timestamp) }}</strong>
+                      </button>
+                    }
+                  </div>
+                } @else {
+                  <p class="utility-empty">Commands entered in the focused terminal will appear here.</p>
+                }
+              </div>
+            }
+          }
+        </div>
+      </section>
+    }
 
     <footer class="status-bar">
       <div class="status-cluster">

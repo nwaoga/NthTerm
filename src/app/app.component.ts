@@ -9,6 +9,7 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
@@ -121,13 +122,16 @@ type LayoutMode = 'grid-2' | 'grid-2x2';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule],
+  imports: [FormsModule, NgTemplateOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild('terminalHost')
   private terminalHost?: ElementRef<HTMLDivElement>;
+
+  @ViewChild('paneGrid')
+  private paneGrid?: ElementRef<HTMLElement>;
 
   @ViewChild('paletteInput')
   private paletteInput?: ElementRef<HTMLInputElement>;
@@ -140,6 +144,9 @@ export class AppComponent implements AfterViewInit {
   protected selectedWorkspaceId = '';
   protected activeInspectorTab: 'tab' | 'session' = 'tab';
   protected activeUtilityTab: UtilityPanelId = 'output';
+  protected utilityPanelVisible = true;
+  protected viewMenuOpen = false;
+  protected preferencesOpen = false;
   protected searchQuery = '';
   protected outputLines: OutputLine[] = [];
   protected problems: ProblemEntry[] = [];
@@ -154,6 +161,9 @@ export class AppComponent implements AfterViewInit {
   protected activeTabId = '';
   protected focusedPaneId = 'pane-1';
   protected layoutMode: LayoutMode = 'grid-2x2';
+  protected paneColSplit = 50;
+  protected paneRowSplit = 50;
+  protected paneResizeMode: 'col' | 'row' | null = null;
   protected sessionInfo: RuntimeSessionInfo | null = null;
 
   protected sessions: SessionListItem[] = [];
@@ -221,6 +231,7 @@ export class AppComponent implements AfterViewInit {
   private readonly workspaceBridge = inject(WorkspaceBridgeService);
   private readonly systemBridge = inject(SystemBridgeService);
   private readonly appBridge = inject(AppBridgeService);
+  private readonly bottomPanelPreferenceKey = 'nthterm.preferences.bottomPanel.visible';
   private removeBeforeQuitListener?: () => void;
 
   private terminal?: Terminal;
@@ -237,6 +248,7 @@ export class AppComponent implements AfterViewInit {
   private resizeDebounceId?: ReturnType<typeof setTimeout>;
 
   async ngAfterViewInit(): Promise<void> {
+    this.utilityPanelVisible = this.readBottomPanelPreference();
     const workspaces = await this.workspaceBridge.listWorkspaces();
     const launchWorkspace = await this.workspaceBridge.getLaunchWorkspace();
 
@@ -339,6 +351,7 @@ export class AppComponent implements AfterViewInit {
 
   protected startRenameSession(session: SessionListItem, event: MouseEvent): void {
     event.stopPropagation();
+    event.preventDefault();
     this.editingSessionId = session.id;
     this.editingSessionName = session.name;
   }
@@ -555,10 +568,32 @@ export class AppComponent implements AfterViewInit {
 
   protected setUtilityTab(tab: UtilityPanelId): void {
     this.activeUtilityTab = tab;
+    this.utilityPanelVisible = true;
+    this.writeBottomPanelPreference(true);
+  }
+
+  protected toggleViewMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.viewMenuOpen = !this.viewMenuOpen;
+  }
+
+  protected togglePreferences(): void {
+    this.preferencesOpen = !this.preferencesOpen;
+  }
+
+  protected setUtilityPanelPreference(visible: boolean): void {
+    this.utilityPanelVisible = visible;
+    this.writeBottomPanelPreference(visible);
+    this.viewMenuOpen = false;
+    setTimeout(() => this.syncTerminalSize(), 0);
   }
 
   protected openUtilityPanel(tab: UtilityPanelId): void {
     this.activeUtilityTab = tab;
+    this.utilityPanelVisible = true;
+    this.writeBottomPanelPreference(true);
+    this.viewMenuOpen = false;
+    setTimeout(() => this.syncTerminalSize(), 0);
   }
 
   protected openCommandPalette(focusSearch = false): void {
@@ -655,6 +690,11 @@ export class AppComponent implements AfterViewInit {
     };
 
     await this.executePaletteEntry(entry);
+  }
+
+  @HostListener('document:click')
+  protected closeViewMenu(): void {
+    this.viewMenuOpen = false;
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -766,6 +806,45 @@ export class AppComponent implements AfterViewInit {
     return pane.id === this.focusedPaneId;
   }
 
+  protected getPaneById(paneId: string): RuntimePane | undefined {
+    return this.runtimePanes.find((pane) => pane.id === paneId);
+  }
+
+  protected startPaneResize(event: MouseEvent, mode: 'col' | 'row'): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.paneResizeMode = mode;
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  protected onDocumentMouseMove(event: MouseEvent): void {
+    if (!this.paneResizeMode || !this.paneGrid) {
+      return;
+    }
+
+    const bounds = this.paneGrid.nativeElement.getBoundingClientRect();
+    if (this.paneResizeMode === 'col') {
+      const pct = ((event.clientX - bounds.left) / bounds.width) * 100;
+      this.paneColSplit = Math.min(78, Math.max(22, pct));
+    } else {
+      const pct = ((event.clientY - bounds.top) / bounds.height) * 100;
+      this.paneRowSplit = Math.min(78, Math.max(22, pct));
+    }
+
+    this.syncTerminalSize();
+  }
+
+  @HostListener('document:mouseup')
+  protected onDocumentMouseUp(): void {
+    if (!this.paneResizeMode) {
+      return;
+    }
+
+    this.paneResizeMode = null;
+    this.syncTerminalSize();
+    void this.persistWorkspaceState();
+  }
+
   protected getPaneTab(pane: RuntimePane): RuntimeTab | undefined {
     return pane.tabId ? this.runtimeTabs.find((tab) => tab.id === pane.tabId) : undefined;
   }
@@ -862,6 +941,8 @@ export class AppComponent implements AfterViewInit {
           mode: this.layoutMode,
           activeTabId: this.activeTabId,
           focusedPaneId: this.focusedPaneId,
+          colSplit: this.paneColSplit,
+          rowSplit: this.paneRowSplit,
           panes: this.runtimePanes.map((pane) => ({
             id: pane.id,
             tabId: pane.tabId,
@@ -1114,6 +1195,8 @@ export class AppComponent implements AfterViewInit {
       startupCommand: tab.startupCommand || '',
     })) || [];
     this.layoutMode = (workspace.sessionSnapshot?.layout?.mode as LayoutMode) || 'grid-2x2';
+    this.paneColSplit = workspace.sessionSnapshot?.layout?.colSplit ?? 50;
+    this.paneRowSplit = workspace.sessionSnapshot?.layout?.rowSplit ?? 50;
     this.runtimePanes = this.buildPanesForMode(
       this.layoutMode,
       this.runtimeTabs,
@@ -1196,6 +1279,22 @@ export class AppComponent implements AfterViewInit {
       await this.workspaceBridge.setActiveWorkspace(this.selectedWorkspaceId);
     } finally {
       await this.appBridge.quitReady();
+    }
+  }
+
+  private readBottomPanelPreference(): boolean {
+    try {
+      return localStorage.getItem(this.bottomPanelPreferenceKey) !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  private writeBottomPanelPreference(visible: boolean): void {
+    try {
+      localStorage.setItem(this.bottomPanelPreferenceKey, String(visible));
+    } catch {
+      // Preference persistence is best-effort only.
     }
   }
 
