@@ -1,3 +1,5 @@
+@import './app/styles/shell.css';
+
 html,
 body {
   margin: 0;

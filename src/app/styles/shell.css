@@ -1,9 +1,10 @@
-:host {
+app-root {
   display: block;
   height: 100vh;
   overflow: hidden;
   color: #e6edf7;
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --titlebar-inset: 40px;
 }
 
 button,
@@ -28,6 +29,14 @@ input {
   border-right: 1px solid rgba(124, 90, 255, 0.14);
   background: #0b111c;
   overflow: hidden auto;
+  -webkit-app-region: drag;
+}
+
+.left-rail button,
+.left-rail input,
+.left-rail label,
+.left-rail .session-row {
+  -webkit-app-region: no-drag;
 }
 
 .brand {
@@ -294,11 +303,88 @@ input {
 .shell-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 10px 14px;
+  gap: 12px;
+  flex-wrap: nowrap;
+  padding: 10px 140px 10px 14px;
   border-bottom: 1px solid rgba(141, 154, 187, 0.12);
   background: #0f1624;
+  -webkit-app-region: drag;
+}
+
+.shell-toolbar-leading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  min-width: 0;
+  -webkit-app-region: drag;
+}
+
+.shell-toolbar .toolbar-actions,
+.shell-toolbar button,
+.shell-toolbar input,
+.shell-toolbar .view-menu,
+.shell-toolbar .view-menu-dropdown {
+  -webkit-app-region: no-drag;
+}
+
+.desktop-header-leading,
+.toolbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.desktop-app-badge {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #9f58ff, #4f6fff);
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.desktop-app-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.desktop-workspace-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 1;
+  min-width: 120px;
+  max-width: 240px;
+  padding: 8px 12px;
+  border: 1px solid rgba(141, 154, 187, 0.16);
+  border-radius: 8px;
+  background: rgba(22, 26, 43, 0.86);
+  color: #eef3fb;
+  font-weight: 500;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.workspace-switcher-caret {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: #a3afc1;
+  font-size: 0.75rem;
+}
+
+.desktop-workspace-switcher > span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .workspace-picker {
@@ -319,9 +405,57 @@ input {
 
 .toolbar-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+
+.toolbar-pill.toolbar-search,
+.toolbar-pill.toolbar-command {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.toolbar-pill.toolbar-search span,
+.toolbar-pill.toolbar-command span {
+  white-space: nowrap;
+}
+
+.toolbar-pill kbd {
+  padding: 2px 6px;
+  border: 1px solid rgba(141, 154, 187, 0.22);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.22);
+  color: #aeb9cb;
+  font-size: 0.72rem;
+  font-family: inherit;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.toolbar-icon-button,
+.toolbar-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(141, 154, 187, 0.14);
+  border-radius: 999px;
+  background: rgba(18, 22, 36, 0.82);
+  color: #d7deeb;
+  cursor: pointer;
+}
+
+.toolbar-avatar {
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .view-menu {
@@ -374,6 +508,7 @@ input {
 .layout-switch {
   display: inline-flex;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .toolbar-pill,
@@ -1196,6 +1331,7 @@ input {
   background: rgba(10, 14, 24, 0.9);
   color: #c2ccdc;
   font-size: 0.88rem;
+  -webkit-app-region: drag;
 }
 
 .command-palette-backdrop {
@@ -1364,15 +1500,18 @@ input {
     display: none;
   }
 
-  .shell-toolbar,
+  .shell-toolbar {
+    flex-wrap: wrap;
+    padding-right: 14px;
+  }
+
+  .toolbar-actions {
+    justify-content: flex-start;
+  }
+
   .status-bar {
     flex-direction: column;
     align-items: start;
-  }
-
-  .toolbar-actions,
-  .status-cluster {
-    flex-wrap: wrap;
   }
 
   .terminal-toolbar {

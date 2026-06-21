@@ -1,0 +1,106 @@
+<aside class="left-rail">
+  <section class="rail-section">
+    <p class="rail-title">Sessions</p>
+    <div class="session-list">
+      @for (session of ws.sessions; track trackById($index, session)) {
+        <div
+          class="session-row"
+          [class.active]="isSessionActive(session)"
+          [attr.data-accent]="session.accent"
+        >
+          @if (ws.editingSessionId === session.id) {
+            <input
+              class="session-rename-input"
+              [(ngModel)]="ws.editingSessionName"
+              type="text"
+              (keydown.enter)="commitRenameSession(session.id)"
+              (keydown.escape)="cancelRenameSession()"
+              (blur)="commitRenameSession(session.id)"
+            />
+          } @else {
+            <button
+              type="button"
+              class="session-item"
+              (click)="selectWorkspace(session.id)"
+              (dblclick)="startRenameSession(session, $event)"
+            >
+              <span class="session-icon">{{ session.icon === 'cloud' ? '☁' : session.icon === 'spark' ? '✦' : session.icon === 'cap' ? '◧' : session.icon === 'server' ? '⌘' : '•' }}</span>
+              <span class="session-name">{{ session.name }}</span>
+            </button>
+            <div class="session-actions">
+              <button
+                type="button"
+                class="session-action-icon"
+                title="Rename workspace"
+                aria-label="Rename workspace"
+                (click)="startRenameSession(session, $event)"
+              >
+                ✎
+              </button>
+              <button
+                type="button"
+                class="session-action-icon session-action-icon-danger"
+                title="Delete workspace"
+                aria-label="Delete workspace"
+                (click)="deleteSession(session, $event)"
+              >
+                ×
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="rail-section">
+    <p class="rail-title">Templates</p>
+    <div class="template-list">
+      @for (template of templates; track trackByName($index, template)) {
+        <button
+          type="button"
+          class="template-item"
+          [attr.data-accent]="template.accent"
+          (click)="createWorkspaceFromTemplate(template)"
+        >
+          <span class="template-dot"></span>
+          <span>{{ template.name }}</span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="rail-section rail-section-spacer">
+    <p class="rail-title">Tools</p>
+    <div class="tool-list">
+      <span class="tool-link">◔ Command History</span>
+      <span>◇ Snippets</span>
+      <span>⌂ Environments</span>
+    </div>
+  </section>
+
+  <section class="rail-section">
+    <p class="rail-title">Settings</p>
+    <div class="tool-list">
+      <button type="button" class="tool-link tool-button" (click)="togglePreferences()">◐ Appearance</button>
+      <span>⌘ Shell</span>
+      <span>⌨ Keybindings</span>
+      <span>◎ About NthTerm</span>
+    </div>
+    @if (preferencesOpen) {
+      <div class="preferences-card">
+        <p class="rail-title">Preferences</p>
+        <label class="preference-toggle">
+          <input
+            type="checkbox"
+            [checked]="utilityPanelVisible"
+            (change)="setUtilityPanelPreference($any($event.target).checked)"
+          />
+          <span>Show bottom panel</span>
+        </label>
+      </div>
+    }
+  </section>
+
+  <div class="rail-status">All systems operational</div>
+</aside>

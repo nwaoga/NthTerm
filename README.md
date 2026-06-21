@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **Phase 3 complete** — multi-tab workspace shell with launch restore and session preferences.
+Current milestone: **Phase 4 in progress** — workspace management, shell polish, and Angular architecture refactor.
 
 Working today:
 
@@ -30,14 +30,17 @@ Working today:
 - PTY lifecycle is managed in Electron main through `node-pty`
 - workspace state is stored in SQLite through an Electron-managed persistence layer
 - multiple named workspaces and starter templates
-- each workspace persists tabs, layout mode, focused pane, and pane-to-tab assignments
-- `2-up` and `2x2` pane layouts with focused-pane terminal restore
+- workspace rename and delete from the sessions sidebar
+- each workspace persists tabs, layout mode, focused pane, pane splits, and pane-to-tab assignments
+- `2-up` and `2x2` pane layouts with draggable split handles and focused-pane terminal restore
 - tab and session inspector with live PTY metadata and restart/stop/kill actions
-- bottom utility panels: output, problems, search, and command history
+- bottom utility panels: output, problems, search, and command history (visible by default, toggle in Appearance)
 - system monitor (CPU, memory, disk, network) and session environment variables
 - command palette and global workspace search
 - last workspace auto-restores on launch, with invalid directory fallback
 - per-tab shell preference and startup commands persisted in SQLite
+- frameless desktop window with custom title bar drag regions and integrated window controls
+- Angular renderer split into feature components and services (`models/`, `workspace/`, `terminal/`, `utility-panel/`, `command-palette/`, etc.) per architecture code-style rules
 
 Keyboard shortcuts:
 
@@ -47,9 +50,33 @@ Keyboard shortcuts:
 Next up (Phase 4):
 
 - session history and richer recovery metadata
-- deeper multi-pane runtime behavior beyond the current focused-pane model
+- concurrent PTY sessions across split panes
+- design-alignment polish against `docs/target-ui-reference.png`
 
-Workspace rename and delete are available from the sessions sidebar.
+## Design alignment checklist
+
+The target for Phase 4 is **1:1 implementation fidelity** with the reference design in `docs/target-ui-reference.png`. The goal is not to build a UI that is merely inspired by the reference or generally aligned with it. We should match the reference as closely as the product architecture allows, and only deviate when a concrete runtime constraint makes an exact match impossible. Any intentional deviation should be documented explicitly.
+
+- [ ] Match the desktop chrome and integrated top shell to the reference.
+  Implement the same overall titlebar feel, header composition, workspace switcher placement, and top action grouping shown in the target design.
+- [ ] Match the center workspace composition to the reference.
+  Recreate the same pane density, terminal-card hierarchy, card spacing, and live-workspace feel instead of replacing them with alternate summary or hero patterns.
+- [ ] Match the tab strip and tab metadata treatment to the reference.
+  Mirror the tab sizing, stacking, active-state emphasis, icon treatment, and top-level metadata presentation shown in the plan design.
+- [ ] Match the left sidebar structure and visual rhythm to the reference.
+  Reproduce the same grouping, spacing, icon style, row treatment, and section hierarchy for sessions, templates, tools, and settings.
+- [ ] Match the right inspector structure to the reference.
+  Recreate the card layout, metadata grouping, quick actions, recent commands, and environment sections as they appear in the target UI.
+- [ ] Match the bottom dock composition to the reference.
+  Implement the same output, problems, search, command history, and monitor balance instead of substituting a materially different layout.
+- [ ] Match the system monitor card design to the reference.
+  Reproduce the same telemetry emphasis, card balance, ring treatment, and sizing used in the concept.
+- [ ] Match the visual language across spacing, borders, radii, color, and typography.
+  Use the reference as the source of truth for the shell's density and finish rather than inventing adjacent styling.
+- [ ] Seed realistic content that matches the reference presentation.
+  Populate the interface with believable sessions, commands, telemetry, and inspector content so screenshots and reviews compare against the reference fairly.
+- [ ] Document any unavoidable deviations.
+  If a behavior or layout cannot be implemented 1:1 because of Electron, PTY, or runtime constraints, record the exact constraint and the smallest acceptable fallback.
 
 ## Quick start
 
@@ -93,7 +120,9 @@ On launch, the app restores the last active workspace from SQLite. Invalid saved
 
 ## Architecture direction
 
-- Angular handles rendering and user interaction.
+- Angular handles rendering and user interaction through a thin `AppComponent` shell and feature components.
+- Business logic lives in injectable Angular services; shared UI models live under `src/app/models/`.
+- Shell styles are centralized in `src/app/styles/shell.css` and imported from `src/styles.css`.
 - Electron main owns PTY and process management.
 - xterm.js provides the terminal UI.
 - SQLite persistence runs in Electron main and is exposed through the preload bridge.

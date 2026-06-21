@@ -1,0 +1,48 @@
+@if (palette.open) {
+  <div class="command-palette-backdrop" (click)="close()">
+    <div class="command-palette" role="dialog" aria-modal="true" aria-label="Command palette" (click)="$event.stopPropagation()">
+      <label class="command-palette-input">
+        <span>Command Palette</span>
+        <input
+          #paletteInput
+          [(ngModel)]="palette.query"
+          (ngModelChange)="onQueryChange()"
+          type="search"
+          placeholder="Type a command or search workspaces, tabs, commands..."
+        />
+      </label>
+
+      <div class="command-palette-results">
+        @if (getFilteredPaletteEntries().length) {
+          @for (entry of getFilteredPaletteEntries(); track entry.id; let index = $index) {
+            @if (index === 0 || getFilteredPaletteEntries()[index - 1].group !== entry.group) {
+              <p class="palette-group-label">{{ entry.group }}</p>
+            }
+            <button
+              type="button"
+              class="palette-result-row"
+              [class.active]="isPaletteEntryActive(index)"
+              (click)="executePaletteEntry(entry)"
+            >
+              <span class="palette-result-main">
+                <strong>{{ entry.label }}</strong>
+                <span>{{ entry.detail }}</span>
+              </span>
+              @if (entry.shortcut) {
+                <kbd>{{ entry.shortcut }}</kbd>
+              }
+            </button>
+          }
+        } @else {
+          <p class="utility-empty">No matching commands or workspace results.</p>
+        }
+      </div>
+
+      <div class="command-palette-footer">
+        <span>↑↓ navigate</span>
+        <span>Enter run</span>
+        <span>Esc close</span>
+      </div>
+    </div>
+  </div>
+}

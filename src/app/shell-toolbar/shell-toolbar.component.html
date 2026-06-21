@@ -1,0 +1,55 @@
+<header class="shell-toolbar">
+  <div class="shell-toolbar-leading">
+    <div class="desktop-header-leading toolbar-brand">
+      <div class="desktop-app-badge">N</div>
+      <strong class="desktop-app-title">NthTerm</strong>
+    </div>
+
+    <div class="desktop-workspace-switcher">
+      <span class="workspace-picker-icon">☁</span>
+      <span>{{ ws.selectedWorkspace }}</span>
+      <span class="workspace-switcher-caret">▾</span>
+    </div>
+  </div>
+
+  <div class="toolbar-actions">
+    <button type="button" class="toolbar-pill" (click)="createTab()">+ New Tab</button>
+    <div class="layout-switch" aria-label="Layout mode">
+      <button
+        type="button"
+        class="toolbar-pill"
+        [class.active]="ws.layoutMode === 'grid-2'"
+        (click)="setLayoutMode('grid-2')"
+      >
+        2-Up
+      </button>
+      <button
+        type="button"
+        class="toolbar-pill"
+        [class.active]="ws.layoutMode === 'grid-2x2'"
+        (click)="setLayoutMode('grid-2x2')"
+      >
+        2x2
+      </button>
+    </div>
+    <button type="button" class="toolbar-pill muted toolbar-search" (click)="openGlobalSearch()">
+      <span>Search</span>
+      <kbd>Ctrl+Shift+F</kbd>
+    </button>
+    <button type="button" class="toolbar-pill muted toolbar-command" (click)="openCommandPalette()">
+      <span>Command Palette</span>
+      <kbd>Ctrl+Shift+P</kbd>
+    </button>
+    <div class="view-menu" (click)="$event.stopPropagation()">
+      <button type="button" class="toolbar-pill muted toolbar-view" (click)="toggleViewMenu($event)">View</button>
+      @if (viewMenuOpen) {
+        <div class="view-menu-dropdown" role="menu">
+          <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('output')">Output</button>
+          <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('problems')">Problems</button>
+          <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('search')">Search</button>
+          <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('command-history')">Command History</button>
+        </div>
+      }
+    </div>
+  </div>
+</header>

@@ -1,0 +1,212 @@
+    <div class="content-layout">
+      <section class="content-main">
+        <nav class="tab-strip" aria-label="Terminal tabs">
+          @for (tab of ws.runtimeTabs; track trackById($index, tab)) {
+            <button
+              type="button"
+              class="tab-pill"
+              [class.active]="isTabActive(tab)"
+              [attr.data-tone]="tab.accent"
+              (click)="selectTab(tab.id)"
+            >
+              <span class="tab-top">{{ tab.title }}</span>
+              <span class="tab-bottom">{{ tab.cwd }} • {{ tab.status }}</span>
+              <span class="tab-close" (click)="closeTab(tab.id, $event)">×</span>
+            </button>
+          }
+          <button type="button" class="tab-add" (click)="createTab()">+</button>
+        </nav>
+
+        <section
+          #paneGrid
+          class="pane-grid"
+          [class.pane-grid-resizing]="ws.paneResizeMode !== null"
+          [attr.data-layout]="ws.layoutMode"
+          [style.--pane-col-split.%]="ws.paneColSplit"
+          [style.--pane-row-split.%]="ws.paneRowSplit"
+        >
+          @if (ws.layoutMode === 'grid-2') {
+            @if (getPaneById('pane-1'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 0 }" />
+            }
+            <div
+              class="pane-resize-handle pane-resize-col"
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize panes"
+              (mousedown)="startPaneResize($event, 'col')"
+            ></div>
+            @if (getPaneById('pane-2'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 1 }" />
+            }
+          } @else {
+            @if (getPaneById('pane-1'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 0 }" />
+            }
+            @if (getPaneById('pane-2'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 1 }" />
+            }
+            <div
+              class="pane-resize-handle pane-resize-col"
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize panes horizontally"
+              (mousedown)="startPaneResize($event, 'col')"
+            ></div>
+            <div
+              class="pane-resize-handle pane-resize-row"
+              role="separator"
+              aria-orientation="horizontal"
+              aria-label="Resize panes vertically"
+              (mousedown)="startPaneResize($event, 'row')"
+            ></div>
+            @if (getPaneById('pane-3'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 2 }" />
+            }
+            @if (getPaneById('pane-4'); as pane) {
+              <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 3 }" />
+            }
+          }
+        </section>
+
+        <ng-template #paneCard let-pane="pane" let-index="index">
+            <article
+              class="terminal-card pane-slot"
+              [class.pane-slot-1]="index === 0"
+              [class.pane-slot-2]="index === 1"
+              [class.pane-slot-3]="index === 2"
+              [class.pane-slot-4]="index === 3"
+              [class.focused]="isPaneFocused(pane)"
+              [class.placeholder-card]="!getPaneTab(pane)"
+              [attr.data-tone]="getPaneTone(pane)"
+              (click)="focusPane(pane.id)"
+            >
+              <header class="terminal-card-header">
+                <div class="terminal-card-copy">
+                  <div class="pane-header-topline">
+                    <span class="pane-state-pill" [class.focused]="isPaneFocused(pane)">{{ getPaneStatusLabel(pane) }}</span>
+                    <span class="pane-summary-inline">{{ getPaneSummaryLine(pane) }}</span>
+                  </div>
+                  <p class="card-title">
+                    {{ getPaneDisplayTitle(pane, index) }}
+                  </p>
+                  <p class="card-meta">{{ getPaneTab(pane)?.title === 'Docker' ? 'up' : getPaneTab(pane)?.title === 'Database' ? 'local' : 'main' }} <span>•</span> {{ getPaneTab(pane)?.title === 'Docker' ? '4 containers' : getPaneTab(pane)?.title === 'Database' ? '5432' : getPaneTab(pane)?.title === 'API' ? '7192' : '4200' }}</p>
+                </div>
+                @if (isPaneFocused(pane) && getPaneTab(pane)) {
+                  <div class="card-actions">
+                    <button type="button" class="card-action-icon" aria-label="Add pane shortcut">+</button>
+                    <button type="button" class="card-action-icon" aria-label="Split pane">◫</button>
+                    <button type="button" class="card-action-icon" aria-label="Delete pane">🗑</button>
+                    <button type="button" class="card-action-icon" aria-label="More actions">⋯</button>
+                  </div>
+                } @else {
+                  <div class="mini-actions">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                }
+              </header>
+
+              @if ((isPaneFocused(pane) && getPaneTab(pane)) || shouldRenderPanePreview(pane)) {
+                <div
+                  #terminalHost
+                  class="terminal-host"
+                  aria-label="Interactive terminal"
+                  (click)="$event.stopPropagation()"
+                >
+                  @if (shouldRenderPanePreview(pane)) {
+                    <pre class="terminal-preview">{{ getPanePreviewText(pane) }}</pre>
+                  }
+                </div>
+              } @else if (getPaneTab(pane)) {
+                <div class="placeholder-body pane-preview">
+                  <div class="preview-stack">
+                    <span class="preview-label">Assigned directory</span>
+                    <strong>{{ getPaneTab(pane)?.cwd }}</strong>
+                  </div>
+                  <div class="preview-stack">
+                    <span class="preview-label">Startup</span>
+                    <strong>{{ getPaneTab(pane)?.startupCommand?.trim() || 'Interactive shell session' }}</strong>
+                  </div>
+                  <div class="preview-stack">
+                    <span class="preview-label">Next attach behavior</span>
+                    <p>{{ getPaneTab(pane)?.title }} is staged in this pane. Focus it to bring the live terminal here and continue the session.</p>
+                  </div>
+                </div>
+              } @else {
+                <div class="placeholder-body pane-preview pane-preview-empty">
+                  <div class="empty-pane-card">
+                    <span class="preview-label">Empty pane</span>
+                    <strong>Ready for a live terminal</strong>
+                    <p>Focus this pane, then select an existing tab or create a new one to turn this slot into an active workspace surface.</p>
+                  </div>
+                </div>
+              }
+            </article>
+        </ng-template>
+      </section>
+
+      <aside class="inspector">
+        <div class="inspector-tabs">
+          <button type="button" [class.active]="inspector.activeTab === 'tab'" (click)="setInspectorTab('tab')">Tab Info</button>
+          <button type="button" [class.active]="inspector.activeTab === 'session'" (click)="setInspectorTab('session')">Session</button>
+        </div>
+
+        <section class="inspector-card">
+          <header class="inspector-header">
+            <div>
+              <p class="card-title">{{ getFocusedTab()?.title || 'No Tab Selected' }}</p>
+              <p class="card-meta">{{ getFocusedTab()?.status || 'idle' }}</p>
+            </div>
+          </header>
+
+          <div class="inspector-summary-list">
+            @for (item of getInspectorSummaryItems(); track trackByLabel($index, item)) {
+              <div class="inspector-summary-row">
+                <span>＋ {{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+            }
+          </div>
+
+          <div class="inspector-actions">
+            <button type="button" class="primary" (click)="relaunchTerminal()" [disabled]="!getFocusedTab()">Restart</button>
+            <button type="button" class="danger" (click)="interruptTerminal()" [disabled]="!canControlSession()">Stop</button>
+            <button type="button" (click)="killTerminal()" [disabled]="!canControlSession()">Kill</button>
+          </div>
+        </section>
+
+        <section class="inspector-card compact">
+          <p class="rail-title">Recent Commands</p>
+          <div class="history-list">
+            @if (getRecentCommands().length) {
+              @for (entry of getRecentCommands(); track entry.id) {
+                <div class="history-entry">
+                  <span>{{ entry.command }}</span>
+                  <strong>{{ formatClock(entry.timestamp) }}</strong>
+                </div>
+              }
+            } @else {
+              <p class="utility-empty compact">Run commands in the terminal to populate history.</p>
+            }
+          </div>
+        </section>
+
+        <section class="inspector-card compact">
+          <p class="rail-title">Environment Variables</p>
+          <div class="history-list">
+            @if (getVisibleEnvironmentVariables().length) {
+              @for (entry of getVisibleEnvironmentVariables(); track entry.name) {
+                <div class="history-entry">
+                  <span>{{ entry.name }}</span>
+                  <strong>{{ entry.value }}</strong>
+                </div>
+              }
+            } @else {
+              <p class="utility-empty compact">Environment variables from the active terminal session will appear here.</p>
+            }
+          </div>
+        </section>
+      </aside>
+    </div>

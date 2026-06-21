@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 
 import { AppComponent } from './app.component';
+import { AppBridgeService } from './app-bridge.service';
+import { SystemBridgeService } from './system-bridge.service';
 import { TerminalBridgeService } from './terminal-bridge.service';
 import { WorkspaceBridgeService } from './workspace-bridge.service';
 
@@ -16,14 +18,31 @@ describe('AppComponent', () => {
             sendInput: async () => undefined,
             resizeSession: async () => undefined,
             disposeSession: async () => undefined,
+            interruptSession: async () => undefined,
+            getSessionInfo: async () => null,
             onData: () => () => undefined,
             onExit: () => () => undefined,
+            onInfo: () => () => undefined,
+          },
+        },
+        {
+          provide: SystemBridgeService,
+          useValue: {
+            getMetrics: async () => null,
+            getSessionEnvironment: async () => [],
+          },
+        },
+        {
+          provide: AppBridgeService,
+          useValue: {
+            onBeforeQuit: () => () => undefined,
+            quitReady: async () => undefined,
           },
         },
         {
           provide: WorkspaceBridgeService,
           useValue: {
-            listWorkspaces: async () => ([
+            listWorkspaces: async () => [
               {
                 id: 'workspace-1',
                 name: 'Default Workspace',
@@ -32,10 +51,31 @@ describe('AppComponent', () => {
                 templateId: 'empty-workspace',
                 icon: 'cloud',
                 accent: 'violet',
+                layoutMode: 'grid-2x2',
+                launchProfile: 'manual',
+                sessionSnapshot: {
+                  layout: {
+                    mode: 'grid-2x2',
+                    activeTabId: 'tab-1',
+                    focusedPaneId: 'pane-1',
+                    panes: [{ id: 'pane-1', tabId: 'tab-1' }],
+                  },
+                  tabs: [
+                    {
+                      id: 'tab-1',
+                      title: 'Main',
+                      cwd: 'C:\\',
+                      status: 'running',
+                      accent: 'violet',
+                      shell: '',
+                      startupCommand: '',
+                    },
+                  ],
+                },
                 updatedAt: '2026-06-17T00:00:00.000Z',
               },
-            ]),
-            getActiveWorkspace: async () => ({
+            ],
+            getLaunchWorkspace: async () => ({
               id: 'default',
               name: 'Default Workspace',
               cwd: 'C:\\',
@@ -43,6 +83,27 @@ describe('AppComponent', () => {
               templateId: 'empty-workspace',
               icon: 'cloud',
               accent: 'violet',
+              layoutMode: 'grid-2x2',
+              launchProfile: 'manual',
+              sessionSnapshot: {
+                layout: {
+                  mode: 'grid-2x2',
+                  activeTabId: 'tab-1',
+                  focusedPaneId: 'pane-1',
+                  panes: [{ id: 'pane-1', tabId: 'tab-1' }],
+                },
+                tabs: [
+                  {
+                    id: 'tab-1',
+                    title: 'Main',
+                    cwd: 'C:\\',
+                    status: 'running',
+                    accent: 'violet',
+                    shell: '',
+                    startupCommand: '',
+                  },
+                ],
+              },
               updatedAt: '2026-06-17T00:00:00.000Z',
             }),
             createWorkspace: async () => ({
@@ -53,6 +114,9 @@ describe('AppComponent', () => {
               templateId: 'angular-app',
               icon: 'spark',
               accent: 'amber',
+              layoutMode: 'grid-2x2',
+              launchProfile: 'manual',
+              sessionSnapshot: { layout: { mode: 'grid-2x2', activeTabId: '', focusedPaneId: 'pane-1', panes: [] }, tabs: [] },
               updatedAt: '2026-06-17T00:00:00.000Z',
             }),
             saveWorkspace: async () => ({
@@ -63,6 +127,9 @@ describe('AppComponent', () => {
               templateId: 'empty-workspace',
               icon: 'cloud',
               accent: 'violet',
+              layoutMode: 'grid-2x2',
+              launchProfile: 'manual',
+              sessionSnapshot: { layout: { mode: 'grid-2x2', activeTabId: '', focusedPaneId: 'pane-1', panes: [] }, tabs: [] },
               updatedAt: '2026-06-17T00:00:00.000Z',
             }),
             setActiveWorkspace: async () => ({
@@ -73,6 +140,9 @@ describe('AppComponent', () => {
               templateId: 'empty-workspace',
               icon: 'cloud',
               accent: 'violet',
+              layoutMode: 'grid-2x2',
+              launchProfile: 'manual',
+              sessionSnapshot: { layout: { mode: 'grid-2x2', activeTabId: '', focusedPaneId: 'pane-1', panes: [] }, tabs: [] },
               updatedAt: '2026-06-17T00:00:00.000Z',
             }),
           },
@@ -81,9 +151,10 @@ describe('AppComponent', () => {
     }).compileComponents();
   });
 
-  it('creates the app', () => {
+  it('creates the app', async () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });
