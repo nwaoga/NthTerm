@@ -4,6 +4,7 @@
 - [ ] Phase 4: Design-alignment polish against `docs/target-ui-reference.png`
 
 ## Done
+- [x] Phase 4 / #111: Align the center workspace composition with the target reference
 - [x] Create workspace-level AI continuity documents for planning, architecture, decisions, and prompts
 - [x] Phase 1: Bootstrap Angular + Electron application shell
 - [x] Phase 1: Render an xterm.js terminal inside Angular

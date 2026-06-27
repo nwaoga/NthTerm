@@ -71,3 +71,5 @@
 ## 2026-06-27
 - `#110` design-alignment work now includes a Windows-specific top-shell correction: macOS traffic lights are hidden on Windows, and the toolbar reserves right-side space for native caption buttons so the OS controls no longer overlap app chrome.
 - The desktop shell header now uses a more reference-like grouping with a centered workspace switcher, stronger top-bar segmentation, and a denser footer/status treatment, while still respecting Electron title-bar constraints on Windows.
+- `#111` center-workspace alignment now wraps the tab strip and pane grid in a dedicated stage container so the middle column reads as one composed surface instead of disconnected blocks.
+- Pane cards now use denser reference-like chrome: stronger rounded framing, clearer pane metadata hierarchy, inset terminal surfaces, and wider split gutters to better match the target composition without changing PTY ownership or workspace behavior.

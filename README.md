@@ -59,7 +59,7 @@ The target for Phase 4 is **1:1 implementation fidelity** with the reference des
 
 - [ ] Match the desktop chrome and integrated top shell to the reference.
   Implement the same overall titlebar feel, header composition, workspace switcher placement, and top action grouping shown in the target design.
-- [ ] Match the center workspace composition to the reference.
+- [x] Match the center workspace composition to the reference.
   Recreate the same pane density, terminal-card hierarchy, card spacing, and live-workspace feel instead of replacing them with alternate summary or hero patterns.
 - [ ] Match the tab strip and tab metadata treatment to the reference.
   Mirror the tab sizing, stacking, active-state emphasis, icon treatment, and top-level metadata presentation shown in the plan design.

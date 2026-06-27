@@ -1,30 +1,31 @@
     <div class="content-layout">
       <section class="content-main">
-        <nav class="tab-strip" aria-label="Terminal tabs">
-          @for (tab of ws.runtimeTabs; track trackById($index, tab)) {
-            <button
-              type="button"
-              class="tab-pill"
-              [class.active]="isTabActive(tab)"
-              [attr.data-tone]="tab.accent"
-              (click)="selectTab(tab.id)"
-            >
-              <span class="tab-top">{{ tab.title }}</span>
-              <span class="tab-bottom">{{ tab.cwd }} • {{ tab.status }}</span>
-              <span class="tab-close" (click)="closeTab(tab.id, $event)">×</span>
-            </button>
-          }
-          <button type="button" class="tab-add" (click)="createTab()">+</button>
-        </nav>
+        <div class="workspace-stage">
+          <nav class="tab-strip" aria-label="Terminal tabs">
+            @for (tab of ws.runtimeTabs; track trackById($index, tab)) {
+              <button
+                type="button"
+                class="tab-pill"
+                [class.active]="isTabActive(tab)"
+                [attr.data-tone]="tab.accent"
+                (click)="selectTab(tab.id)"
+              >
+                <span class="tab-top">{{ tab.title }}</span>
+                <span class="tab-bottom">{{ tab.cwd }} • {{ tab.status }}</span>
+                <span class="tab-close" (click)="closeTab(tab.id, $event)">×</span>
+              </button>
+            }
+            <button type="button" class="tab-add" (click)="createTab()">+</button>
+          </nav>
 
-        <section
-          #paneGrid
-          class="pane-grid"
-          [class.pane-grid-resizing]="ws.paneResizeMode !== null"
-          [attr.data-layout]="ws.layoutMode"
-          [style.--pane-col-split.%]="ws.paneColSplit"
-          [style.--pane-row-split.%]="ws.paneRowSplit"
-        >
+          <section
+            #paneGrid
+            class="pane-grid"
+            [class.pane-grid-resizing]="ws.paneResizeMode !== null"
+            [attr.data-layout]="ws.layoutMode"
+            [style.--pane-col-split.%]="ws.paneColSplit"
+            [style.--pane-row-split.%]="ws.paneRowSplit"
+          >
           @if (ws.layoutMode === 'grid-2') {
             @if (getPaneById('pane-1'); as pane) {
               <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 0 }" />
@@ -67,7 +68,8 @@
               <ng-container *ngTemplateOutlet="paneCard; context: { pane, index: 3 }" />
             }
           }
-        </section>
+          </section>
+        </div>
 
         <ng-template #paneCard let-pane="pane" let-index="index">
             <article
@@ -108,26 +110,28 @@
                 }
               </header>
 
-              @if (getPaneTab(pane) || shouldRenderPanePreview(pane)) {
-                <div
-                  class="terminal-host"
-                  [attr.data-pane-terminal-host]="pane.id"
-                  aria-label="Interactive terminal"
-                  (click)="$event.stopPropagation()"
-                >
-                  @if (shouldRenderPanePreview(pane)) {
-                    <pre class="terminal-preview">{{ getPanePreviewText(pane) }}</pre>
-                  }
-                </div>
-              } @else {
-                <div class="placeholder-body pane-preview pane-preview-empty">
-                  <div class="empty-pane-card">
-                    <span class="preview-label">Empty pane</span>
-                    <strong>Ready for a live terminal</strong>
-                    <p>Focus this pane, then select an existing tab or create a new one to turn this slot into an active workspace surface.</p>
+              <div class="terminal-card-body">
+                @if (getPaneTab(pane) || shouldRenderPanePreview(pane)) {
+                  <div
+                    class="terminal-host"
+                    [attr.data-pane-terminal-host]="pane.id"
+                    aria-label="Interactive terminal"
+                    (click)="$event.stopPropagation()"
+                  >
+                    @if (shouldRenderPanePreview(pane)) {
+                      <pre class="terminal-preview">{{ getPanePreviewText(pane) }}</pre>
+                    }
                   </div>
-                </div>
-              }
+                } @else {
+                  <div class="placeholder-body pane-preview pane-preview-empty">
+                    <div class="empty-pane-card">
+                      <span class="preview-label">Empty pane</span>
+                      <strong>Ready for a live terminal</strong>
+                      <p>Focus this pane, then select an existing tab or create a new one to turn this slot into an active workspace surface.</p>
+                    </div>
+                  </div>
+                }
+              </div>
             </article>
         </ng-template>
       </section>
