@@ -45,6 +45,8 @@ testem.log
 
 # Local environment files
 /.env
+/.codex-local/
+/.cursor-local/
 
 # System files
 .DS_Store
