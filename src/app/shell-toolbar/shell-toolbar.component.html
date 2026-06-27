@@ -1,23 +1,31 @@
-<header class="shell-toolbar">
+<header class="shell-toolbar" [class.windows-titlebar]="isWindows">
   <div class="shell-toolbar-leading">
+    @if (!isWindows) {
+    <div class="traffic-lights" aria-hidden="true">
+      <span class="traffic-light traffic-light-close"></span>
+      <span class="traffic-light traffic-light-minimize"></span>
+      <span class="traffic-light traffic-light-maximize"></span>
+    </div>
+    }
+
     <div class="desktop-header-leading toolbar-brand">
       <div class="desktop-app-badge">N</div>
       <strong class="desktop-app-title">NthTerm</strong>
     </div>
+  </div>
 
-    <div class="desktop-workspace-switcher">
-      <span class="workspace-picker-icon">☁</span>
-      <span>{{ ws.selectedWorkspace }}</span>
-      <span class="workspace-switcher-caret">▾</span>
-    </div>
+  <div class="desktop-workspace-switcher">
+    <span class="workspace-picker-icon">☁</span>
+    <span>{{ ws.selectedWorkspace }}</span>
+    <span class="workspace-switcher-caret">▾</span>
   </div>
 
   <div class="toolbar-actions">
-    <button type="button" class="toolbar-pill" (click)="createTab()">+ New Tab</button>
+    <button type="button" class="toolbar-pill toolbar-pill-primary" (click)="createTab()">＋ New Tab</button>
     <div class="layout-switch" aria-label="Layout mode">
       <button
         type="button"
-        class="toolbar-pill"
+        class="toolbar-pill toolbar-pill-segment"
         [class.active]="ws.layoutMode === 'grid-2'"
         (click)="setLayoutMode('grid-2')"
       >
@@ -25,23 +33,26 @@
       </button>
       <button
         type="button"
-        class="toolbar-pill"
+        class="toolbar-pill toolbar-pill-segment"
         [class.active]="ws.layoutMode === 'grid-2x2'"
         (click)="setLayoutMode('grid-2x2')"
       >
         2x2
       </button>
     </div>
-    <button type="button" class="toolbar-pill muted toolbar-search" (click)="openGlobalSearch()">
+    <div class="toolbar-divider" aria-hidden="true"></div>
+    <button type="button" class="toolbar-pill muted toolbar-search toolbar-pill-ghost" (click)="openGlobalSearch()">
+      <span class="toolbar-icon">⌕</span>
       <span>Search</span>
       <kbd>Ctrl+Shift+F</kbd>
     </button>
-    <button type="button" class="toolbar-pill muted toolbar-command" (click)="openCommandPalette()">
+    <button type="button" class="toolbar-pill muted toolbar-command toolbar-pill-ghost" (click)="openCommandPalette()">
+      <span class="toolbar-icon">⌘</span>
       <span>Command Palette</span>
       <kbd>Ctrl+Shift+P</kbd>
     </button>
     <div class="view-menu" (click)="$event.stopPropagation()">
-      <button type="button" class="toolbar-pill muted toolbar-view" (click)="toggleViewMenu($event)">View</button>
+      <button type="button" class="toolbar-icon-button toolbar-settings-button" aria-label="View options" (click)="toggleViewMenu($event)">⚙</button>
       @if (viewMenuOpen) {
         <div class="view-menu-dropdown" role="menu">
           <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('output')">Output</button>
@@ -51,5 +62,6 @@
         </div>
       }
     </div>
+    <button type="button" class="toolbar-avatar" aria-label="Profile">BN</button>
   </div>
 </header>

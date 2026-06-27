@@ -20,6 +20,7 @@ export class ShellToolbarComponent {
 
   protected readonly ws = inject(WorkspaceRuntimeService);
   protected readonly palette = inject(CommandPaletteService);
+  protected readonly isWindows = this.detectWindows();
 
   protected createTab(): void {
     this.createTabRequested.emit();
@@ -43,5 +44,18 @@ export class ShellToolbarComponent {
 
   protected toggleViewMenu(event: MouseEvent): void {
     this.viewMenuToggle.emit(event);
+  }
+
+  private detectWindows(): boolean {
+    if (typeof navigator === 'undefined') {
+      return false;
+    }
+
+    const uaNavigator = navigator as Navigator & {
+      userAgentData?: { platform?: string };
+    };
+    const platform =
+      uaNavigator.userAgentData?.platform || navigator.platform || navigator.userAgent || '';
+    return /win/i.test(platform.toLowerCase());
   }
 }
