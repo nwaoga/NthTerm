@@ -39,12 +39,16 @@ export class InspectorPresenterService {
           label: 'Port',
           value: this.terminal.sessionInfo?.detectedPort?.toString() || 'Not detected',
         },
-        {
-          label: 'Exit Code',
-          value: this.terminal.sessionInfo?.exitCode?.toString() ?? 'n/a',
-        },
-      ];
-    }
+      {
+        label: 'Exit Code',
+        value: this.terminal.sessionInfo?.exitCode?.toString() ?? 'n/a',
+      },
+      {
+        label: 'Recovery',
+        value: this.workspace.recoverySnapshot.lastStopReason || 'Live session',
+      },
+    ];
+  }
 
     return [
       {
@@ -68,6 +72,16 @@ export class InspectorPresenterService {
         value: this.workspace.workspaceSummary.launchProfile || 'manual',
       },
       { label: 'Status', value: focusedTab?.status || 'idle' },
+      {
+        label: 'Last Recovery',
+        value: this.workspace.recoverySnapshot.lastStopReason || 'Clean restore',
+      },
+      {
+        label: 'Last Session Ended',
+        value:
+          this.systemMonitor.formatTimestamp(this.workspace.recoverySnapshot.lastSessionEndedAt) ||
+          'n/a',
+      },
       { label: 'Last Saved', value: this.workspace.lastSavedAt || 'pending' },
     ];
   }

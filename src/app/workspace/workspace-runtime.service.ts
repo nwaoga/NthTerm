@@ -3,10 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { SavedWorkspace, WorkspaceBridgeService, WorkspaceDraft } from '../workspace-bridge.service';
 import {
   LayoutMode,
+  PaneSessionSnapshot,
   RuntimePane,
   RuntimeTab,
+  RecoverySnapshot,
   SHELL_OPTIONS,
   SessionListItem,
+  SessionHistoryEntry,
   TemplateListItem,
   WorkspaceSummary,
 } from '../models';
@@ -40,6 +43,8 @@ export class WorkspaceRuntimeService {
   };
 
   activeWorkspace?: SavedWorkspace;
+  sessionHistory: SessionHistoryEntry[] = [];
+  recoverySnapshot: RecoverySnapshot = this.buildEmptyRecoverySnapshot();
 
   private readonly workspaceBridge = inject(WorkspaceBridgeService);
 
@@ -121,6 +126,7 @@ export class WorkspaceRuntimeService {
           panes: this.runtimePanes.map((pane) => ({
             id: pane.id,
             tabId: pane.tabId,
+            session: pane.session || null,
           })),
         },
         tabs: this.runtimeTabs.map((tab) => ({
@@ -132,6 +138,8 @@ export class WorkspaceRuntimeService {
           shell: tab.shell || '',
           startupCommand: tab.startupCommand || '',
         })),
+        history: this.sessionHistory,
+        recovery: this.recoverySnapshot,
       },
     };
   }
@@ -159,6 +167,8 @@ export class WorkspaceRuntimeService {
       this.runtimeTabs,
       workspace.sessionSnapshot?.layout?.panes || []
     );
+    this.sessionHistory = workspace.sessionSnapshot?.history?.slice(0, 20) || [];
+    this.recoverySnapshot = workspace.sessionSnapshot?.recovery || this.buildEmptyRecoverySnapshot();
     this.focusedPaneId =
       workspace.sessionSnapshot?.layout?.focusedPaneId || this.runtimePanes[0]?.id || 'pane-1';
 
@@ -412,6 +422,57 @@ export class WorkspaceRuntimeService {
     );
   }
 
+  updatePaneSessionSnapshot(paneId: string, session: PaneSessionSnapshot | null): void {
+    this.runtimePanes = this.runtimePanes.map((pane) =>
+      pane.id === paneId ? { ...pane, session } : pane
+    );
+  }
+
+  recordSessionLaunch(
+    tab: RuntimeTab,
+    paneId: string,
+    metadata: { shell: string; startedAt: string | null }
+  ): void {
+    this.recoverySnapshot = {
+      ...this.recoverySnapshot,
+      lastLaunchAt: metadata.startedAt,
+      lastAttachedPaneId: paneId,
+      lastAttachedTabId: tab.id,
+      lastRecoveredAt: new Date().toISOString(),
+      lastStopReason: null,
+      lastSessionEndedAt: null,
+      lastExitCode: null,
+    };
+  }
+
+  recordSessionEvent(
+    tab: RuntimeTab,
+    paneId: string,
+    entry: Omit<SessionHistoryEntry, 'id' | 'tabId' | 'tabTitle' | 'paneId' | 'shell' | 'cwd'>
+  ): void {
+    this.sessionHistory = [
+      {
+        id: `session-${Date.now()}-${this.sessionHistory.length}`,
+        tabId: tab.id,
+        tabTitle: tab.title,
+        paneId,
+        shell: tab.shell || '',
+        cwd: tab.cwd,
+        ...entry,
+      },
+      ...this.sessionHistory,
+    ].slice(0, 20);
+
+    this.recoverySnapshot = {
+      ...this.recoverySnapshot,
+      lastAttachedPaneId: paneId,
+      lastAttachedTabId: tab.id,
+      lastStopReason: entry.reason,
+      lastSessionEndedAt: entry.endedAt,
+      lastExitCode: entry.exitCode,
+    };
+  }
+
   updatePaneSplit(mode: 'col' | 'row', clientX: number, clientY: number, bounds: DOMRect): void {
     if (mode === 'col') {
       const pct = ((clientX - bounds.left) / bounds.width) * 100;
@@ -616,6 +677,7 @@ export class WorkspaceRuntimeService {
       return {
         id: paneId,
         tabId: existing?.tabId ?? tabs[index]?.id ?? null,
+        session: existing?.session || null,
       };
     });
   }
@@ -652,6 +714,18 @@ export class WorkspaceRuntimeService {
       launchProfile: launchProfile || this.workspaceSummary.launchProfile || 'manual',
       tabCount: this.runtimeTabs.length,
       paneCount: this.runtimePanes.length,
+    };
+  }
+
+  private buildEmptyRecoverySnapshot(): RecoverySnapshot {
+    return {
+      lastLaunchAt: null,
+      lastAttachedPaneId: null,
+      lastAttachedTabId: null,
+      lastExitCode: null,
+      lastStopReason: null,
+      lastSessionEndedAt: null,
+      lastRecoveredAt: null,
     };
   }
 }

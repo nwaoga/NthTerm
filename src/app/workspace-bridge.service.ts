@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { PaneSessionSnapshot, RecoverySnapshot, SessionHistoryEntry } from './models';
 
 export interface SavedWorkspace {
   id: string;
@@ -20,6 +21,7 @@ export interface SavedWorkspace {
       panes: Array<{
         id: string;
         tabId: string | null;
+        session?: PaneSessionSnapshot | null;
       }>;
     };
     tabs: Array<{
@@ -31,6 +33,8 @@ export interface SavedWorkspace {
       shell?: string;
       startupCommand?: string;
     }>;
+    history?: SessionHistoryEntry[];
+    recovery?: RecoverySnapshot;
   };
   updatedAt: string;
 }

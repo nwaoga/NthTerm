@@ -108,31 +108,16 @@
                 }
               </header>
 
-              @if ((isPaneFocused(pane) && getPaneTab(pane)) || shouldRenderPanePreview(pane)) {
+              @if (getPaneTab(pane) || shouldRenderPanePreview(pane)) {
                 <div
-                  #terminalHost
                   class="terminal-host"
+                  [attr.data-pane-terminal-host]="pane.id"
                   aria-label="Interactive terminal"
                   (click)="$event.stopPropagation()"
                 >
                   @if (shouldRenderPanePreview(pane)) {
                     <pre class="terminal-preview">{{ getPanePreviewText(pane) }}</pre>
                   }
-                </div>
-              } @else if (getPaneTab(pane)) {
-                <div class="placeholder-body pane-preview">
-                  <div class="preview-stack">
-                    <span class="preview-label">Assigned directory</span>
-                    <strong>{{ getPaneTab(pane)?.cwd }}</strong>
-                  </div>
-                  <div class="preview-stack">
-                    <span class="preview-label">Startup</span>
-                    <strong>{{ getPaneTab(pane)?.startupCommand?.trim() || 'Interactive shell session' }}</strong>
-                  </div>
-                  <div class="preview-stack">
-                    <span class="preview-label">Next attach behavior</span>
-                    <p>{{ getPaneTab(pane)?.title }} is staged in this pane. Focus it to bring the live terminal here and continue the session.</p>
-                  </div>
                 </div>
               } @else {
                 <div class="placeholder-body pane-preview pane-preview-empty">
@@ -189,6 +174,22 @@
               }
             } @else {
               <p class="utility-empty compact">Run commands in the terminal to populate history.</p>
+            }
+          </div>
+        </section>
+
+        <section class="inspector-card compact">
+          <p class="rail-title">Session History</p>
+          <div class="history-list">
+            @if (getSessionHistory().length) {
+              @for (entry of getSessionHistory(); track entry.id) {
+                <div class="history-entry">
+                  <span>{{ entry.tabTitle }} · {{ entry.reason }}</span>
+                  <strong>{{ formatSessionHistoryClock(entry.endedAt, entry.startedAt, entry.lastActiveAt) }}</strong>
+                </div>
+              }
+            } @else {
+              <p class="utility-empty compact">Session stops, exits, and recovery events will appear here.</p>
             }
           </div>
         </section>

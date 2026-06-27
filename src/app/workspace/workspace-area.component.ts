@@ -25,7 +25,6 @@ import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service'
   templateUrl: './workspace-area.component.html',
 })
 export class WorkspaceAreaComponent implements AfterViewInit {
-  @ViewChild('terminalHost') private terminalHost?: ElementRef<HTMLDivElement>;
   @ViewChild('paneGrid') private paneGrid?: ElementRef<HTMLElement>;
 
   @Output() readonly terminalSyncRequested = new EventEmitter<void>();
@@ -41,7 +40,7 @@ export class WorkspaceAreaComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.hostCoordinator.registerHostResolver(
-      () => this.terminalHost?.nativeElement,
+      () => this.collectTerminalHosts(),
       () => this.changeDetectorRef.detectChanges()
     );
   }
@@ -159,6 +158,10 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     return this.system.getVisibleEnvironmentVariables();
   }
 
+  protected getSessionHistory() {
+    return this.ws.sessionHistory.slice(0, 6);
+  }
+
   protected getPaneDisplayTitle(pane: RuntimePane, index: number): string {
     return this.ws.getPaneDisplayTitle(pane, index);
   }
@@ -183,11 +186,38 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     return this.system.formatClock(value);
   }
 
+  protected formatSessionHistoryClock(
+    endedAt: string | null,
+    startedAt: string | null,
+    lastActiveAt: string | null
+  ): string {
+    const value = endedAt || lastActiveAt || startedAt;
+    return value ? this.system.formatClock(value) : 'n/a';
+  }
+
   protected trackById(_index: number, item: { id: string }): string {
     return item.id;
   }
 
   protected trackByLabel(_index: number, item: { label: string }): string {
     return item.label;
+  }
+
+  private collectTerminalHosts(): Map<string, HTMLElement> {
+    const hosts = new Map<string, HTMLElement>();
+    const grid = this.paneGrid?.nativeElement;
+    if (!grid) {
+      return hosts;
+    }
+
+    const elements = grid.querySelectorAll<HTMLElement>('[data-pane-terminal-host]');
+    for (const element of elements) {
+      const paneId = element.dataset['paneTerminalHost'];
+      if (paneId) {
+        hosts.set(paneId, element);
+      }
+    }
+
+    return hosts;
   }
 }

@@ -210,6 +210,16 @@ class WorkspaceStore {
       sessionSnapshot: {
         ...snapshot,
         tabs,
+        history: Array.isArray(snapshot.history) ? snapshot.history.slice(0, 20) : [],
+        recovery: snapshot.recovery || {
+          lastLaunchAt: null,
+          lastAttachedPaneId: null,
+          lastAttachedTabId: null,
+          lastExitCode: null,
+          lastStopReason: null,
+          lastSessionEndedAt: null,
+          lastRecoveredAt: null,
+        },
       },
     };
   }
@@ -433,6 +443,16 @@ class WorkspaceStore {
         { id: 'tab-api', title: `${name} API`, cwd, status: 'running', accent: 'violet', shell: '', startupCommand: '' },
         { id: 'tab-db', title: `${name} Database`, cwd, status: 'idle', accent: 'cyan', shell: '', startupCommand: '' },
       ],
+      history: [],
+      recovery: {
+        lastLaunchAt: null,
+        lastAttachedPaneId: null,
+        lastAttachedTabId: null,
+        lastExitCode: null,
+        lastStopReason: null,
+        lastSessionEndedAt: null,
+        lastRecoveredAt: null,
+      },
     };
   }
 

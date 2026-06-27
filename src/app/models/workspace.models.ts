@@ -23,9 +23,49 @@ export interface RuntimeTab {
   startupCommand: string;
 }
 
+export interface PaneSessionSnapshot {
+  sessionId: string | null;
+  shell: string;
+  cwd: string;
+  status: string;
+  pid: number | null;
+  startedAt: string | null;
+  lastActiveAt: string | null;
+  endedAt: string | null;
+  exitCode: number | null;
+  detectedPort: number | null;
+}
+
 export interface RuntimePane {
   id: string;
   tabId: string | null;
+  session?: PaneSessionSnapshot | null;
+}
+
+export interface SessionHistoryEntry {
+  id: string;
+  tabId: string;
+  tabTitle: string;
+  paneId: string;
+  shell: string;
+  cwd: string;
+  status: 'running' | 'stopped' | 'killed' | 'failed';
+  reason: string;
+  startedAt: string | null;
+  lastActiveAt: string | null;
+  endedAt: string | null;
+  exitCode: number | null;
+  detectedPort: number | null;
+}
+
+export interface RecoverySnapshot {
+  lastLaunchAt: string | null;
+  lastAttachedPaneId: string | null;
+  lastAttachedTabId: string | null;
+  lastExitCode: number | null;
+  lastStopReason: string | null;
+  lastSessionEndedAt: string | null;
+  lastRecoveredAt: string | null;
 }
 
 export type LayoutMode = 'grid-2' | 'grid-2x2';

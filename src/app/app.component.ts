@@ -286,7 +286,7 @@ export class AppComponent implements AfterViewInit {
       { name: 'DOTNET_ENVIRONMENT', value: 'Development' },
       { name: 'PATH', value: '...,\\bin' },
     ];
-    this.terminal.sessionInfo = {
+    this.terminal.setPreviewSessionInfo({
       id: 'preview-session-api',
       pid: 18452,
       cwd: 'C:\\Projects\\CloudPOS\\Api',
@@ -297,7 +297,7 @@ export class AppComponent implements AfterViewInit {
       endedAt: null,
       exitCode: null,
       detectedPort: 7192,
-    };
+    });
     this.util.activeTab = 'output';
   }
 

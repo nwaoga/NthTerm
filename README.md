@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **Phase 4 in progress** — workspace management, shell polish, and Angular architecture refactor.
+Current milestone: **Phase 4 in progress** — design-alignment polish.
 
 Working today:
 
@@ -33,12 +33,14 @@ Working today:
 - workspace rename and delete from the sessions sidebar
 - each workspace persists tabs, layout mode, focused pane, pane splits, and pane-to-tab assignments
 - `2-up` and `2x2` pane layouts with draggable split handles and focused-pane terminal restore
+- concurrent PTY-backed terminal sessions across visible panes, with focused-pane inspector/control targeting
 - tab and session inspector with live PTY metadata and restart/stop/kill actions
 - bottom utility panels: output, problems, search, and command history (visible by default, toggle in Appearance)
 - system monitor (CPU, memory, disk, network) and session environment variables
 - command palette and global workspace search
 - last workspace auto-restores on launch, with invalid directory fallback
 - per-tab shell preference and startup commands persisted in SQLite
+- session history and recovery metadata persisted per workspace, including latest exit reason/code and recent session events
 - frameless desktop window with custom title bar drag regions and integrated window controls
 - Angular renderer split into feature components and services (`models/`, `workspace/`, `terminal/`, `utility-panel/`, `command-palette/`, etc.) per architecture code-style rules
 
@@ -49,8 +51,6 @@ Keyboard shortcuts:
 
 Next up (Phase 4):
 
-- session history and richer recovery metadata
-- concurrent PTY sessions across split panes
 - design-alignment polish against `docs/target-ui-reference.png`
 
 ## Design alignment checklist
@@ -113,8 +113,9 @@ The persistence layer stores restore-oriented workspace metadata, including:
 - launch profile and layout mode
 - tab snapshot data (cwd, shell, startup commands, status)
 - focused pane and pane assignments
+- recovery metadata and recent session history
 
-The split-pane shell currently restores one live interactive terminal into the focused pane while the other assigned panes show saved tab context. This keeps PTY ownership simple in Electron main for now and gives the project a clean path toward true concurrent pane sessions later.
+The split-pane shell now restores one live interactive terminal per assigned visible pane. Focus determines which pane drives inspector metadata, environment details, and restart/stop/kill actions.
 
 On launch, the app restores the last active workspace from SQLite. Invalid saved directories fall back to the user home directory so PTY creation does not fail on missing paths.
 
