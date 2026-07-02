@@ -1,5 +1,15 @@
 @import './app/styles/shell.css';
 
+:root {
+  color-scheme: dark;
+  --scrollbar-size: 12px;
+  --scrollbar-radius: 999px;
+  --scrollbar-thumb: rgba(126, 102, 201, 0.56);
+  --scrollbar-thumb-hover: rgba(170, 131, 255, 0.78);
+  --scrollbar-track: rgba(7, 11, 20, 0.78);
+  --scrollbar-corner: rgba(7, 11, 20, 0.4);
+}
+
 html,
 body {
   margin: 0;
@@ -24,4 +34,32 @@ app-root {
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  min-height: 36px;
+  border: 3px solid transparent;
+  border-radius: var(--scrollbar-radius);
+  background:
+    linear-gradient(180deg, rgba(186, 132, 255, 0.9), rgba(90, 126, 255, 0.68)) padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(180deg, rgba(213, 165, 255, 0.96), rgba(107, 152, 255, 0.8)) padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--scrollbar-corner);
 }
