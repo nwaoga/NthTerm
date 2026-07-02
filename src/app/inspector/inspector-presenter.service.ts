@@ -105,22 +105,20 @@ export class InspectorPresenterService {
       },
       {
         label: 'Process',
-        value: focusedTab?.startupCommand?.trim() || 'Interactive shell',
+        value: this.formatProcessSummary(focusedTab),
       },
       {
         label: 'Started',
         value: this.workspace.previewMode
-          ? 'Today at 09:15:42'
+          ? this.formatPreviewStartedAt()
           : this.systemMonitor.formatTimestamp(this.terminal.sessionInfo?.startedAt),
       },
       {
         label: 'Uptime',
-        value: this.workspace.previewMode
-          ? '00:12:48'
-          : this.systemMonitor.formatUptime(
-              this.terminal.sessionInfo?.startedAt,
-              this.terminal.sessionInfo?.endedAt
-            ),
+        value: this.systemMonitor.formatUptime(
+          this.terminal.sessionInfo?.startedAt,
+          this.terminal.sessionInfo?.endedAt
+        ),
       },
       {
         label: 'Port',
@@ -134,5 +132,29 @@ export class InspectorPresenterService {
                 : 'http://localhost:4200',
       },
     ];
+  }
+
+  private formatProcessSummary(focusedTab: ReturnType<WorkspaceRuntimeService['getFocusedTab']>): string {
+    const command = focusedTab?.startupCommand?.trim();
+    if (!command) {
+      return 'Interactive shell';
+    }
+
+    const pid = this.terminal.sessionInfo?.pid;
+    return pid ? `${command} (PID ${pid})` : command;
+  }
+
+  private formatPreviewStartedAt(): string {
+    const startedAt = this.terminal.sessionInfo?.startedAt;
+    if (!startedAt) {
+      return 'Today at 09:15:42';
+    }
+
+    return `Today at ${new Date(startedAt).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })}`;
   }
 }

@@ -62,10 +62,15 @@ export interface WorkspaceRenameResult extends SavedWorkspace {
   error?: string;
 }
 
+export interface WorkspaceDirectoryDefaults {
+  homeDirectory: string;
+}
+
 interface WorkspaceApi {
   listWorkspaces(): Promise<SavedWorkspace[]>;
   getActiveWorkspace(): Promise<SavedWorkspace>;
   getLaunchWorkspace(): Promise<SavedWorkspace>;
+  getDirectoryDefaults(): Promise<WorkspaceDirectoryDefaults>;
   createWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace>;
   saveWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace>;
   setActiveWorkspace(workspaceId: string): Promise<SavedWorkspace>;
@@ -85,6 +90,10 @@ export class WorkspaceBridgeService {
 
   getLaunchWorkspace(): Promise<SavedWorkspace> {
     return this.getApi().getLaunchWorkspace();
+  }
+
+  getDirectoryDefaults(): Promise<WorkspaceDirectoryDefaults> {
+    return this.getApi().getDirectoryDefaults();
   }
 
   createWorkspace(workspace: WorkspaceDraft): Promise<SavedWorkspace> {

@@ -2,8 +2,21 @@
 
 ## Backlog
 - [ ] Phase 4: Design-alignment polish against `docs/target-ui-reference.png`
+  - [x] #111 Center workspace composition
+  - [x] #110 Desktop chrome and top shell
+  - [x] #112 Sidebar and tab hierarchy
+  - [x] #113 Right inspector cards
+  - [x] #114 Bottom dock and system monitor
+  - [x] #115 Seed realistic review content
 
 ## Done
+- [x] Phase 4 / #110: Align the desktop chrome and top shell with the target reference
+- [x] Phase 4: Add an explicit new-session entry point in the sessions rail
+- [x] Phase 4: Add configurable start-directory preferences for new sessions
+- [x] Phase 4: Stabilize terminal interaction after the design-alignment pass
+- [x] Phase 4 / #114: Align the bottom dock and system monitor with the target reference
+- [x] Phase 4 / #113: Align the right inspector cards with the target reference
+- [x] Phase 4 / #112: Align the sidebar and tab hierarchy with the target reference
 - [x] Phase 4 / #111: Align the center workspace composition with the target reference
 - [x] Create workspace-level AI continuity documents for planning, architecture, decisions, and prompts
 - [x] Phase 1: Bootstrap Angular + Electron application shell

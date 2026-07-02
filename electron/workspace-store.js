@@ -175,6 +175,12 @@ class WorkspaceStore {
     return normalized;
   }
 
+  getDirectoryDefaults() {
+    return {
+      homeDirectory: os.homedir(),
+    };
+  }
+
   resolveExistingDirectory(candidate) {
     if (!candidate) {
       return null;

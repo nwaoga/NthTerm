@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { SearchResultGroup, UtilityPanelId } from '../models';
+import { OutputLine, SearchResultGroup, UtilityPanelId } from '../models';
 import { CommandPaletteService } from '../command-palette/command-palette.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
 import { TerminalSessionService } from '../terminal/terminal-session.service';
 import { UtilityPanelService } from '../utility-panel/utility-panel.service';
+import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 
 @Component({
   selector: 'app-bottom-dock',
@@ -18,10 +19,16 @@ export class BottomDockComponent {
   protected readonly util = inject(UtilityPanelService);
   protected readonly palette = inject(CommandPaletteService);
   protected readonly system = inject(SystemMonitorService);
+  protected readonly workspace = inject(WorkspaceRuntimeService);
   private readonly terminal = inject(TerminalSessionService);
 
   protected getUtilityTabs() {
     return this.util.getUtilityTabs();
+  }
+
+  protected getActiveTabLabel(): string {
+    const active = this.getUtilityTabs().find((tab) => tab.id === this.util.activeTab);
+    return active?.label || 'Output';
   }
 
   protected setUtilityTab(tab: UtilityPanelId): void {
@@ -55,5 +62,70 @@ export class BottomDockComponent {
 
   protected formatMetric(value: number | null | undefined, suffix = ''): string {
     return this.system.formatMetric(value, suffix);
+  }
+
+  protected getOutputLineCount(): number {
+    return this.util.outputLines.length;
+  }
+
+  protected getProblemCount(): number {
+    return this.util.problems.length;
+  }
+
+  protected getWarningCount(): number {
+    return this.util.problems.filter((problem) => problem.severity === 'warning').length;
+  }
+
+  protected getErrorCount(): number {
+    return this.util.problems.filter((problem) => problem.severity === 'error').length;
+  }
+
+  protected getCommandHistoryCount(): number {
+    return this.util.commandHistory.length;
+  }
+
+  protected getSearchResultCount(): number {
+    return this.getSearchResultGroups().reduce((total, group) => total + group.items.length, 0);
+  }
+
+  protected getMemoryDisplay(): string {
+    return this.system.getMemoryDisplay();
+  }
+
+  protected getNetworkDisplay(): string {
+    return this.system.getNetworkDisplay();
+  }
+
+  protected getMetricProgress(metric: 'cpu' | 'memory' | 'disk' | 'network'): number {
+    return this.system.getMetricProgress(metric);
+  }
+
+  protected getOutputSummary(): string {
+    return `${this.getOutputLineCount()} events`;
+  }
+
+  protected getProblemsSummary(): string {
+    return `${this.getErrorCount()} errors · ${this.getWarningCount()} warnings`;
+  }
+
+  protected getSearchSummary(): string {
+    const query = this.util.searchQuery.trim();
+    if (!query) {
+      return 'Workspaces, tabs, commands, output';
+    }
+
+    return `${this.getSearchResultCount()} matches for "${query}"`;
+  }
+
+  protected getCommandHistorySummary(): string {
+    return `${this.getCommandHistoryCount()} captured commands`;
+  }
+
+  protected formatOutputLine(line: OutputLine): string {
+    if (this.workspace.previewMode) {
+      return line.message;
+    }
+
+    return `[${this.formatClock(line.timestamp)}] ${line.level}: ${line.message}`;
   }
 }

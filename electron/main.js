@@ -261,6 +261,10 @@ function registerWorkspaceHandlers() {
     return workspaceStore.getLaunchWorkspace();
   });
 
+  ipcMain.handle('workspace:get-directory-defaults', () => {
+    return workspaceStore.getDirectoryDefaults();
+  });
+
   ipcMain.handle('workspace:get-active', () => {
     return workspaceStore.getActiveWorkspace();
   });

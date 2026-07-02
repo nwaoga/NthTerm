@@ -15,6 +15,8 @@ import { CommandPaletteService } from './command-palette/command-palette.service
 import { LeftRailComponent } from './left-rail/left-rail.component';
 import { InspectorPresenterService } from './inspector/inspector-presenter.service';
 import { LayoutMode, SessionListItem, TemplateListItem, UtilityPanelId, WORKSPACE_TEMPLATES } from './models';
+import { NewSessionStartMode } from './preferences/app-preferences.service';
+import { ReferenceReviewContentService } from './reference/reference-review-content.service';
 import { AppPreferencesService } from './preferences/app-preferences.service';
 import { ShellToolbarComponent } from './shell-toolbar/shell-toolbar.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
@@ -42,8 +44,13 @@ export class AppComponent implements AfterViewInit {
   @ViewChild(CommandPaletteComponent) private commandPalette?: CommandPaletteComponent;
 
   protected utilityPanelVisible = true;
+  protected utilityPanelHeight = 280;
   protected viewMenuOpen = false;
   protected preferencesOpen = false;
+  protected dockResizeActive = false;
+  protected newSessionStartMode: NewSessionStartMode = 'focused-tab';
+  protected newSessionCustomPath = '';
+  protected homeDirectory = '';
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -52,6 +59,7 @@ export class AppComponent implements AfterViewInit {
   private readonly palette = inject(CommandPaletteService);
   private readonly terminal = inject(TerminalSessionService);
   private readonly system = inject(SystemMonitorService);
+  private readonly referenceReview = inject(ReferenceReviewContentService);
   private readonly preferences = inject(AppPreferencesService);
   private readonly workspaceBridge = inject(WorkspaceBridgeService);
   private readonly appBridge = inject(AppBridgeService);
@@ -94,11 +102,15 @@ export class AppComponent implements AfterViewInit {
 
   async ngAfterViewInit(): Promise<void> {
     this.utilityPanelVisible = this.preferences.readBottomPanelVisible();
+    this.utilityPanelHeight = this.preferences.readBottomPanelHeight();
+    this.newSessionStartMode = this.preferences.readNewSessionStartMode();
+    this.newSessionCustomPath = this.preferences.readNewSessionCustomPath();
     if (!window.nthTermDesktop?.workspace) {
-      await new Promise((resolve) => setTimeout(resolve, 0));
       this.loadPreviewState();
       this.changeDetectorRef.detectChanges();
     } else {
+      const defaults = await this.workspaceBridge.getDirectoryDefaults();
+      this.homeDirectory = defaults.homeDirectory;
       const workspaces = await this.workspaceBridge.listWorkspaces();
       const launchWorkspace = await this.workspaceBridge.getLaunchWorkspace();
       this.ws.sessions = workspaces.map((w) => ({
@@ -135,6 +147,16 @@ export class AppComponent implements AfterViewInit {
     setTimeout(() => this.terminal.syncTerminalSize(), 0);
   }
 
+  protected setNewSessionStartMode(mode: NewSessionStartMode): void {
+    this.newSessionStartMode = mode;
+    this.preferences.writeNewSessionStartMode(mode);
+  }
+
+  protected setNewSessionCustomPath(path: string): void {
+    this.newSessionCustomPath = path;
+    this.preferences.writeNewSessionCustomPath(path);
+  }
+
   protected openUtilityPanel(tab: UtilityPanelId): void {
     this.util.activeTab = tab;
     this.utilityPanelVisible = true;
@@ -151,6 +173,12 @@ export class AppComponent implements AfterViewInit {
     this.openUtilityPanel('search');
     this.palette.query = this.util.searchQuery;
     this.openCommandPalette(true);
+  }
+
+  protected startUtilityPanelResize(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dockResizeActive = true;
   }
 
   protected toggleViewMenu(event: MouseEvent): void {
@@ -173,6 +201,29 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
+  @HostListener('document:mousemove', ['$event'])
+  protected handleDockResizeMouseMove(event: MouseEvent): void {
+    if (!this.dockResizeActive) {
+      return;
+    }
+
+    const viewportHeight = window.innerHeight;
+    const nextHeight = viewportHeight - event.clientY - 32;
+    this.utilityPanelHeight = this.preferences.clampBottomPanelHeight(nextHeight);
+    this.terminal.syncTerminalSize();
+  }
+
+  @HostListener('document:mouseup')
+  protected handleDockResizeMouseUp(): void {
+    if (!this.dockResizeActive) {
+      return;
+    }
+
+    this.dockResizeActive = false;
+    this.preferences.writeBottomPanelHeight(this.utilityPanelHeight);
+    this.terminal.syncTerminalSize();
+  }
+
   protected async onWorkspaceSelected(workspaceId: string): Promise<void> {
     const workspace = await this.ws.selectWorkspace(workspaceId);
     if (!workspace) return;
@@ -181,9 +232,26 @@ export class AppComponent implements AfterViewInit {
   }
 
   protected async onTemplateSelected(template: TemplateListItem): Promise<void> {
-    const created = await this.ws.createWorkspaceFromTemplate(template);
+    const created = await this.ws.createWorkspaceFromTemplate(template, {
+      cwd:
+        template.templateId === 'empty-workspace'
+          ? this.resolveNewSessionDirectory(template.cwd)
+          : template.cwd,
+    });
     await this.hostCoordinator.syncAndRestore();
     this.util.appendOutput(`Created workspace "${created.name}" from template`, 'info');
+  }
+
+  protected async onNewSessionRequested(): Promise<void> {
+    const template =
+      WORKSPACE_TEMPLATES.find((item) => item.templateId === 'empty-workspace') ||
+      WORKSPACE_TEMPLATES[0];
+    const created = await this.ws.createWorkspaceFromTemplate(template, {
+      cwd: this.resolveNewSessionDirectory(template.cwd),
+      name: this.ws.buildWorkspaceName('New Session'),
+    });
+    await this.hostCoordinator.syncAndRestore();
+    this.util.appendOutput(`Created new session "${created.name}"`, 'info');
   }
 
   protected async onSessionRenameCommitted(sessionId: string): Promise<void> {
@@ -253,52 +321,23 @@ export class AppComponent implements AfterViewInit {
   }
 
   private loadPreviewState(): void {
-    this.ws.loadReferencePreviewState();
-    this.util.commandHistory = [
-      { id: 'cmd-1', command: 'dotnet run', timestamp: new Date().toISOString(), tabTitle: 'API' },
-      { id: 'cmd-2', command: 'dotnet build', timestamp: new Date().toISOString(), tabTitle: 'API' },
-      { id: 'cmd-3', command: 'dotnet restore', timestamp: new Date().toISOString(), tabTitle: 'API' },
-      { id: 'cmd-4', command: 'code .', timestamp: new Date().toISOString(), tabTitle: 'Angular' },
-      { id: 'cmd-5', command: 'git pull', timestamp: new Date().toISOString(), tabTitle: 'API' },
-    ];
-    this.util.outputLines = [
-      { id: 'out-1', timestamp: new Date().toISOString(), level: 'info', message: 'OrderService - Processing order 12345' },
-      { id: 'out-2', timestamp: new Date().toISOString(), level: 'info', message: 'PaymentService - Payment authorized' },
-      { id: 'out-3', timestamp: new Date().toISOString(), level: 'info', message: 'InventoryService - Stock reserved' },
-      { id: 'out-4', timestamp: new Date().toISOString(), level: 'info', message: 'OrderService - Order 12345 completed successfully' },
-      { id: 'out-5', timestamp: new Date().toISOString(), level: 'info', message: 'NotificationService - Email sent to customer' },
-      { id: 'out-6', timestamp: new Date().toISOString(), level: 'info', message: 'OrderService - Order 12346 created' },
-    ];
-    this.util.problems = [
-      { id: 'problem-1', severity: 'error', message: 'Webpack warning in Angular build output', source: 'Angular', timestamp: new Date().toISOString() },
-      { id: 'problem-2', severity: 'warning', message: 'Docker container restart detected', source: 'Docker', timestamp: new Date().toISOString() },
-    ];
-    this.system.systemMetrics = {
-      cpuPercent: 23,
-      memoryUsedGb: 6.2,
-      memoryPercent: 39,
-      diskPercent: 45,
-      networkMbps: 12.4,
-      collectedAt: new Date().toISOString(),
-    };
-    this.system.environmentVariables = [
-      { name: 'ASPNETCORE_ENVIRONMENT', value: 'Development' },
-      { name: 'DOTNET_ENVIRONMENT', value: 'Development' },
-      { name: 'PATH', value: '...,\\bin' },
-    ];
-    this.terminal.setPreviewSessionInfo({
-      id: 'preview-session-api',
-      pid: 18452,
-      cwd: 'C:\\Projects\\CloudPOS\\Api',
-      shell: 'PowerShell 7.4.2',
-      status: 'running',
-      startedAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-      lastActiveAt: new Date().toISOString(),
-      endedAt: null,
-      exitCode: null,
-      detectedPort: 7192,
-    });
-    this.util.activeTab = 'output';
+    this.referenceReview.applyFullPreviewState(this.ws, this.util, this.system, this.terminal);
+  }
+
+  private resolveNewSessionDirectory(fallbackDirectory = ''): string {
+    const focusedDirectory = this.ws.getFocusedTab()?.cwd?.trim() || this.ws.workingDirectory.trim();
+    const customDirectory = this.newSessionCustomPath.trim();
+    const homeDirectory = this.homeDirectory.trim();
+
+    switch (this.newSessionStartMode) {
+      case 'home':
+        return homeDirectory || focusedDirectory || fallbackDirectory;
+      case 'custom':
+        return customDirectory || focusedDirectory || homeDirectory || fallbackDirectory;
+      case 'focused-tab':
+      default:
+        return focusedDirectory || homeDirectory || fallbackDirectory;
+    }
   }
 
   private registerShutdownPersistence(): void {

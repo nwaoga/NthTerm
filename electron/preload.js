@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('nthTermDesktop', {
     listWorkspaces: () => ipcRenderer.invoke('workspace:list'),
     getActiveWorkspace: () => ipcRenderer.invoke('workspace:get-active'),
     getLaunchWorkspace: () => ipcRenderer.invoke('workspace:get-launch'),
+    getDirectoryDefaults: () => ipcRenderer.invoke('workspace:get-directory-defaults'),
     createWorkspace: (workspace) => ipcRenderer.invoke('workspace:create', workspace),
     saveWorkspace: (workspace) => ipcRenderer.invoke('workspace:save', workspace),
     setActiveWorkspace: (workspaceId) => ipcRenderer.invoke('workspace:set-active', workspaceId),

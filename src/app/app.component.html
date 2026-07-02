@@ -1,29 +1,49 @@
 <main class="app-shell">
+  <app-shell-toolbar
+    class="app-shell-toolbar-host"
+    [viewMenuOpen]="viewMenuOpen"
+    (createTabRequested)="onCreateTab()"
+    (layoutModeChange)="onLayoutModeChange($event)"
+    (globalSearchRequested)="openGlobalSearch()"
+    (commandPaletteRequested)="openCommandPalette()"
+    (utilityPanelOpen)="openUtilityPanel($event)"
+    (viewMenuToggle)="toggleViewMenu($event)"
+  />
+
   <app-left-rail
+    class="app-left-rail-host"
     [preferencesOpen]="preferencesOpen"
     [utilityPanelVisible]="utilityPanelVisible"
+    [newSessionStartMode]="newSessionStartMode"
+    [newSessionCustomPath]="newSessionCustomPath"
+    [homeDirectory]="homeDirectory"
     (preferencesToggle)="togglePreferences()"
     (utilityPanelPreferenceChange)="setUtilityPanelPreference($event)"
+    (newSessionRequested)="onNewSessionRequested()"
+    (newSessionStartModeChange)="setNewSessionStartMode($event)"
+    (newSessionCustomPathChange)="setNewSessionCustomPath($event)"
     (workspaceSelected)="onWorkspaceSelected($event)"
     (templateSelected)="onTemplateSelected($event)"
     (sessionRenameCommitted)="onSessionRenameCommitted($event)"
     (sessionDeleteRequested)="onSessionDeleteRequested($event)"
   />
 
-  <section class="workspace-shell" [class.utility-dock-visible]="utilityPanelVisible">
-    <app-shell-toolbar
-      [viewMenuOpen]="viewMenuOpen"
-      (createTabRequested)="onCreateTab()"
-      (layoutModeChange)="onLayoutModeChange($event)"
-      (globalSearchRequested)="openGlobalSearch()"
-      (commandPaletteRequested)="openCommandPalette()"
-      (utilityPanelOpen)="openUtilityPanel($event)"
-      (viewMenuToggle)="toggleViewMenu($event)"
-    />
-
+  <section
+    class="workspace-shell"
+    [class.utility-dock-visible]="utilityPanelVisible"
+    [class.workspace-shell-dock-resizing]="dockResizeActive"
+    [style.--dock-height.px]="utilityPanelHeight"
+  >
     <app-workspace-area />
 
     @if (utilityPanelVisible) {
+      <div
+        class="dock-resize-handle"
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label="Resize workspace dock"
+        (mousedown)="startUtilityPanelResize($event)"
+      ></div>
       <app-bottom-dock (utilityTabChange)="onUtilityTabChange($event)" />
     }
 

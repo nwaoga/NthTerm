@@ -5,16 +5,70 @@ import { WorkspaceBridgeService } from '../workspace-bridge.service';
 
 describe('WorkspaceRuntimeService', () => {
   let service: WorkspaceRuntimeService;
+  let workspaceBridge: {
+    listWorkspaces: jasmine.Spy;
+    saveWorkspace: jasmine.Spy;
+    createWorkspace: jasmine.Spy;
+    setActiveWorkspace: jasmine.Spy;
+  };
 
   beforeEach(() => {
+    workspaceBridge = {
+      listWorkspaces: jasmine.createSpy('listWorkspaces').and.resolveTo([]),
+      saveWorkspace: jasmine.createSpy('saveWorkspace').and.callFake(async (draft: unknown) => draft),
+      createWorkspace: jasmine.createSpy('createWorkspace').and.callFake(async (draft: any) => ({
+        id: 'ws-created',
+        shell: '',
+        templateId: draft.templateId || 'empty-workspace',
+        icon: draft.icon || 'cloud',
+        accent: draft.accent || 'slate',
+        layoutMode: draft.layoutMode || 'grid-2x2',
+        launchProfile: draft.launchProfile || 'manual',
+        sessionSnapshot: {
+          layout: { mode: 'grid-2x2', activeTabId: '', focusedPaneId: 'pane-1', panes: [] },
+          tabs: [],
+        },
+        updatedAt: '2026-07-02T00:00:00.000Z',
+        ...draft,
+      })),
+      setActiveWorkspace: jasmine.createSpy('setActiveWorkspace').and.resolveTo({
+        id: 'ws-2',
+        name: 'Workspace 2',
+        cwd: 'C:\\Projects\\Two',
+        shell: '',
+        templateId: 'empty-workspace',
+        icon: 'cloud',
+        accent: 'violet',
+        layoutMode: 'grid-2x2',
+        launchProfile: 'manual',
+        sessionSnapshot: {
+          layout: {
+            mode: 'grid-2x2',
+            activeTabId: 'tab-2',
+            focusedPaneId: 'pane-1',
+            panes: [{ id: 'pane-1', tabId: 'tab-2' }],
+          },
+          tabs: [
+            {
+              id: 'tab-2',
+              title: 'Workspace 2',
+              cwd: 'C:\\Projects\\Two',
+              status: 'running',
+              accent: 'violet',
+              shell: '',
+              startupCommand: '',
+            },
+          ],
+        },
+        updatedAt: '2026-07-02T00:00:00.000Z',
+      }),
+    };
+
     TestBed.configureTestingModule({
       providers: [
         {
           provide: WorkspaceBridgeService,
-          useValue: {
-            listWorkspaces: async () => [],
-            saveWorkspace: async (draft: unknown) => draft,
-          },
+          useValue: workspaceBridge,
         },
       ],
     });
@@ -132,6 +186,24 @@ describe('WorkspaceRuntimeService', () => {
     expect(draft.sessionSnapshot?.recovery?.lastStopReason).toBe('Process exited');
   });
 
+  it('derives reference pane metadata in preview mode', () => {
+    service.loadReferencePreviewState();
+    const apiPane = service.getPaneById('pane-1');
+    const dockerPane = service.getPaneById('pane-4');
+
+    expect(apiPane).toBeDefined();
+    expect(dockerPane).toBeDefined();
+    if (!apiPane || !dockerPane) {
+      return;
+    }
+
+    expect(service.getPaneStatusLabel(apiPane)).toBe('Running');
+    expect(service.isPaneRunning(apiPane)).toBeTrue();
+    expect(service.getPaneMetaLine(apiPane)).toBe('main • 7192');
+    expect(service.getPaneMetaLine(dockerPane)).toBe('up • 4 containers');
+    expect(service.getPanePreviewText(apiPane)).toContain('dotnet run');
+  });
+
   it('records recovery metadata when a session event is captured', () => {
     service.runtimeTabs = [
       {
@@ -158,5 +230,87 @@ describe('WorkspaceRuntimeService', () => {
     expect(service.sessionHistory[0].status).toBe('failed');
     expect(service.recoverySnapshot.lastExitCode).toBe(1);
     expect(service.recoverySnapshot.lastStopReason).toBe('Process exited with error');
+  });
+
+  it('leaves preview mode when a real workspace is applied', () => {
+    service.loadReferencePreviewState();
+
+    service.applyWorkspace({
+      id: 'ws-live',
+      name: 'Live Workspace',
+      cwd: 'C:\\Projects\\Live',
+      shell: '',
+      templateId: 'empty-workspace',
+      icon: 'cloud',
+      accent: 'violet',
+      layoutMode: 'grid-2x2',
+      launchProfile: 'manual',
+      sessionSnapshot: {
+        layout: {
+          mode: 'grid-2x2',
+          activeTabId: 'tab-1',
+          focusedPaneId: 'pane-1',
+          panes: [{ id: 'pane-1', tabId: 'tab-1' }],
+        },
+        tabs: [
+          {
+            id: 'tab-1',
+            title: 'Main',
+            cwd: 'C:\\Projects\\Live',
+            status: 'running',
+            accent: 'violet',
+            shell: '',
+            startupCommand: '',
+          },
+        ],
+      },
+      updatedAt: '2026-07-02T00:00:00.000Z',
+    });
+
+    expect(service.previewMode).toBeFalse();
+    expect(service.workspaceName).toBe('Live Workspace');
+  });
+
+  it('uses an override cwd when creating a workspace from a template', async () => {
+    await service.createWorkspaceFromTemplate(
+      {
+        name: 'Empty Workspace',
+        accent: 'slate',
+        icon: 'person',
+        templateId: 'empty-workspace',
+        cwd: 'C:\\Fallback',
+      },
+      { cwd: 'C:\\Users\\blakb' }
+    );
+
+    expect(workspaceBridge.createWorkspace).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        cwd: 'C:\\Users\\blakb',
+      })
+    );
+  });
+
+  it('keeps real workspace selection out of preview mode', async () => {
+    service.selectedWorkspaceId = 'ws-1';
+    service.workspaceName = 'Workspace 1';
+    service.workingDirectory = 'C:\\Projects\\One';
+    service.runtimeTabs = [
+      {
+        id: 'tab-1',
+        title: 'Workspace 1',
+        cwd: 'C:\\Projects\\One',
+        status: 'running',
+        accent: 'violet',
+        shell: '',
+        startupCommand: '',
+      },
+    ];
+    service.runtimePanes = [{ id: 'pane-1', tabId: 'tab-1' }];
+    service.previewMode = false;
+
+    await service.selectWorkspace('ws-2');
+
+    expect(service.previewMode).toBeFalse();
+    expect(service.workspaceName).toBe('Workspace 2');
   });
 });

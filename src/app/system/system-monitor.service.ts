@@ -60,6 +60,98 @@ export class SystemMonitorService {
     return `${value}${suffix}`;
   }
 
+  getMemoryTotalGb(): number | null {
+    const metrics = this.systemMetrics;
+    if (!metrics) {
+      return null;
+    }
+
+    if (metrics.memoryTotalGb) {
+      return metrics.memoryTotalGb;
+    }
+
+    if (!metrics.memoryPercent) {
+      return null;
+    }
+
+    return +(metrics.memoryUsedGb / (metrics.memoryPercent / 100)).toFixed(1);
+  }
+
+  getMemoryDisplay(): string {
+    const metrics = this.systemMetrics;
+    if (!metrics) {
+      return 'n/a';
+    }
+
+    const total = this.getMemoryTotalGb();
+    if (!total) {
+      return `${metrics.memoryUsedGb} GB`;
+    }
+
+    return `${metrics.memoryUsedGb} GB / ${total} GB`;
+  }
+
+  getNetworkDownloadMbps(): number | null {
+    const metrics = this.systemMetrics;
+    if (!metrics) {
+      return null;
+    }
+
+    return metrics.networkDownloadMbps ?? metrics.networkMbps;
+  }
+
+  getNetworkUploadMbps(): number | null {
+    const metrics = this.systemMetrics;
+    if (!metrics) {
+      return null;
+    }
+
+    return metrics.networkUploadMbps ?? null;
+  }
+
+  getNetworkDisplay(): string {
+    const download = this.getNetworkDownloadMbps();
+    const upload = this.getNetworkUploadMbps();
+
+    if (download === null && upload === null) {
+      return 'n/a';
+    }
+
+    if (upload === null) {
+      return `${this.formatMetric(download, ' Mbps')} ↓`;
+    }
+
+    return `${this.formatMetric(download, ' Mbps')} ↓ / ${this.formatMetric(upload, ' Mbps')} ↑`;
+  }
+
+  getMetricProgress(metric: 'cpu' | 'memory' | 'disk' | 'network'): number {
+    const metrics = this.systemMetrics;
+    if (!metrics) {
+      return 0;
+    }
+
+    switch (metric) {
+      case 'cpu':
+        return this.clampPercent(metrics.cpuPercent);
+      case 'memory':
+        return this.clampPercent(metrics.memoryPercent);
+      case 'disk':
+        return this.clampPercent(metrics.diskPercent ?? 0);
+      case 'network': {
+        const download = this.getNetworkDownloadMbps() ?? 0;
+        return this.clampPercent(Math.min(100, Math.round(download * 4)));
+      }
+    }
+  }
+
+  private clampPercent(value: number): number {
+    if (Number.isNaN(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(100, Math.round(value)));
+  }
+
   formatTimestamp(value?: string | null): string {
     if (!value) {
       return 'n/a';

@@ -111,7 +111,7 @@ export const WORKSPACE_TEMPLATES: TemplateListItem[] = [
     accent: 'slate',
     icon: 'person',
     templateId: 'empty-workspace',
-    cwd: 'C:\\Users\\blakb\\Documents\\Codex\\NthTerm\\repo',
+    cwd: '.',
   },
 ];
 

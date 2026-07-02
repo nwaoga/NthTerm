@@ -1,4 +1,17 @@
 <section class="bottom-dock">
+  <header class="dock-header">
+    <div class="dock-heading">
+      <p class="rail-title">Workspace Dock</p>
+      <p class="dock-subtitle">Output, diagnostics, search, and terminal activity in one review surface.</p>
+    </div>
+    <div class="dock-status-strip">
+      <span class="dock-status-pill">{{ getActiveTabLabel() }}</span>
+      <span class="dock-status-inline">{{ getOutputLineCount() }} log lines</span>
+      <span class="dock-status-inline">{{ getProblemCount() }} problems</span>
+      <span class="dock-status-inline">{{ getCommandHistoryCount() }} commands</span>
+    </div>
+  </header>
+
   <div class="dock-tabs">
     @for (tab of getUtilityTabs(); track tab.id) {
       <button
@@ -7,9 +20,9 @@
         [class.active]="util.activeTab === tab.id"
         (click)="setUtilityTab(tab.id)"
       >
-        {{ tab.label }}
-        @if (tab.count) {
-          <span class="dock-count">{{ tab.count }}</span>
+        <span class="dock-tab-label">{{ tab.label }}</span>
+        @if (tab.count && tab.count > 0) {
+          <span class="dock-count" [attr.aria-label]="tab.count + ' items'">{{ tab.count }}</span>
         }
       </button>
     }
@@ -21,50 +34,96 @@
         <div class="dock-content-split">
           <div class="utility-panel output-panel">
             <header class="utility-panel-header">
-              <p class="rail-title">Application Output</p>
-              <button type="button" class="utility-action" (click)="clearOutput()">Clear</button>
+              <div>
+                <p class="rail-title">Application Output</p>
+                <p class="utility-panel-subtitle">{{ getOutputSummary() }}</p>
+              </div>
+              <div class="utility-panel-actions">
+                <span class="utility-chip">Live stream</span>
+                <button type="button" class="utility-action" (click)="clearOutput()">Clear</button>
+              </div>
             </header>
-            @if (util.outputLines.length) {
-              @for (line of util.outputLines; track line.id) {
-                <p [attr.data-level]="line.level">
-                  [{{ formatClock(line.timestamp) }}] {{ line.level }}: {{ line.message }}
-                </p>
+            <div class="output-log-stream">
+              @if (util.outputLines.length) {
+                @for (line of util.outputLines; track line.id) {
+                  <article class="output-log-line" [attr.data-level]="line.level">
+                    <span class="output-log-level">{{ line.level }}</span>
+                    <div class="output-log-copy">
+                      <strong>{{ workspace.previewMode ? 'Preview' : formatClock(line.timestamp) }}</strong>
+                      <p>{{ formatOutputLine(line) }}</p>
+                    </div>
+                  </article>
+                }
+              } @else {
+                <p class="utility-empty">Output from workspace and terminal lifecycle events will appear here.</p>
               }
-            } @else {
-              <p class="utility-empty">Output from workspace and terminal lifecycle events will appear here.</p>
-            }
-          </div>
-
-          <div class="monitor-panel">
-            <header class="utility-panel-header">
-              <p class="rail-title">System Monitor</p>
-            </header>
-            <div class="monitor-grid">
-              <div class="metric-ring metric-cpu">
-                <span>CPU</span>
-                <strong>{{ formatMetric(system.systemMetrics?.cpuPercent, '%') }}</strong>
-              </div>
-              <div class="metric-ring metric-memory">
-                <span>Memory</span>
-                <strong>{{ formatMetric(system.systemMetrics?.memoryUsedGb, ' GB') }}</strong>
-              </div>
-              <div class="metric-ring metric-disk">
-                <span>Disk</span>
-                <strong>{{ formatMetric(system.systemMetrics?.diskPercent, '%') }}</strong>
-              </div>
-              <div class="metric-ring metric-network">
-                <span>Network</span>
-                <strong>{{ formatMetric(system.systemMetrics?.networkMbps, ' Mbps') }}</strong>
-              </div>
             </div>
           </div>
+
+          <aside class="monitor-panel" aria-label="System monitor">
+            <header class="utility-panel-header">
+              <div>
+                <p class="rail-title">System Monitor</p>
+                <p class="utility-panel-subtitle">Reference-style runtime telemetry</p>
+              </div>
+              <span class="utility-chip">Live</span>
+            </header>
+            <div class="monitor-grid">
+              <article
+                class="metric-ring metric-cpu"
+                [style.--metric-progress]="getMetricProgress('cpu')"
+              >
+                <div class="metric-ring-chart" aria-hidden="true"></div>
+                <div class="metric-ring-copy">
+                  <span>CPU</span>
+                  <strong>{{ formatMetric(system.systemMetrics?.cpuPercent, '%') }}</strong>
+                </div>
+              </article>
+              <article
+                class="metric-ring metric-memory"
+                [style.--metric-progress]="getMetricProgress('memory')"
+              >
+                <div class="metric-ring-chart" aria-hidden="true"></div>
+                <div class="metric-ring-copy">
+                  <span>Memory</span>
+                  <strong>{{ getMemoryDisplay() }}</strong>
+                </div>
+              </article>
+              <article
+                class="metric-ring metric-disk"
+                [style.--metric-progress]="getMetricProgress('disk')"
+              >
+                <div class="metric-ring-chart" aria-hidden="true"></div>
+                <div class="metric-ring-copy">
+                  <span>Disk</span>
+                  <strong>{{ formatMetric(system.systemMetrics?.diskPercent, '%') }}</strong>
+                </div>
+              </article>
+              <article
+                class="metric-ring metric-network"
+                [style.--metric-progress]="getMetricProgress('network')"
+              >
+                <div class="metric-ring-chart" aria-hidden="true"></div>
+                <div class="metric-ring-copy">
+                  <span>Network</span>
+                  <strong>{{ getNetworkDisplay() }}</strong>
+                </div>
+              </article>
+            </div>
+          </aside>
         </div>
       }
       @case ('problems') {
         <div class="utility-panel problems-panel">
           <header class="utility-panel-header">
-            <p class="rail-title">Problems</p>
-            <button type="button" class="utility-action" (click)="clearProblems()">Clear</button>
+            <div>
+              <p class="rail-title">Problems</p>
+              <p class="utility-panel-subtitle">{{ getProblemsSummary() }}</p>
+            </div>
+            <div class="utility-panel-actions">
+              <span class="utility-chip">Needs review</span>
+              <button type="button" class="utility-action" (click)="clearProblems()">Clear</button>
+            </div>
           </header>
           @if (util.problems.length) {
             <div class="problems-list">
@@ -89,7 +148,11 @@
       @case ('search') {
         <div class="utility-panel search-panel">
           <header class="utility-panel-header">
-            <p class="rail-title">Workspace Search</p>
+            <div>
+              <p class="rail-title">Workspace Search</p>
+              <p class="utility-panel-subtitle">{{ getSearchSummary() }}</p>
+            </div>
+            <span class="utility-chip">Global</span>
           </header>
           <label class="search-field">
             <span>Search workspaces, tabs, commands, and output</span>
@@ -126,7 +189,11 @@
       @case ('command-history') {
         <div class="utility-panel history-panel">
           <header class="utility-panel-header">
-            <p class="rail-title">Command History</p>
+            <div>
+              <p class="rail-title">Command History</p>
+              <p class="utility-panel-subtitle">{{ getCommandHistorySummary() }}</p>
+            </div>
+            <span class="utility-chip">Replay</span>
           </header>
           @if (util.commandHistory.length) {
             <div class="history-list dock-history-list">

@@ -65,6 +65,7 @@ function getMemoryMetrics() {
 
   return {
     usedGb: +(used / 1024 ** 3).toFixed(1),
+    totalGb: +(total / 1024 ** 3).toFixed(1),
     percent: Math.round((used / total) * 100),
   };
 }
@@ -203,6 +204,7 @@ async function getSystemMetrics() {
   return {
     cpuPercent: getCpuPercent(),
     memoryUsedGb: memory.usedGb,
+    memoryTotalGb: memory.totalGb,
     memoryPercent: memory.percent,
     diskPercent,
     networkMbps,

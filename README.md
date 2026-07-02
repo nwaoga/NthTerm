@@ -30,12 +30,15 @@ Working today:
 - PTY lifecycle is managed in Electron main through `node-pty`
 - workspace state is stored in SQLite through an Electron-managed persistence layer
 - multiple named workspaces and starter templates
+- explicit `New Session` creation from the sessions rail
 - workspace rename and delete from the sessions sidebar
 - each workspace persists tabs, layout mode, focused pane, pane splits, and pane-to-tab assignments
 - `2-up` and `2x2` pane layouts with draggable split handles and focused-pane terminal restore
 - concurrent PTY-backed terminal sessions across visible panes, with focused-pane inspector/control targeting
+- live terminal sessions stay attached to their tab across tab switches instead of being recreated when the pane assignment changes
 - tab and session inspector with live PTY metadata and restart/stop/kill actions
 - bottom utility panels: output, problems, search, and command history (visible by default, toggle in Appearance)
+- resizable workspace dock with persisted height
 - system monitor (CPU, memory, disk, network) and session environment variables
 - command palette and global workspace search
 - last workspace auto-restores on launch, with invalid directory fallback
@@ -51,29 +54,29 @@ Keyboard shortcuts:
 
 Next up (Phase 4):
 
-- design-alignment polish against `docs/target-ui-reference.png`
+- finish the remaining visual-language polish and document any unavoidable deviations against `docs/target-ui-reference.png`
 
 ## Design alignment checklist
 
 The target for Phase 4 is **1:1 implementation fidelity** with the reference design in `docs/target-ui-reference.png`. The goal is not to build a UI that is merely inspired by the reference or generally aligned with it. We should match the reference as closely as the product architecture allows, and only deviate when a concrete runtime constraint makes an exact match impossible. Any intentional deviation should be documented explicitly.
 
-- [ ] Match the desktop chrome and integrated top shell to the reference.
+- [x] Match the desktop chrome and integrated top shell to the reference.
   Implement the same overall titlebar feel, header composition, workspace switcher placement, and top action grouping shown in the target design.
 - [x] Match the center workspace composition to the reference.
   Recreate the same pane density, terminal-card hierarchy, card spacing, and live-workspace feel instead of replacing them with alternate summary or hero patterns.
-- [ ] Match the tab strip and tab metadata treatment to the reference.
+- [x] Match the tab strip and tab metadata treatment to the reference.
   Mirror the tab sizing, stacking, active-state emphasis, icon treatment, and top-level metadata presentation shown in the plan design.
-- [ ] Match the left sidebar structure and visual rhythm to the reference.
+- [x] Match the left sidebar structure and visual rhythm to the reference.
   Reproduce the same grouping, spacing, icon style, row treatment, and section hierarchy for sessions, templates, tools, and settings.
-- [ ] Match the right inspector structure to the reference.
+- [x] Match the right inspector structure to the reference.
   Recreate the card layout, metadata grouping, quick actions, recent commands, and environment sections as they appear in the target UI.
-- [ ] Match the bottom dock composition to the reference.
+- [x] Match the bottom dock composition to the reference.
   Implement the same output, problems, search, command history, and monitor balance instead of substituting a materially different layout.
-- [ ] Match the system monitor card design to the reference.
+- [x] Match the system monitor card design to the reference.
   Reproduce the same telemetry emphasis, card balance, ring treatment, and sizing used in the concept.
 - [ ] Match the visual language across spacing, borders, radii, color, and typography.
   Use the reference as the source of truth for the shell's density and finish rather than inventing adjacent styling.
-- [ ] Seed realistic content that matches the reference presentation.
+- [x] Seed realistic content that matches the reference presentation.
   Populate the interface with believable sessions, commands, telemetry, and inspector content so screenshots and reviews compare against the reference fairly.
 - [ ] Document any unavoidable deviations.
   If a behavior or layout cannot be implemented 1:1 because of Electron, PTY, or runtime constraints, record the exact constraint and the smallest acceptable fallback.
@@ -117,6 +120,8 @@ The persistence layer stores restore-oriented workspace metadata, including:
 
 The split-pane shell now restores one live interactive terminal per assigned visible pane. Focus determines which pane drives inspector metadata, environment details, and restart/stop/kill actions.
 
+Terminal input is sanitized before forwarding to the PTY so focus-reporting and bracketed-paste escape sequences do not interfere with typed commands or command history.
+
 On launch, the app restores the last active workspace from SQLite. Invalid saved directories fall back to the user home directory so PTY creation does not fail on missing paths.
 
 ## Architecture direction
@@ -131,4 +136,4 @@ On launch, the app restores the last active workspace from SQLite. Invalid saved
 - System metrics and session environment variables are served through a dedicated preload bridge.
 - Workspace records include restore metadata so the shell can grow into deeper tab and split-pane restoration without redesigning persistence later.
 - Terminal tab actions update the workspace snapshot directly.
-- Pane layout restoration currently uses a focused-pane model: Angular renders the workspace grid and saved pane assignments, while Electron still owns the single active PTY session lifecycle.
+- Terminal session ownership now follows tabs, allowing live sessions to be parked and reattached as pane assignments change without tearing down the underlying PTY.

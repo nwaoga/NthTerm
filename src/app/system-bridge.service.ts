@@ -4,8 +4,11 @@ export interface SystemMetrics {
   cpuPercent: number;
   memoryUsedGb: number;
   memoryPercent: number;
+  memoryTotalGb?: number | null;
   diskPercent: number | null;
   networkMbps: number | null;
+  networkDownloadMbps?: number | null;
+  networkUploadMbps?: number | null;
   collectedAt: string;
 }
 

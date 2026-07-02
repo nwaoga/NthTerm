@@ -22,6 +22,22 @@ export class ShellToolbarComponent {
   protected readonly palette = inject(CommandPaletteService);
   protected readonly isWindows = this.detectWindows();
 
+  protected getWorkspaceSummary(): string {
+    const focusedTab = this.ws.getFocusedTab?.();
+    const tabCount = this.ws.runtimeTabs?.length || 0;
+    const tabLabel = tabCount === 1 ? '1 tab' : `${tabCount} tabs`;
+
+    if (!focusedTab) {
+      return `${tabLabel} • workspace shell`;
+    }
+
+    return `${tabLabel} • ${focusedTab.title}`;
+  }
+
+  protected getLayoutLabel(): string {
+    return this.ws.layoutMode === 'grid-2' ? '2-Up' : '2x2';
+  }
+
   protected createTab(): void {
     this.createTabRequested.emit();
   }

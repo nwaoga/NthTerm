@@ -16,18 +16,19 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-06-29)
+## Current State (2026-07-02)
 
 **Phase:** 4 in progress.
 
 **Working today:**
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
+- Tab-owned terminal sessions that stay alive across tab switches in the same pane
 - SQLite workspace persistence (tabs, pane layout, splits, rename/delete, recovery metadata)
 - Feature-oriented renderer refactor (services + shell components)
 - Command palette, global search, utility panels, inspector, system monitor
 - Frameless desktop window with custom drag regions
 
-**Last shipped:** Commit `c02fff0` — center workspace composition alignment pass with staged middle-column framing, denser pane chrome, and improved tab-to-pane hierarchy. ADO `#111` is now closed. `#110` remains partially complete but still open.
+**Last shipped:** `#110` desktop chrome and top-shell alignment closeout, including a calmer passive workspace-context band, tighter toolbar rhythm, Windows-safe header spacing, an explicit `New Session` CTA in the sessions rail, and configurable start-directory preferences for new sessions.
 
 **Reference design:** `repo/docs/target-ui-reference.png` (1:1 fidelity is the Phase 4 visual goal).
 
@@ -110,11 +111,17 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 | [#114](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/114) | Bottom dock and system monitor |
 | [#115](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/115) | Seed realistic review content |
 
-**Suggested order within Option C:** finish #110 if desired, then #112 → #113 → #114 → #115.
+**Suggested order within Option C:** continue the visual-language pass, then document remaining deviations.
 
-**Partial progress on #110:** Frameless window and drag regions landed in `eee7121`; Windows-safe header spacing, workspace switcher centering, and top action regrouping landed in `3d93893`. Full 1:1 chrome is still open.
+**Completed on #110:** The shared top shell now spans the full app width with Windows-safe caption spacing, calmer workspace context, clearer action grouping, and stronger titlebar rhythm that better matches the reference without duplicating session navigation.
 
 **Completed on #111:** Commit `c02fff0` aligned the center workspace composition more closely to the reference with a dedicated workspace stage, denser pane framing, wider split gutters, and improved pane metadata hierarchy.
+
+**Completed on #112:** The sidebar and tab hierarchy now track the reference more closely through icon-led tab labels, stronger active workspace emphasis, tighter sidebar row hierarchy, and more deliberate spacing across sessions, tools, templates, and settings.
+
+**Completed on #113:** The right inspector now uses a more reference-like structure with a dedicated hero card, separated tab and live-session views, grouped workspace/recovery metadata, stronger badges, and clearer history/environment sections.
+
+**Completed on #114:** The bottom dock now reads closer to the reference through a dedicated dock header, stronger tab strip, denser output/problem/history rows, richer search summaries, and more deliberate telemetry cards in the system monitor.
 
 **Key files:**
 - `repo/src/app/styles/shell.css` — primary styling surface
@@ -132,13 +139,12 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. **Option C / #112** — sidebar and tab hierarchy
-2. **Option C / #113** — right inspector cards
-3. **Option C / #114** — bottom dock and system monitor
-4. **Option C / #115** — seed realistic review content
-5. Revisit **Option C / #110** only if another chrome-fidelity pass is preferred before sidebar/inspector work
+1. **Option C / visual language pass** — spacing, borders, radii, color, and typography checklist item
+2. Document unavoidable deviations in `decisions.md`
+3. Keep terminal-stability fixes in regression coverage while continuing visual polish
+4. Re-check screenshot fidelity against `docs/target-ui-reference.png` before closing Phase 4
 
-User may override: for example, continue iterating on **Option C / #110** before moving into the sidebar and inspector slices.
+**Progress on #115:** Reference review content centralized in `ReferenceReviewContentService` with full preview seeding and supplemental Electron seeding for dock, session history, recovery, telemetry, and inspector context.
 
 ---
 
@@ -165,5 +171,5 @@ When finishing:
 ### Phase 2: Workspace Model — done
 ### Phase 3: Multi-Tab and Layout — done
 ### Phase 4: Session History and Management — in progress
-- Done: rename/delete, renderer refactor, frameless chrome (partial), session history and recovery metadata, concurrent multi-pane PTY sessions
+- Done: rename/delete, renderer refactor, frameless chrome, session history and recovery metadata, concurrent multi-pane PTY sessions, center workspace alignment, sidebar and tab hierarchy alignment, right inspector alignment, bottom dock and system monitor alignment, terminal interaction stabilization, session-creation discoverability, configurable new-session start preferences
 - Open: design-alignment polish

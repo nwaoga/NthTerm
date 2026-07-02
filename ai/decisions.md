@@ -68,8 +68,40 @@
 - Multi-pane restore now keeps one xterm surface and one PTY session per assigned visible pane, while the focused pane only controls which session drives inspector metadata and environment details.
 - Pane layout snapshot entries now carry lightweight per-pane session metadata so workspace persistence records PID/status/timestamps per pane without introducing a separate session table yet.
 
+## 2026-07-02
+- `#115` reference review content now lives in `ReferenceReviewContentService`, centralizing the Cloud POS sessions, dock logs, problems, telemetry, session history, recovery metadata, environment variables, and live-session preview context used for screenshot-ready reviews.
+- Preview and supplemental Electron seed paths both reuse the same reference content service so browser and desktop demos stay aligned.
+- `#114` bottom dock alignment now keeps the Output tab split between application logs and a persistent system monitor, with conic-gradient ring gauges, memory totals, and download/upload network formatting aligned to the reference.
+- Preview output lines omit timestamp prefixes so the dock reads like the reference service log stream during design reviews.
+- `#114` follow-up polish adds a dedicated workspace-dock header and denser panel summaries so the bottom band reads like a composed review surface instead of a plain tabbed utility tray.
+- Output, problems, search, and command-history entries now share a more consistent card language, while the system monitor keeps the same telemetry data but presents it with stronger reference-like emphasis.
+- `#111` center workspace composition now uses a staged workspace surface with tab strip metadata, tone-aware terminal cards, running-state pills, pane meta lines, and preview-mode terminal content aligned to the reference Cloud POS layout.
+- Pane status/meta presentation moved into `WorkspaceRuntimeService` so the center grid stays data-driven instead of hard-coding per-tab strings in the template.
+- Terminal input is sanitized in the renderer before forwarding to the PTY so focus-reporting and bracketed-paste control sequences do not pollute command history or swallow typed commands.
+- Preview seeding and live workspace startup now follow separate paths so a real restored workspace does not remain stuck in preview mode after launch.
+- The workspace dock height is now user-resizable and persisted locally, with terminal fit-sync triggered during drag so pane terminals keep a usable viewport while the bottom band changes size.
+- Terminal session ownership now follows `tabId` rather than `paneId`, which lets live shells survive tab switches by parking inactive xterm surfaces off-screen and reattaching them when their tab becomes visible again.
+- Hidden parked terminals are excluded from fit/resize propagation so their PTY dimensions are not collapsed to zero while they are off-screen.
+
 ## 2026-06-27
 - `#110` design-alignment work now includes a Windows-specific top-shell correction: macOS traffic lights are hidden on Windows, and the toolbar reserves right-side space for native caption buttons so the OS controls no longer overlap app chrome.
 - The desktop shell header now uses a more reference-like grouping with a centered workspace switcher, stronger top-bar segmentation, and a denser footer/status treatment, while still respecting Electron title-bar constraints on Windows.
 - `#111` center-workspace alignment now wraps the tab strip and pane grid in a dedicated stage container so the middle column reads as one composed surface instead of disconnected blocks.
 - Pane cards now use denser reference-like chrome: stronger rounded framing, clearer pane metadata hierarchy, inset terminal surfaces, and wider split gutters to better match the target composition without changing PTY ownership or workspace behavior.
+
+## 2026-06-29
+- Continued `#110` by restructuring the shell so the top toolbar spans both the sidebar lane and workspace lane, which better matches the reference's single integrated titlebar instead of a right-column-only header.
+- The chrome pass keeps the sidebar below the shared toolbar while preserving existing feature wiring, so the titlebar layout moved without refactoring renderer feature ownership.
+
+## 2026-07-01
+- `#112` design-alignment work shifts the workspace tab strip toward the reference by using icon-led labels, stronger active-state emphasis, and denser metadata treatment instead of the flatter earlier tab styling.
+- The left rail now uses tighter row hierarchy and more deliberate group rhythm across sessions, templates, tools, and settings so the sidebar reads closer to the target composition without changing workspace behavior.
+- `#113` design-alignment work restructures the right rail into a hero summary card plus grouped metadata cards, which makes the inspector read closer to the target than the earlier flat stack of generic panels.
+- The inspector now separates tab context from live-session diagnostics, keeping recovery/history/environment details available without mixing them into a single undifferentiated column.
+
+## 2026-07-02 (`#110` closeout)
+- The top shell no longer uses a second session-switching affordance in the header; the center band is passive workspace context so session navigation clearly belongs to the sidebar.
+- `#110` now includes a full-width titlebar rhythm with tighter action grouping, calmer workspace context styling, and Windows-safe spacing for native caption controls.
+- Creating a new session now has an explicit CTA in the Sessions section of the left rail; using Templates remains available for starter scenarios, but blank session creation is no longer hidden behind that mental model.
+- New sessions now honor a persisted start-directory preference (`focused terminal`, `home directory`, or `custom path`) instead of inheriting a hard-coded empty-template path.
+- The renderer asks Electron for directory defaults so `home directory` resolves from the host OS rather than duplicating platform-specific logic in Angular.

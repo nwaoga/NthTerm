@@ -10,58 +10,109 @@
 
     <div class="desktop-header-leading toolbar-brand">
       <div class="desktop-app-badge">N</div>
-      <strong class="desktop-app-title">NthTerm</strong>
+      <div class="desktop-brand-copy">
+        <span class="desktop-brand-label">Workspace Shell</span>
+        <strong class="desktop-app-title">NthTerm</strong>
+      </div>
     </div>
   </div>
 
-  <div class="desktop-workspace-switcher">
-    <span class="workspace-picker-icon">☁</span>
-    <span>{{ ws.selectedWorkspace }}</span>
-    <span class="workspace-switcher-caret">▾</span>
+  <div class="toolbar-centerband">
+    <div class="desktop-workspace-context" aria-label="Active workspace context">
+      <span class="workspace-context-icon" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none">
+          <path
+            d="M6.7 15.4h6.1a3.2 3.2 0 0 0 .5-6.4 4.4 4.4 0 0 0-8.4 1.2 2.7 2.7 0 0 0 1.8 5.2Z"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <div class="workspace-context-copy">
+        <span class="workspace-context-label">Active Workspace</span>
+        <strong class="workspace-context-name">{{ ws.selectedWorkspace }}</strong>
+      </div>
+      <span class="workspace-context-badge">Sidebar</span>
+    </div>
+    <div class="toolbar-center-meta">
+      <span class="toolbar-meta-pill">{{ getLayoutLabel() }}</span>
+      <span class="toolbar-center-summary">{{ getWorkspaceSummary() }}</span>
+    </div>
   </div>
 
   <div class="toolbar-actions">
-    <button type="button" class="toolbar-pill toolbar-pill-primary" (click)="createTab()">＋ New Tab</button>
-    <div class="layout-switch" aria-label="Layout mode">
-      <button
-        type="button"
-        class="toolbar-pill toolbar-pill-segment"
-        [class.active]="ws.layoutMode === 'grid-2'"
-        (click)="setLayoutMode('grid-2')"
-      >
-        2-Up
+    <div class="toolbar-action-group toolbar-action-group-primary">
+      <button type="button" class="toolbar-pill toolbar-pill-primary" (click)="createTab()">
+        <span class="toolbar-icon toolbar-icon-leading" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none">
+            <path d="M10 4.2v11.6M4.2 10h11.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span>New Tab</span>
       </button>
-      <button
-        type="button"
-        class="toolbar-pill toolbar-pill-segment"
-        [class.active]="ws.layoutMode === 'grid-2x2'"
-        (click)="setLayoutMode('grid-2x2')"
-      >
-        2x2
+      <div class="layout-switch" aria-label="Layout mode">
+        <button
+          type="button"
+          class="toolbar-pill toolbar-pill-segment"
+          [class.active]="ws.layoutMode === 'grid-2'"
+          (click)="setLayoutMode('grid-2')"
+        >
+          2-Up
+        </button>
+        <button
+          type="button"
+          class="toolbar-pill toolbar-pill-segment"
+          [class.active]="ws.layoutMode === 'grid-2x2'"
+          (click)="setLayoutMode('grid-2x2')"
+        >
+          2x2
+        </button>
+      </div>
+    </div>
+    <div class="toolbar-action-group toolbar-action-group-secondary">
+      <button type="button" class="toolbar-pill muted toolbar-search toolbar-pill-ghost" (click)="openGlobalSearch()">
+        <span class="toolbar-icon" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none">
+            <circle cx="8.7" cy="8.7" r="4.7" stroke="currentColor" stroke-width="1.6" />
+            <path d="m12.3 12.3 3.6 3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span>Search</span>
+        <kbd>Ctrl+Shift+F</kbd>
+      </button>
+      <button type="button" class="toolbar-pill muted toolbar-command toolbar-pill-ghost" (click)="openCommandPalette()">
+        <span class="toolbar-icon" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none">
+            <path d="M6.2 5.1a3.1 3.1 0 1 0 0 6.2h1.4V8.6h-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M13.8 5.1a3.1 3.1 0 1 1 0 6.2h-1.4V8.6h1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span>Command Palette</span>
+        <kbd>Ctrl+Shift+P</kbd>
       </button>
     </div>
-    <div class="toolbar-divider" aria-hidden="true"></div>
-    <button type="button" class="toolbar-pill muted toolbar-search toolbar-pill-ghost" (click)="openGlobalSearch()">
-      <span class="toolbar-icon">⌕</span>
-      <span>Search</span>
-      <kbd>Ctrl+Shift+F</kbd>
-    </button>
-    <button type="button" class="toolbar-pill muted toolbar-command toolbar-pill-ghost" (click)="openCommandPalette()">
-      <span class="toolbar-icon">⌘</span>
-      <span>Command Palette</span>
-      <kbd>Ctrl+Shift+P</kbd>
-    </button>
-    <div class="view-menu" (click)="$event.stopPropagation()">
-      <button type="button" class="toolbar-icon-button toolbar-settings-button" aria-label="View options" (click)="toggleViewMenu($event)">⚙</button>
-      @if (viewMenuOpen) {
-        <div class="view-menu-dropdown" role="menu">
-          <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('output')">Output</button>
-          <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('problems')">Problems</button>
-          <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('search')">Search</button>
-          <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('command-history')">Command History</button>
-        </div>
-      }
+    <div class="toolbar-action-group toolbar-action-group-utility">
+      <div class="view-menu" (click)="$event.stopPropagation()">
+        <button type="button" class="toolbar-icon-button toolbar-settings-button" aria-label="View options" (click)="toggleViewMenu($event)">
+          <span class="toolbar-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none">
+              <path d="M10 4.3v2.1M10 13.6v2.1M15.7 10h-2.1M6.4 10H4.3M13.9 6.1l-1.5 1.5M7.6 12.4l-1.5 1.5M13.9 13.9l-1.5-1.5M7.6 7.6 6.1 6.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+              <circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.4" />
+            </svg>
+          </span>
+        </button>
+        @if (viewMenuOpen) {
+          <div class="view-menu-dropdown" role="menu">
+            <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('output')">Output</button>
+            <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('problems')">Problems</button>
+            <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('search')">Search</button>
+            <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('command-history')">Command History</button>
+          </div>
+        }
+      </div>
+      <button type="button" class="toolbar-avatar" aria-label="Profile">BN</button>
     </div>
-    <button type="button" class="toolbar-avatar" aria-label="Profile">BN</button>
   </div>
 </header>

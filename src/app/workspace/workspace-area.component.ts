@@ -12,6 +12,7 @@ import {
 import { NgTemplateOutlet } from '@angular/common';
 
 import { RuntimePane, RuntimeTab } from '../models';
+import { InspectorItem } from '../models';
 import { InspectorPresenterService } from '../inspector/inspector-presenter.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
 import { TerminalHostCoordinatorService } from '../terminal/terminal-host-coordinator.service';
@@ -51,12 +52,14 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     this.ws.addTab(nextTab);
     await this.ws.persistWorkspaceState();
     await this.hostCoordinator.syncAndRestore();
+    this.terminal.focusPaneTerminal();
   }
 
   protected async selectTab(tabId: string): Promise<void> {
     const tab = await this.ws.selectTab(tabId);
     if (!tab) return;
     await this.hostCoordinator.syncAndRestore();
+    this.terminal.focusPaneTerminal();
   }
 
   protected async closeTab(tabId: string, event?: MouseEvent): Promise<void> {
@@ -67,13 +70,20 @@ export class WorkspaceAreaComponent implements AfterViewInit {
       this.util.appendOutput(this.ws.status, 'warn');
       return;
     }
-    if (result) await this.hostCoordinator.syncAndRestore();
+    if (result) {
+      await this.hostCoordinator.syncAndRestore();
+      this.terminal.focusPaneTerminal();
+    }
   }
 
   protected async focusPane(paneId: string): Promise<void> {
     const result = await this.ws.focusPane(paneId);
-    if (result === 'unchanged') return;
+    if (result === 'unchanged') {
+      this.terminal.focusPaneTerminal(paneId);
+      return;
+    }
     await this.hostCoordinator.syncAndRestore();
+    this.terminal.focusPaneTerminal(paneId);
   }
 
   protected setInspectorTab(tab: 'tab' | 'session'): void {
@@ -146,6 +156,26 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     return this.inspector.getInspectorSummaryItems();
   }
 
+  protected getInspectorPrimaryItems(): InspectorItem[] {
+    return this.pickInspectorItems(
+      this.isSessionInspectorActive()
+        ? ['Shell', 'Session Id', 'PID', 'Port']
+        : ['Directory', 'Shell', 'Workspace', 'Template', 'Layout', 'Focused Pane']
+    );
+  }
+
+  protected getInspectorSecondaryItems(): InspectorItem[] {
+    return this.pickInspectorItems(
+      this.isSessionInspectorActive()
+        ? ['Started', 'Uptime', 'Last Activity', 'Exit Code', 'Recovery']
+        : ['Startup Command', 'Launch Profile', 'Status', 'Last Recovery', 'Last Session Ended', 'Last Saved']
+    );
+  }
+
+  protected isSessionInspectorActive(): boolean {
+    return this.inspector.activeTab === 'session';
+  }
+
   protected canControlSession(): boolean {
     return this.terminal.sessionActive;
   }
@@ -172,6 +202,14 @@ export class WorkspaceAreaComponent implements AfterViewInit {
 
   protected getPaneStatusLabel(pane: RuntimePane): string {
     return this.ws.getPaneStatusLabel(pane);
+  }
+
+  protected isPaneRunning(pane: RuntimePane): boolean {
+    return this.ws.isPaneRunning(pane);
+  }
+
+  protected getPaneMetaLine(pane: RuntimePane): string {
+    return this.ws.getPaneMetaLine(pane);
   }
 
   protected shouldRenderPanePreview(pane: RuntimePane): boolean {
@@ -203,6 +241,38 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     return item.label;
   }
 
+  protected getInspectorHeroLabel(): string {
+    return this.isSessionInspectorActive() ? 'Live session' : 'Focused tab';
+  }
+
+  protected getInspectorHeroTitle(): string {
+    const focusedTab = this.getFocusedTab();
+    if (this.isSessionInspectorActive()) {
+      return this.terminal.sessionInfo?.shell || focusedTab?.title || 'No Live Session';
+    }
+
+    return focusedTab?.title || 'No Tab Selected';
+  }
+
+  protected getInspectorHeroMeta(): string {
+    const focusedTab = this.getFocusedTab();
+    if (this.isSessionInspectorActive()) {
+      return this.terminal.sessionInfo?.id
+        ? `Session ${this.terminal.sessionInfo.id}`
+        : 'No active PTY attached';
+    }
+
+    return focusedTab?.cwd || this.ws.workingDirectory || 'No working directory';
+  }
+
+  protected getInspectorHeroStatus(): string {
+    if (this.isSessionInspectorActive()) {
+      return this.terminal.sessionActive ? 'connected' : 'idle';
+    }
+
+    return this.getFocusedTab()?.status || 'idle';
+  }
+
   private collectTerminalHosts(): Map<string, HTMLElement> {
     const hosts = new Map<string, HTMLElement>();
     const grid = this.paneGrid?.nativeElement;
@@ -219,5 +289,12 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     }
 
     return hosts;
+  }
+
+  private pickInspectorItems(labels: string[]): InspectorItem[] {
+    const itemMap = new Map(this.inspector.getInspectorItems().map((item) => [item.label, item]));
+    return labels
+      .map((label) => itemMap.get(label))
+      .filter((item): item is InspectorItem => Boolean(item));
   }
 }

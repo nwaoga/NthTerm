@@ -145,6 +145,7 @@ export class WorkspaceRuntimeService {
   }
 
   applyWorkspace(workspace: SavedWorkspace): void {
+    this.previewMode = false;
     this.activeWorkspace = workspace;
     this.workspaceName = workspace.name;
     this.selectedWorkspace = workspace.name;
@@ -284,14 +285,17 @@ export class WorkspaceRuntimeService {
     return { deletedName: result.deletedName, activeWorkspace: result.activeWorkspace };
   }
 
-  async createWorkspaceFromTemplate(template: TemplateListItem): Promise<SavedWorkspace> {
+  async createWorkspaceFromTemplate(
+    template: TemplateListItem,
+    options?: { cwd?: string; name?: string }
+  ): Promise<SavedWorkspace> {
     if (this.selectedWorkspaceId) {
       await this.persistWorkspaceState();
     }
 
     const created = await this.workspaceBridge.createWorkspace({
-      name: this.buildWorkspaceName(template.name),
-      cwd: template.cwd,
+      name: options?.name || this.buildWorkspaceName(template.name),
+      cwd: options?.cwd || template.cwd,
       templateId: template.templateId,
       icon: template.icon,
       accent: template.accent,
@@ -503,14 +507,38 @@ export class WorkspaceRuntimeService {
   getPaneStatusLabel(pane: RuntimePane): string {
     const tab = this.getPaneTab(pane);
     if (!tab) {
-      return 'idle';
+      return 'Idle';
     }
 
-    if (this.isPaneFocused(pane)) {
-      return `live ${tab.status}`;
+    return this.formatPaneStatus(tab.status);
+  }
+
+  isPaneRunning(pane: RuntimePane): boolean {
+    const tab = this.getPaneTab(pane);
+    return Boolean(tab && tab.status.toLowerCase() === 'running');
+  }
+
+  getPaneMetaLine(pane: RuntimePane): string {
+    const tab = this.getPaneTab(pane);
+    if (!tab) {
+      return '';
     }
 
-    return `standby ${tab.status}`;
+    if (this.previewMode) {
+      switch (tab.title) {
+        case 'API':
+          return 'main • 7192';
+        case 'Angular':
+          return 'main • 4200';
+        case 'Database':
+          return 'local • 5432';
+        case 'Docker':
+          return 'up • 4 containers';
+      }
+    }
+
+    const profile = tab.startupCommand?.trim() ? 'command' : 'interactive';
+    return `${profile} • ${tab.status}`;
   }
 
   shouldRenderPanePreview(pane: RuntimePane): boolean {
@@ -661,6 +689,7 @@ export class WorkspaceRuntimeService {
     };
 
     this.applyWorkspace(workspace);
+    this.previewMode = true;
     return workspace;
   }
 
@@ -715,6 +744,15 @@ export class WorkspaceRuntimeService {
       tabCount: this.runtimeTabs.length,
       paneCount: this.runtimePanes.length,
     };
+  }
+
+  private formatPaneStatus(status: string): string {
+    const normalized = status.trim().toLowerCase();
+    if (!normalized) {
+      return 'Idle';
+    }
+
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
   }
 
   private buildEmptyRecoverySnapshot(): RecoverySnapshot {

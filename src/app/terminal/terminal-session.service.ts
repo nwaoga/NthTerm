@@ -12,26 +12,36 @@ import { UtilityPanelService } from '../utility-panel/utility-panel.service';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 
 interface PaneTerminalState {
-  paneId: string;
   tabId: string;
+  attachedPaneId?: string;
   terminal?: Terminal;
   fitAddon?: FitAddon;
   resizeObserver?: ResizeObserver;
   host?: HTMLElement;
+  container?: HTMLDivElement;
   sessionId?: string;
   info: RuntimeSessionInfo | null;
   inputBuffer: string;
 }
 
+export function sanitizeTerminalInput(data: string): string {
+  return data
+    .replace(/\u0000/g, '')
+    .replace(/\u001b\[(?:I|O)/g, '')
+    .replace(/\u001b\[200~/g, '')
+    .replace(/\u001b\[201~/g, '');
+}
+
 @Injectable({ providedIn: 'root' })
 export class TerminalSessionService {
   private paneHosts = new Map<string, HTMLElement>();
-  private paneSessions = new Map<string, PaneTerminalState>();
+  private tabSessions = new Map<string, PaneTerminalState>();
   private removeDataListener?: () => void;
   private removeExitListener?: () => void;
   private removeInfoListener?: () => void;
   private resizeDebounceId?: ReturnType<typeof setTimeout>;
   private previewSessionInfo: RuntimeSessionInfo | null = null;
+  private parkingHost?: HTMLDivElement;
 
   private readonly ngZone = inject(NgZone);
   private readonly changeDetectorRef = inject(ChangeDetectorRef, { optional: true });
@@ -49,6 +59,10 @@ export class TerminalSessionService {
   }
 
   get sessionActive(): boolean {
+    if (this.workspace.previewMode) {
+      return Boolean(this.previewSessionInfo);
+    }
+
     return Boolean(this.getFocusedPaneState()?.sessionId);
   }
 
@@ -60,27 +74,50 @@ export class TerminalSessionService {
     this.paneHosts = hosts;
   }
 
+  focusPaneTerminal(paneId = this.workspace.focusedPaneId): void {
+    const state = this.getPaneState(paneId);
+    if (!state?.terminal) {
+      return;
+    }
+
+    this.ngZone.runOutsideAngular(() => {
+      requestAnimationFrame(() => state.terminal?.focus());
+    });
+  }
+
   async restorePaneSessions(): Promise<void> {
     if (this.workspace.previewMode) {
       return;
     }
 
     this.registerTerminalListeners();
-    const activePaneIds = new Set(this.workspace.runtimePanes.map((pane) => pane.id));
+    const activeTabIds = new Set(this.workspace.runtimeTabs.map((tab) => tab.id));
+    const assignedTabIds = new Set<string>();
+
+    for (const pane of this.workspace.runtimePanes) {
+      const tab = this.workspace.getPaneTab(pane);
+      if (tab) {
+        assignedTabIds.add(tab.id);
+      }
+    }
 
     for (const pane of this.workspace.runtimePanes) {
       const tab = this.workspace.getPaneTab(pane);
       if (!tab) {
-        await this.disposePaneSession(pane.id);
         continue;
       }
 
       await this.ensurePaneSession(pane.id, tab);
     }
 
-    for (const paneId of Array.from(this.paneSessions.keys())) {
-      if (!activePaneIds.has(paneId)) {
-        await this.disposePaneSession(paneId);
+    for (const tabId of Array.from(this.tabSessions.keys())) {
+      if (!activeTabIds.has(tabId)) {
+        await this.disposeTabSession(tabId);
+        continue;
+      }
+
+      if (!assignedTabIds.has(tabId)) {
+        this.parkTabSession(tabId);
       }
     }
 
@@ -154,7 +191,11 @@ export class TerminalSessionService {
   syncTerminalSize(): void {
     this.ngZone.runOutsideAngular(() => {
       requestAnimationFrame(() => {
-        for (const state of this.paneSessions.values()) {
+        for (const state of this.tabSessions.values()) {
+          if (!state.host || !state.attachedPaneId) {
+            continue;
+          }
+
           state.fitAddon?.fit();
           if (state.terminal && state.sessionId) {
             void this.terminalBridge.resizeSession(
@@ -169,8 +210,8 @@ export class TerminalSessionService {
   }
 
   dispose(): void {
-    for (const paneId of Array.from(this.paneSessions.keys())) {
-      void this.disposePaneSession(paneId);
+    for (const tabId of Array.from(this.tabSessions.keys())) {
+      void this.disposeTabSession(tabId);
     }
     this.removeInfoListener?.();
     this.removeDataListener?.();
@@ -187,14 +228,9 @@ export class TerminalSessionService {
       return;
     }
 
-    const existing = this.paneSessions.get(paneId);
-    if (existing && existing.tabId !== tab.id) {
-      await this.disposePaneSession(paneId);
-    }
-
-    const state = this.paneSessions.get(paneId) || this.createPaneState(paneId, tab.id);
-    state.tabId = tab.id;
-    await this.ensureTerminalSurface(state, host);
+    const state = this.tabSessions.get(tab.id) || this.createPaneState(tab.id);
+    await this.ensureTerminalSurface(state);
+    this.attachStateToHost(state, paneId, host);
 
     if (state.sessionId) {
       this.workspace.updateTabStatus(tab.id, state.info?.status || 'running');
@@ -205,16 +241,18 @@ export class TerminalSessionService {
     await this.startPaneSession(state, tab);
   }
 
-  private async ensureTerminalSurface(state: PaneTerminalState, host: HTMLElement): Promise<void> {
-    if (state.host === host && state.terminal && state.fitAddon) {
+  private async ensureTerminalSurface(state: PaneTerminalState): Promise<void> {
+    if (state.terminal && state.fitAddon && state.container) {
       return;
     }
 
     state.resizeObserver?.disconnect();
     state.terminal?.dispose();
-    state.host = host;
 
     const fitAddon = new FitAddon();
+    const container = document.createElement('div');
+    container.style.width = '100%';
+    container.style.height = '100%';
     const terminal = new Terminal({
       cursorBlink: true,
       fontFamily: 'Cascadia Code, Consolas, monospace',
@@ -228,11 +266,12 @@ export class TerminalSessionService {
     });
 
     terminal.loadAddon(fitAddon);
-    terminal.open(host);
+    terminal.open(container);
     terminal.onData((data) => {
-      this.trackTerminalInput(state, data);
-      if (state.sessionId) {
-        void this.terminalBridge.sendInput(state.sessionId, data);
+      const sanitizedData = sanitizeTerminalInput(data);
+      this.trackTerminalInput(state, sanitizedData);
+      if (state.sessionId && sanitizedData) {
+        void this.terminalBridge.sendInput(state.sessionId, sanitizedData);
       }
     });
 
@@ -240,11 +279,12 @@ export class TerminalSessionService {
       clearTimeout(this.resizeDebounceId);
       this.resizeDebounceId = setTimeout(() => this.syncTerminalSize(), 60);
     });
-    observer.observe(host);
+    observer.observe(container);
 
     state.fitAddon = fitAddon;
     state.terminal = terminal;
     state.resizeObserver = observer;
+    state.container = container;
   }
 
   private async startPaneSession(state: PaneTerminalState, tab: RuntimeTab): Promise<void> {
@@ -256,7 +296,7 @@ export class TerminalSessionService {
     }
 
     this.workspace.status = `Launching terminal in ${targetDirectory}...`;
-    if (this.workspace.focusedPaneId === state.paneId) {
+    if (this.workspace.focusedPaneId === state.attachedPaneId) {
       this.utility.appendOutput(this.workspace.status, 'info');
     }
     state.terminal.clear();
@@ -269,15 +309,23 @@ export class TerminalSessionService {
     });
     state.info = await this.terminalBridge.getSessionInfo(state.sessionId);
     this.workspace.updateTabStatus(tab.id, 'running');
-    this.workspace.updatePaneSessionSnapshot(state.paneId, this.toPaneSnapshot(state, targetDirectory));
-    this.workspace.recordSessionLaunch(tab, state.paneId, {
+    if (state.attachedPaneId) {
+      this.workspace.updatePaneSessionSnapshot(
+        state.attachedPaneId,
+        this.toPaneSnapshot(state, targetDirectory)
+      );
+    }
+    this.workspace.recordSessionLaunch(tab, state.attachedPaneId || this.workspace.focusedPaneId, {
       shell: state.info?.shell || tab.shell || '',
       startedAt: state.info?.startedAt || null,
     });
     await this.workspace.persistWorkspaceState();
     this.syncTerminalSize();
-    if (this.workspace.focusedPaneId === state.paneId) {
+    if (this.workspace.focusedPaneId === state.attachedPaneId) {
       await this.systemMonitor.refreshSessionEnvironment(state.sessionId);
+      if (state.attachedPaneId) {
+        this.focusPaneTerminal(state.attachedPaneId);
+      }
       this.workspace.status = `Connected to ${targetDirectory}`;
       this.utility.appendOutput(`Terminal session attached to ${targetDirectory}`, 'info');
     }
@@ -313,8 +361,13 @@ export class TerminalSessionService {
       }
 
       state.info = event;
-      const tab = this.workspace.getPaneTab(this.workspace.getPaneById(state.paneId)!);
-      this.workspace.updatePaneSessionSnapshot(state.paneId, this.toPaneSnapshot(state, tab?.cwd || event.cwd));
+      const tab = this.workspace.runtimeTabs.find((item) => item.id === state.tabId);
+      if (state.attachedPaneId) {
+        this.workspace.updatePaneSessionSnapshot(
+          state.attachedPaneId,
+          this.toPaneSnapshot(state, tab?.cwd || event.cwd)
+        );
+      }
     });
 
     this.removeDataListener = this.terminalBridge.onData((event) => {
@@ -325,7 +378,7 @@ export class TerminalSessionService {
 
       this.ngZone.runOutsideAngular(() => state.terminal?.write(event.data));
       this.ngZone.run(() => {
-        const pane = this.workspace.getPaneById(state.paneId);
+        const pane = state.attachedPaneId ? this.workspace.getPaneById(state.attachedPaneId) : undefined;
         const tab = pane ? this.workspace.getPaneTab(pane) : undefined;
         const source = tab?.title || this.workspace.workspaceName || 'Terminal';
         this.utility.scanOutputForProblems(event.data, source);
@@ -338,8 +391,7 @@ export class TerminalSessionService {
         return;
       }
 
-      const pane = this.workspace.getPaneById(state.paneId);
-      const tab = pane ? this.workspace.getPaneTab(pane) : undefined;
+      const tab = this.workspace.runtimeTabs.find((item) => item.id === state.tabId);
       const endedAt = new Date().toISOString();
       state.info = {
         ...(state.info || this.buildEmptyInfo(event.id)),
@@ -351,7 +403,7 @@ export class TerminalSessionService {
 
       if (tab) {
         this.workspace.updateTabStatus(tab.id, 'stopped');
-        this.workspace.recordSessionEvent(tab, state.paneId, {
+        this.workspace.recordSessionEvent(tab, state.attachedPaneId || this.workspace.focusedPaneId, {
           status: event.exitCode && event.exitCode !== 0 ? 'failed' : 'stopped',
           reason: event.exitCode && event.exitCode !== 0 ? 'Process exited with error' : 'Process exited',
           startedAt: state.info?.startedAt || null,
@@ -362,8 +414,13 @@ export class TerminalSessionService {
         });
       }
 
-      this.workspace.updatePaneSessionSnapshot(state.paneId, this.toPaneSnapshot(state, tab?.cwd || state.info?.cwd || ''));
-      if (this.workspace.focusedPaneId === state.paneId) {
+      if (state.attachedPaneId) {
+        this.workspace.updatePaneSessionSnapshot(
+          state.attachedPaneId,
+          this.toPaneSnapshot(state, tab?.cwd || state.info?.cwd || '')
+        );
+      }
+      if (this.workspace.focusedPaneId === state.attachedPaneId) {
         void this.systemMonitor.refreshSessionEnvironment(undefined);
         this.workspace.status = `Terminal exited (${event.exitCode ?? 'unknown'})`;
         this.utility.appendOutput(this.workspace.status, event.exitCode ? 'error' : 'info');
@@ -373,19 +430,32 @@ export class TerminalSessionService {
   }
 
   private async disposePaneSession(paneId: string): Promise<void> {
-    const state = this.paneSessions.get(paneId);
+    const pane = this.workspace.getPaneById(paneId);
+    const tab = pane ? this.workspace.getPaneTab(pane) : undefined;
+    if (!tab) {
+      return;
+    }
+
+    await this.disposeTabSession(tab.id);
+  }
+
+  private async disposeTabSession(tabId: string): Promise<void> {
+    const state = this.tabSessions.get(tabId);
     if (!state) {
       return;
     }
 
     state.resizeObserver?.disconnect();
     state.terminal?.dispose();
+    state.container?.remove();
     if (state.sessionId) {
       await this.terminalBridge.disposeSession(state.sessionId);
     }
 
-    this.paneSessions.delete(paneId);
-    this.workspace.updatePaneSessionSnapshot(paneId, null);
+    this.tabSessions.delete(tabId);
+    if (state.attachedPaneId) {
+      this.workspace.updatePaneSessionSnapshot(state.attachedPaneId, null);
+    }
   }
 
   private trackTerminalInput(state: PaneTerminalState, data: string): void {
@@ -414,7 +484,7 @@ export class TerminalSessionService {
       return;
     }
 
-    const pane = this.workspace.getPaneById(state.paneId);
+    const pane = state.attachedPaneId ? this.workspace.getPaneById(state.attachedPaneId) : undefined;
     const focusedTab = pane ? this.workspace.getPaneTab(pane) : undefined;
     this.utility.trackCommand(
       command,
@@ -423,11 +493,11 @@ export class TerminalSessionService {
   }
 
   private getFocusedPaneState(): PaneTerminalState | undefined {
-    return this.paneSessions.get(this.workspace.focusedPaneId);
+    return this.getPaneState(this.workspace.focusedPaneId);
   }
 
   private findPaneStateBySessionId(sessionId: string): PaneTerminalState | undefined {
-    for (const state of this.paneSessions.values()) {
+    for (const state of this.tabSessions.values()) {
       if (state.sessionId === sessionId) {
         return state;
       }
@@ -436,14 +506,13 @@ export class TerminalSessionService {
     return undefined;
   }
 
-  private createPaneState(paneId: string, tabId: string): PaneTerminalState {
+  private createPaneState(tabId: string): PaneTerminalState {
     const state: PaneTerminalState = {
-      paneId,
       tabId,
       info: null,
       inputBuffer: '',
     };
-    this.paneSessions.set(paneId, state);
+    this.tabSessions.set(tabId, state);
     return state;
   }
 
@@ -460,6 +529,7 @@ export class TerminalSessionService {
     this.workspace.workingDirectory = focusedTab.cwd;
     await this.systemMonitor.refreshSessionEnvironment(focusedState.sessionId);
     this.syncTerminalSize();
+    this.focusPaneTerminal(this.workspace.focusedPaneId);
     this.changeDetectorRef?.markForCheck();
   }
 
@@ -477,6 +547,55 @@ export class TerminalSessionService {
       exitCode: info?.exitCode ?? null,
       detectedPort: info?.detectedPort ?? null,
     };
+  }
+
+  private getPaneState(paneId: string): PaneTerminalState | undefined {
+    const pane = this.workspace.getPaneById(paneId);
+    if (!pane?.tabId) {
+      return undefined;
+    }
+
+    return this.tabSessions.get(pane.tabId);
+  }
+
+  private attachStateToHost(state: PaneTerminalState, paneId: string, host: HTMLElement): void {
+    if (!state.container) {
+      return;
+    }
+
+    if (host.firstChild !== state.container || host.childNodes.length !== 1) {
+      host.replaceChildren(state.container);
+    }
+
+    state.host = host;
+    state.attachedPaneId = paneId;
+  }
+
+  private parkTabSession(tabId: string): void {
+    const state = this.tabSessions.get(tabId);
+    if (!state?.container) {
+      return;
+    }
+
+    if (state.attachedPaneId) {
+      this.workspace.updatePaneSessionSnapshot(state.attachedPaneId, null);
+    }
+    this.getParkingHost().appendChild(state.container);
+    state.host = undefined;
+    state.attachedPaneId = undefined;
+  }
+
+  private getParkingHost(): HTMLDivElement {
+    if (this.parkingHost) {
+      return this.parkingHost;
+    }
+
+    const host = document.createElement('div');
+    host.setAttribute('aria-hidden', 'true');
+    host.style.display = 'none';
+    document.body.appendChild(host);
+    this.parkingHost = host;
+    return host;
   }
 
   private buildEmptyInfo(id: string): TerminalInfo {
