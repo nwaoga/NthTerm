@@ -55,7 +55,7 @@ Keyboard shortcuts:
 
 Next up:
 
-- add GitHub Actions CI/release artifact workflow for build, tests, and unsigned Windows artifacts
+- pick the next production-readiness task: Windows PTY stability, release branding/signing, or installer validation
 
 ## Design alignment checklist
 

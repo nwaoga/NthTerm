@@ -125,3 +125,4 @@
 - Phase 5 Task 3 will use GitHub Actions for CI and unsigned Windows release artifacts because the repository source of truth is GitHub and the current package scripts already work locally without Azure-specific release infrastructure.
 - The GitHub Actions workflow separates fast validation from Windows artifact creation: Ubuntu runs `npm ci`, `npm run build`, and `npm run test:ci`; Windows waits for validation, runs `npm run release:win`, and uploads unsigned artifacts from `release/`.
 - The workflow file was validated locally with Prettier's YAML parser, and the unchanged build/test path was rechecked with `npm run build` and `npm run test:ci`; first remote GitHub Actions execution remains the completion gate for #118.
+- Phase 5 Task 3 is complete after the first GitHub Actions run succeeded on `main`, including both the build/test job and Windows release artifact job. The unsigned `nthterm-windows-unsigned` artifact was uploaded from the workflow run.

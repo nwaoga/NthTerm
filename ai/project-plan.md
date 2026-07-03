@@ -87,7 +87,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ### Phase 5 Task 3 — GitHub Actions release build workflow
 
-**Status:** In progress.
+**Status:** Done.
 
 **ADO:** [#118](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/118)
 
@@ -212,7 +212,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. **Phase 5 Task 3** — add GitHub Actions CI/release artifact workflow.
+1. Pick the next production-readiness task: Windows PTY stability, release branding/signing, or installer/upgrade validation.
 2. Keep packaged runtime smoke coverage in mind before changing `asar`, native module, or persistence paths.
 
 ---

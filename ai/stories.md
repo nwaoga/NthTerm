@@ -1,14 +1,13 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Phase 5 / Task 3: Add GitHub Actions release build workflow
+## Done
+- [x] Phase 5 / Task 3: Add GitHub Actions release build workflow
   - [x] Run install, build, and `npm run test:ci` on pull requests and pushes to `main`
   - [x] Build Windows desktop artifacts with `npm run release:win`
   - [x] Upload unsigned installer/zip artifacts from `release/`
   - [x] Document any CI-specific native module or signing constraints
-  - [ ] Verify first GitHub Actions run after push
-
-## Done
+  - [x] Verify first GitHub Actions run after push
 - [x] Phase 5 / Task 2: Smoke test packaged desktop runtime
   - [x] Launch `release/win-unpacked/NthTerm.exe`
   - [x] Confirm packaged UI stays running from local production assets
