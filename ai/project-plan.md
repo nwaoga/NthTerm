@@ -16,9 +16,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-07-02)
+## Current State (2026-07-03)
 
-**Phase:** 4 complete.
+**Phase:** 5 in progress.
 
 **Working today:**
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
@@ -27,16 +27,40 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Feature-oriented renderer refactor (services + shell components)
 - Command palette, global search, utility panels, inspector, system monitor
 - Frameless desktop window with custom drag regions
+- Electron Builder packaging configuration for local unpacked builds and Windows release artifacts
 
-**Last shipped:** shared shell polish follow-up, including configurable new-session start preferences and a unified custom scrollbar treatment across the sidebar, dock, inspector, palette, and other scrollable shell surfaces.
+**Last shipped:** Phase 4 design-alignment closeout, including shared shell visual tokens, documented reference deviations, and screenshot-reviewed completion against `repo/docs/target-ui-reference.png`.
 
-**Reference design:** `repo/docs/target-ui-reference.png` (1:1 fidelity is the Phase 4 visual goal).
+**Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline; Phase 5 should preserve it while adding production readiness).
 
 ---
 
 ## Pick Next Work
 
 Choose **one** track below. Each is scoped for a single agent session or small PR series. Update `stories.md`, `decisions.md`, and ADO when done.
+
+### Phase 5 Task 1 — Production desktop packaging
+
+**Status:** In progress.
+
+**Scope:**
+- Add repeatable Electron Builder scripts for unpacked local builds, current-platform release builds, and Windows artifacts.
+- Package the production Angular renderer from `dist/nthterm/browser` with the Electron main/preload files.
+- Keep generated release artifacts out of source control.
+- Preserve the current dev flow (`npm start`) while making production desktop launch/package commands explicit.
+
+**Key files:**
+- `repo/package.json` — package scripts, Electron Builder metadata, native module unpacking
+- `repo/.gitignore` — generated release artifacts
+- `repo/electron/main.js` — production asset loading path
+
+**Acceptance criteria:**
+- `npm run build` succeeds.
+- `npm run test:ci` succeeds.
+- `npm run package` creates a local unpacked desktop build without requiring a signing certificate.
+- Release artifacts are ignored by git.
+
+**Out of scope:** code signing, auto-update channels, installer branding/icon work, and CI release automation.
 
 ### Option A — Concurrent multi-pane PTY sessions
 
@@ -139,8 +163,8 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. **Define Phase 5** — pick the next product milestone after design alignment
-2. Keep regression coverage for terminal stability and workspace persistence while planning new work
+1. Finish **Phase 5 Task 1** packaging verification.
+2. Pick the next production-readiness task: Windows PTY stability, release branding/signing, or CI release automation.
 
 ---
 

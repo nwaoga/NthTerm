@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **Phase 4 complete** — design alignment against `docs/target-ui-reference.png` with documented deviations.
+Current milestone: **Phase 5 in progress** — production desktop packaging.
 
 Working today:
 
@@ -45,6 +45,7 @@ Working today:
 - per-tab shell preference and startup commands persisted in SQLite
 - session history and recovery metadata persisted per workspace, including latest exit reason/code and recent session events
 - frameless desktop window with custom title bar drag regions and integrated window controls
+- production desktop packaging scripts for local unpacked builds and Windows installer/zip artifacts
 - Angular renderer split into feature components and services (`models/`, `workspace/`, `terminal/`, `utility-panel/`, `command-palette/`, etc.) per architecture code-style rules
 
 Keyboard shortcuts:
@@ -54,7 +55,7 @@ Keyboard shortcuts:
 
 Next up:
 
-- define the next milestone after Phase 4 (feature work or Phase 5 planning)
+- verify the Phase 5 packaging flow and then pick the next production-readiness task
 
 ## Design alignment checklist
 
@@ -106,6 +107,20 @@ Launch Electron against the production build:
 ```bash
 npm run desktop
 ```
+
+Package a local desktop build:
+
+```bash
+npm run package
+```
+
+Create unsigned Windows installer and zip artifacts:
+
+```bash
+npm run release:win
+```
+
+Generated desktop artifacts are written under `release/` and are intentionally ignored by git.
 
 ## Notes
 

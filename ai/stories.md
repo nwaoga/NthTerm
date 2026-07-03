@@ -1,7 +1,12 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Define Phase 5 scope and next milestone
+- [ ] Phase 5 / Task 1: Package production desktop builds
+  - [x] Define Phase 5 scope and next milestone
+  - [x] Add Electron Builder dependency, scripts, and package metadata
+  - [x] Ignore generated release artifacts
+  - [x] Verify build, test, and unpacked packaging flow
+  - [x] Verify full Windows installer/zip release command completes
 
 ## Done
 - [x] Phase 4: Final screenshot review and closeout against `docs/target-ui-reference.png`
