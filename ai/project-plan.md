@@ -87,7 +87,9 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ### Phase 5 Task 3 — GitHub Actions release build workflow
 
-**Status:** Backlog.
+**Status:** In progress.
+
+**ADO:** [#118](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/118)
 
 **Scope:**
 - Add a GitHub Actions workflow that validates the app on pull requests and pushes to `main`.

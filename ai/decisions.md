@@ -123,3 +123,5 @@
 - Phase 5 Task 2 starts with a short packaged-runtime smoke test against the unpacked Windows build before adding installer branding, signing, or release automation.
 - Phase 5 Task 2 passed on 2026-07-03: `release/win-unpacked/NthTerm.exe` stayed healthy during the smoke window, initialized `C:\Users\blakb\AppData\Roaming\NthTerm\nthterm.sqlite`, and spawned a packaged `node-pty` PowerShell child process.
 - Phase 5 Task 3 will use GitHub Actions for CI and unsigned Windows release artifacts because the repository source of truth is GitHub and the current package scripts already work locally without Azure-specific release infrastructure.
+- The GitHub Actions workflow separates fast validation from Windows artifact creation: Ubuntu runs `npm ci`, `npm run build`, and `npm run test:ci`; Windows waits for validation, runs `npm run release:win`, and uploads unsigned artifacts from `release/`.
+- The workflow file was validated locally with Prettier's YAML parser, and the unchanged build/test path was rechecked with `npm run build` and `npm run test:ci`; first remote GitHub Actions execution remains the completion gate for #118.

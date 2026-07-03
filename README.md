@@ -122,6 +122,8 @@ npm run release:win
 
 Generated desktop artifacts are written under `release/` and are intentionally ignored by git.
 
+GitHub Actions runs the same build and test path on pull requests and pushes to `main`. The Windows release job uploads unsigned installer and zip artifacts from the workflow run.
+
 ## Notes
 
 The persistence layer stores restore-oriented workspace metadata, including:

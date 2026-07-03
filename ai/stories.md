@@ -2,10 +2,11 @@
 
 ## Backlog
 - [ ] Phase 5 / Task 3: Add GitHub Actions release build workflow
-  - [ ] Run install, build, and `npm run test:ci` on pull requests and pushes to `main`
-  - [ ] Build Windows desktop artifacts with `npm run release:win`
-  - [ ] Upload unsigned installer/zip artifacts from `release/`
-  - [ ] Document any CI-specific native module or signing constraints
+  - [x] Run install, build, and `npm run test:ci` on pull requests and pushes to `main`
+  - [x] Build Windows desktop artifacts with `npm run release:win`
+  - [x] Upload unsigned installer/zip artifacts from `release/`
+  - [x] Document any CI-specific native module or signing constraints
+  - [ ] Verify first GitHub Actions run after push
 
 ## Done
 - [x] Phase 5 / Task 2: Smoke test packaged desktop runtime
