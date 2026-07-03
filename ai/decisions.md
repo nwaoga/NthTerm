@@ -105,3 +105,4 @@
 - Creating a new session now has an explicit CTA in the Sessions section of the left rail; using Templates remains available for starter scenarios, but blank session creation is no longer hidden behind that mental model.
 - New sessions now honor a persisted start-directory preference (`focused terminal`, `home directory`, or `custom path`) instead of inheriting a hard-coded empty-template path.
 - The renderer asks Electron for directory defaults so `home directory` resolves from the host OS rather than duplicating platform-specific logic in Angular.
+- Shared shell scrollbar styling is now centralized in global CSS with dark-mode-safe colors, rounded gradient thumbs, and stable scrollbar gutters on the primary scrolling surfaces to reduce layout jitter and visual inconsistency.

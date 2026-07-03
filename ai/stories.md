@@ -11,6 +11,7 @@
 
 ## Done
 - [x] Phase 4 / #110: Align the desktop chrome and top shell with the target reference
+- [x] Phase 4: Polish shared scrollbar styling across shell surfaces
 - [x] Phase 4: Add an explicit new-session entry point in the sessions rail
 - [x] Phase 4: Add configurable start-directory preferences for new sessions
 - [x] Phase 4: Stabilize terminal interaction after the design-alignment pass

@@ -28,7 +28,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Command palette, global search, utility panels, inspector, system monitor
 - Frameless desktop window with custom drag regions
 
-**Last shipped:** `#110` desktop chrome and top-shell alignment closeout, including a calmer passive workspace-context band, tighter toolbar rhythm, Windows-safe header spacing, an explicit `New Session` CTA in the sessions rail, and configurable start-directory preferences for new sessions.
+**Last shipped:** shared shell polish follow-up, including configurable new-session start preferences and a unified custom scrollbar treatment across the sidebar, dock, inspector, palette, and other scrollable shell surfaces.
 
 **Reference design:** `repo/docs/target-ui-reference.png` (1:1 fidelity is the Phase 4 visual goal).
 
@@ -171,5 +171,5 @@ When finishing:
 ### Phase 2: Workspace Model — done
 ### Phase 3: Multi-Tab and Layout — done
 ### Phase 4: Session History and Management — in progress
-- Done: rename/delete, renderer refactor, frameless chrome, session history and recovery metadata, concurrent multi-pane PTY sessions, center workspace alignment, sidebar and tab hierarchy alignment, right inspector alignment, bottom dock and system monitor alignment, terminal interaction stabilization, session-creation discoverability, configurable new-session start preferences
+- Done: rename/delete, renderer refactor, frameless chrome, session history and recovery metadata, concurrent multi-pane PTY sessions, center workspace alignment, sidebar and tab hierarchy alignment, right inspector alignment, bottom dock and system monitor alignment, terminal interaction stabilization, session-creation discoverability, configurable new-session start preferences, shared scrollbar styling polish
 - Open: design-alignment polish
