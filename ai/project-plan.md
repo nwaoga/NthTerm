@@ -41,7 +41,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ### Phase 5 Task 1 — Production desktop packaging
 
-**Status:** In progress.
+**Status:** Done.
 
 **Scope:**
 - Add repeatable Electron Builder scripts for unpacked local builds, current-platform release builds, and Windows artifacts.
@@ -61,6 +61,53 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 - Release artifacts are ignored by git.
 
 **Out of scope:** code signing, auto-update channels, installer branding/icon work, and CI release automation.
+
+### Phase 5 Task 2 — Packaged desktop runtime smoke test
+
+**Status:** Done.
+
+**Scope:**
+- Launch the unpacked Windows desktop build created by Electron Builder.
+- Confirm the packaged process stays alive long enough to load local production assets.
+- Confirm the packaged app initializes workspace persistence and the PTY-backed shell path.
+- Record any runtime constraints before moving to installer branding, signing, or CI automation.
+
+**Key files/artifacts:**
+- `repo/release/win-unpacked/NthTerm.exe` — ignored local package output
+- `repo/electron/main.js` — production renderer load and PTY IPC handlers
+- `repo/electron/workspace-store.js` — packaged persistence initialization
+
+**Acceptance criteria:**
+- Packaged executable launches without immediate crash.
+- App process remains healthy during the smoke window.
+- Workspace persistence/user-data initialization succeeds.
+- Any packaged-runtime caveats are documented in `decisions.md`.
+
+**Out of scope:** long-form manual UI QA, signed installer install/uninstall testing, and auto-update validation.
+
+### Phase 5 Task 3 — GitHub Actions release build workflow
+
+**Status:** Backlog.
+
+**Scope:**
+- Add a GitHub Actions workflow that validates the app on pull requests and pushes to `main`.
+- Run dependency install, `npm run build`, and `npm run test:ci`.
+- Build unsigned Windows installer/zip artifacts with `npm run release:win`.
+- Upload generated release artifacts from `release/` for manual download.
+- Document any CI-specific native module, cache, artifact, or signing constraints.
+
+**Key files:**
+- `repo/.github/workflows/` — CI/release workflow definitions
+- `repo/package.json` — existing build/test/package scripts
+- `repo/README.md` — build instructions once CI exists
+
+**Acceptance criteria:**
+- GitHub Actions runs build and tests on PRs and `main`.
+- Windows release job produces installer/zip artifacts.
+- Artifacts are available from the workflow run without committing generated files.
+- Workflow does not require signing secrets for the unsigned build path.
+
+**Out of scope:** Azure Pipelines, code signing certificates, auto-publishing GitHub Releases, and notarized macOS/Linux packages.
 
 ### Option A — Concurrent multi-pane PTY sessions
 
@@ -163,8 +210,8 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. Finish **Phase 5 Task 1** packaging verification.
-2. Pick the next production-readiness task: Windows PTY stability, release branding/signing, or CI release automation.
+1. **Phase 5 Task 3** — add GitHub Actions CI/release artifact workflow.
+2. Keep packaged runtime smoke coverage in mind before changing `asar`, native module, or persistence paths.
 
 ---
 

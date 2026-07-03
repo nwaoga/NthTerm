@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **Phase 5 in progress** — production desktop packaging.
+Current milestone: **Phase 5 in progress** — production readiness after verified desktop packaging.
 
 Working today:
 
@@ -45,7 +45,7 @@ Working today:
 - per-tab shell preference and startup commands persisted in SQLite
 - session history and recovery metadata persisted per workspace, including latest exit reason/code and recent session events
 - frameless desktop window with custom title bar drag regions and integrated window controls
-- production desktop packaging scripts for local unpacked builds and Windows installer/zip artifacts
+- verified production desktop packaging scripts for local unpacked builds and Windows installer/zip artifacts
 - Angular renderer split into feature components and services (`models/`, `workspace/`, `terminal/`, `utility-panel/`, `command-palette/`, etc.) per architecture code-style rules
 
 Keyboard shortcuts:
@@ -55,7 +55,7 @@ Keyboard shortcuts:
 
 Next up:
 
-- verify the Phase 5 packaging flow and then pick the next production-readiness task
+- add GitHub Actions CI/release artifact workflow for build, tests, and unsigned Windows artifacts
 
 ## Design alignment checklist
 

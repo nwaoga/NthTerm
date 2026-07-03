@@ -1,14 +1,24 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Phase 5 / Task 1: Package production desktop builds
+- [ ] Phase 5 / Task 3: Add GitHub Actions release build workflow
+  - [ ] Run install, build, and `npm run test:ci` on pull requests and pushes to `main`
+  - [ ] Build Windows desktop artifacts with `npm run release:win`
+  - [ ] Upload unsigned installer/zip artifacts from `release/`
+  - [ ] Document any CI-specific native module or signing constraints
+
+## Done
+- [x] Phase 5 / Task 2: Smoke test packaged desktop runtime
+  - [x] Launch `release/win-unpacked/NthTerm.exe`
+  - [x] Confirm packaged UI stays running from local production assets
+  - [x] Confirm packaged app can initialize the default workspace and PTY flow
+  - [x] Document any packaged-runtime constraints or follow-ups
+- [x] Phase 5 / Task 1: Package production desktop builds
   - [x] Define Phase 5 scope and next milestone
   - [x] Add Electron Builder dependency, scripts, and package metadata
   - [x] Ignore generated release artifacts
   - [x] Verify build, test, and unpacked packaging flow
   - [x] Verify full Windows installer/zip release command completes
-
-## Done
 - [x] Phase 4: Final screenshot review and closeout against `docs/target-ui-reference.png`
 - [x] Phase 4: Design-alignment polish against `docs/target-ui-reference.png`
 - [x] Phase 4 / #110: Align the desktop chrome and top shell with the target reference

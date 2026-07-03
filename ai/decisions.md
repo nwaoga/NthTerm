@@ -119,3 +119,7 @@
 - Phase 5 starts with production desktop packaging using Electron Builder because it fits the existing Electron entry point, Angular `dist/nthterm/browser` output, and npm-based workflow without requiring a larger build-system migration.
 - The first packaging slice intentionally produces unsigned local artifacts only. Code signing, branded icons, auto-updates, and CI release automation are deferred until the local package path is proven.
 - Electron Builder's automatic native rebuild is disabled for the default packaging path because this Windows environment is missing Visual Studio Spectre-mitigated libraries required to rebuild `node-pty`. The dedicated `npm run electron:rebuild` command remains available for machines with the full native toolchain.
+- Phase 5 Task 1 is complete after verifying `npm run build`, `npm run test:ci`, `npm run package`, and `npm run release:win`.
+- Phase 5 Task 2 starts with a short packaged-runtime smoke test against the unpacked Windows build before adding installer branding, signing, or release automation.
+- Phase 5 Task 2 passed on 2026-07-03: `release/win-unpacked/NthTerm.exe` stayed healthy during the smoke window, initialized `C:\Users\blakb\AppData\Roaming\NthTerm\nthterm.sqlite`, and spawned a packaged `node-pty` PowerShell child process.
+- Phase 5 Task 3 will use GitHub Actions for CI and unsigned Windows release artifacts because the repository source of truth is GitHub and the current package scripts already work locally without Azure-specific release infrastructure.
