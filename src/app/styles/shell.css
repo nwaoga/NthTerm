@@ -2,9 +2,67 @@ app-root {
   display: block;
   height: 100vh;
   overflow: hidden;
-  color: #e6edf7;
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: var(--shell-text);
+  font-family: var(--shell-font-ui);
   --titlebar-inset: 40px;
+
+  /* Surface */
+  --shell-bg-base: #090d16;
+  --shell-bg-workspace: #0c111d;
+  --shell-bg-panel: rgba(12, 16, 28, 0.94);
+  --shell-bg-elevated: rgba(16, 22, 37, 0.98);
+  --shell-bg-inset: rgba(10, 13, 24, 0.92);
+
+  /* Text */
+  --shell-text: #e6edf7;
+  --shell-text-strong: #eff3f9;
+  --shell-text-muted: #8f9ab0;
+  --shell-text-label: #7e8dab;
+  --shell-text-success: #9ec8b0;
+
+  /* Borders + accents */
+  --shell-border: rgba(141, 154, 187, 0.14);
+  --shell-border-subtle: rgba(141, 154, 187, 0.09);
+  --shell-border-strong: rgba(108, 126, 172, 0.22);
+  --shell-border-rail: rgba(124, 90, 255, 0.14);
+  --shell-border-accent: rgba(148, 120, 255, 0.12);
+  --shell-accent: #bd6fff;
+  --shell-accent-strong: rgba(186, 112, 255, 0.78);
+  --shell-accent-soft: rgba(186, 112, 255, 0.52);
+  --shell-success: #37d67a;
+  --shell-success-soft: rgba(55, 214, 122, 0.12);
+  --shell-danger: #e5484d;
+  --shell-running: #9ef0b8;
+
+  /* Radii */
+  --shell-radius-sm: 8px;
+  --shell-radius-md: 12px;
+  --shell-radius-lg: 14px;
+  --shell-radius-xl: 16px;
+  --shell-radius-stage: 22px;
+  --shell-radius-pill: 999px;
+
+  /* Spacing */
+  --shell-space-xs: 4px;
+  --shell-space-sm: 8px;
+  --shell-space-md: 12px;
+  --shell-space-lg: 14px;
+  --shell-space-xl: 16px;
+  --shell-gap-section: 12px;
+  --shell-gap-card: 10px;
+
+  /* Typography */
+  --shell-font-ui: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --shell-font-mono: "Cascadia Code", Consolas, monospace;
+  --shell-font-size-label: 0.72rem;
+  --shell-font-size-body: 0.92rem;
+  --shell-font-size-title: 1.02rem;
+  --shell-letter-label: 0.12em;
+
+  /* Elevation */
+  --shell-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shell-shadow-panel: 0 10px 24px rgba(2, 6, 15, 0.14);
+  --shell-shadow-stage: 0 14px 32px rgba(3, 6, 14, 0.28);
 }
 
 button,
@@ -18,7 +76,7 @@ input {
   grid-template-rows: auto minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
-  background: #090d16;
+  background: var(--shell-bg-base);
 }
 
 .app-shell-toolbar-host {
@@ -39,8 +97,8 @@ input {
   flex-direction: column;
   gap: 18px;
   min-height: 0;
-  padding: 14px 12px 14px;
-  border-right: 1px solid rgba(124, 90, 255, 0.14);
+  padding: var(--shell-space-lg) var(--shell-space-md) var(--shell-space-lg);
+  border-right: 1px solid var(--shell-border-rail);
   background:
     linear-gradient(180deg, rgba(15, 19, 33, 0.98), rgba(10, 16, 27, 0.98));
   overflow: hidden auto;
@@ -97,10 +155,10 @@ input {
 
 .rail-title {
   margin: 0;
-  color: #7e8dab;
-  font-size: 0.72rem;
+  color: var(--shell-text-label);
+  font-size: var(--shell-font-size-label);
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--shell-letter-label);
   text-transform: uppercase;
 }
 
@@ -424,9 +482,9 @@ input {
 .rail-status {
   margin-top: auto;
   padding-top: 16px;
-  color: #9ec8b0;
-  font-size: 0.9rem;
-  border-top: 1px solid rgba(141, 154, 187, 0.12);
+  color: var(--shell-text-success);
+  font-size: var(--shell-font-size-body);
+  border-top: 1px solid var(--shell-border);
 }
 
 .workspace-shell {
@@ -439,7 +497,7 @@ input {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #0c111d;
+  background: var(--shell-bg-workspace);
 }
 
 .workspace-shell.utility-dock-visible {
@@ -497,7 +555,7 @@ input {
   flex-wrap: nowrap;
   min-height: 66px;
   padding: 8px 18px 10px 18px;
-  border-bottom: 1px solid rgba(148, 120, 255, 0.12);
+  border-bottom: 1px solid var(--shell-border-accent);
   background:
     radial-gradient(circle at 28% 0%, rgba(116, 62, 201, 0.2), transparent 34%),
     radial-gradient(circle at 72% 0%, rgba(75, 111, 255, 0.11), transparent 26%),
@@ -983,15 +1041,15 @@ input {
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  padding: 10px 12px 14px;
-  border: 1px solid rgba(108, 126, 172, 0.22);
-  border-radius: 22px;
+  padding: var(--shell-space-md) var(--shell-space-md) var(--shell-space-lg);
+  border: 1px solid var(--shell-border-strong);
+  border-radius: var(--shell-radius-stage);
   background:
     radial-gradient(circle at top center, rgba(106, 72, 188, 0.18), transparent 34%),
     linear-gradient(180deg, rgba(14, 20, 34, 0.985), rgba(9, 13, 22, 0.99));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 14px 32px rgba(3, 6, 14, 0.28);
+    var(--shell-shadow-inset),
+    var(--shell-shadow-stage);
 }
 
 .tab-strip {
@@ -1226,9 +1284,9 @@ input {
 .terminal-card,
 .inspector,
 .inspector-card {
-  border: 1px solid rgba(141, 154, 187, 0.14);
-  border-radius: 16px;
-  background: #0d1421;
+  border: 1px solid var(--shell-border);
+  border-radius: var(--shell-radius-xl);
+  background: var(--shell-bg-inset);
 }
 
 .terminal-card {
@@ -1247,7 +1305,7 @@ input {
 }
 
 .terminal-card.focused {
-  border-color: rgba(186, 112, 255, 0.52);
+  border-color: var(--shell-accent-soft);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 0 0 1px rgba(186, 112, 255, 0.14),
@@ -1339,7 +1397,7 @@ input {
 .pane-state-pill.running {
   border-color: rgba(88, 214, 141, 0.34);
   background: rgba(18, 58, 40, 0.82);
-  color: #9ef0b8;
+  color: var(--shell-running);
 }
 
 .pane-state-pill.running.focused {
@@ -1359,7 +1417,7 @@ input {
 
 .card-title {
   margin: 0 0 5px;
-  font-size: 1.02rem;
+  font-size: var(--shell-font-size-title);
   font-weight: 650;
   letter-spacing: 0.01em;
 }
@@ -1585,7 +1643,7 @@ input {
   height: 100%;
   min-height: 0;
   max-height: none;
-  border-top: 1px solid rgba(141, 154, 187, 0.16);
+  border-top: 1px solid var(--shell-border);
   background:
     linear-gradient(180deg, rgba(12, 16, 28, 0.985), rgba(9, 13, 22, 0.99));
   overflow: hidden;
@@ -1595,12 +1653,12 @@ input {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
-  padding: 14px 16px 12px;
-  border-bottom: 1px solid rgba(141, 154, 187, 0.1);
+  gap: var(--shell-space-xl);
+  padding: var(--shell-space-lg) var(--shell-space-xl) var(--shell-space-md);
+  border-bottom: 1px solid var(--shell-border-subtle);
   background:
     radial-gradient(circle at top center, rgba(116, 62, 201, 0.14), transparent 42%),
-    rgba(10, 14, 24, 0.98);
+    var(--shell-bg-panel);
 }
 
 .dock-heading {
@@ -1611,7 +1669,7 @@ input {
 
 .dock-subtitle {
   margin: 0;
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.82rem;
   line-height: 1.45;
 }
@@ -1676,7 +1734,7 @@ input {
 }
 
 .dock-tab.active {
-  border-bottom-color: rgba(186, 112, 255, 0.78);
+  border-bottom-color: var(--shell-accent-strong);
   color: #ffffff;
 }
 
@@ -1688,7 +1746,7 @@ input {
   height: 20px;
   padding-inline: 6px;
   border-radius: 999px;
-  background: #e5484d;
+  background: var(--shell-danger);
   border: 1px solid rgba(255, 176, 186, 0.55);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28);
   color: #fff8f9;
@@ -1729,13 +1787,13 @@ input {
   height: 100%;
   overflow: auto;
   scrollbar-gutter: stable;
-  border: 1px solid rgba(141, 154, 187, 0.14);
-  border-radius: 14px;
-  background: rgba(10, 13, 24, 0.92);
-  padding: 12px;
+  border: 1px solid var(--shell-border);
+  border-radius: var(--shell-radius-lg);
+  background: var(--shell-bg-inset);
+  padding: var(--shell-space-md);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 10px 22px rgba(3, 6, 14, 0.12);
+    var(--shell-shadow-inset),
+    var(--shell-shadow-panel);
 }
 
 .utility-panel-header {
@@ -1779,7 +1837,7 @@ input {
 }
 
 .output-panel {
-  font-family: "Cascadia Code", Consolas, monospace;
+  font-family: var(--shell-font-mono);
   font-size: 0.86rem;
   line-height: 1.65;
   color: #cce3d2;
@@ -2265,7 +2323,7 @@ input {
 
 .inspector-summary-tile span,
 .inspector-detail-row span {
-  color: #7d8ba4;
+  color: var(--shell-text-label);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2273,8 +2331,8 @@ input {
 
 .inspector-summary-tile strong,
 .inspector-detail-row strong {
-  color: #eff3f9;
-  font-size: 0.92rem;
+  color: var(--shell-text-strong);
+  font-size: var(--shell-font-size-body);
   word-break: break-word;
 }
 
@@ -2353,13 +2411,13 @@ input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--shell-space-md);
   min-height: 36px;
-  padding: 8px 14px;
-  border-top: 1px solid rgba(141, 154, 187, 0.1);
+  padding: var(--shell-space-sm) var(--shell-space-lg);
+  border-top: 1px solid var(--shell-border-subtle);
   background:
     radial-gradient(circle at bottom center, rgba(116, 62, 201, 0.16), transparent 45%),
-    rgba(12, 16, 28, 0.94);
+    var(--shell-bg-panel);
   color: #c2ccdc;
   font-size: 0.84rem;
   -webkit-app-region: drag;
@@ -2389,9 +2447,9 @@ input {
 .dot {
   width: 11px;
   height: 11px;
-  border-radius: 999px;
-  background: #37d67a;
-  box-shadow: 0 0 0 4px rgba(55, 214, 122, 0.12);
+  border-radius: var(--shell-radius-pill);
+  background: var(--shell-success);
+  box-shadow: 0 0 0 4px var(--shell-success-soft);
 }
 
 .command-palette-backdrop {
@@ -2508,19 +2566,6 @@ input {
   gap: 14px;
   padding-top: 4px;
   border-top: 1px solid rgba(141, 154, 187, 0.08);
-}
-
-.status-cluster {
-  display: flex;
-  gap: 14px;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  margin-top: 5px;
-  border-radius: 999px;
-  background: #37d67a;
 }
 
 @media (max-width: 900px) {

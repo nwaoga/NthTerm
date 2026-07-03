@@ -106,3 +106,13 @@
 - New sessions now honor a persisted start-directory preference (`focused terminal`, `home directory`, or `custom path`) instead of inheriting a hard-coded empty-template path.
 - The renderer asks Electron for directory defaults so `home directory` resolves from the host OS rather than duplicating platform-specific logic in Angular.
 - Shared shell scrollbar styling is now centralized in global CSS with dark-mode-safe colors, rounded gradient thumbs, and stable scrollbar gutters on the primary scrolling surfaces to reduce layout jitter and visual inconsistency.
+
+## 2026-07-03
+- Phase 4 visual language is now centralized through shared shell CSS tokens for color, border, radius, spacing, typography, and elevation so the major surfaces use one reference-aligned design system instead of ad hoc per-panel values.
+- Documented Phase 4 deviations from `docs/target-ui-reference.png`:
+  - **Frameless Electron chrome:** Windows requires reserved caption-button space and omits macOS traffic lights, so the top shell cannot match the reference pixel-for-pixel on every OS.
+  - **Live PTY output:** Electron sessions render real terminal streams in pane hosts, while the reference uses static screenshot text; preview mode remains the fair comparison path for design reviews.
+  - **Windows PTY stability:** `node-pty` can emit `AttachConsole failed` under heavy multi-pane spawn/load; this is an environment/runtime constraint rather than a layout choice.
+  - **Network telemetry:** live network metrics are sampled from the host and may expose a single throughput value unless download/upload split data is available; preview seeding keeps the reference-style up/down presentation for reviews.
+  - **Dock resize:** the bottom workspace dock is user-resizable with persisted height, which is an intentional productivity enhancement beyond the static reference composition.
+- Phase 4 screenshot review against `docs/target-ui-reference.png` passed on 2026-07-03 using browser preview mode; remaining differences are limited to the documented deviations above plus intentional productivity additions such as the workspace-dock header and New Session CTA.

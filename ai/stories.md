@@ -1,15 +1,11 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Phase 4: Design-alignment polish against `docs/target-ui-reference.png`
-  - [x] #111 Center workspace composition
-  - [x] #110 Desktop chrome and top shell
-  - [x] #112 Sidebar and tab hierarchy
-  - [x] #113 Right inspector cards
-  - [x] #114 Bottom dock and system monitor
-  - [x] #115 Seed realistic review content
+- [ ] Define Phase 5 scope and next milestone
 
 ## Done
+- [x] Phase 4: Final screenshot review and closeout against `docs/target-ui-reference.png`
+- [x] Phase 4: Design-alignment polish against `docs/target-ui-reference.png`
 - [x] Phase 4 / #110: Align the desktop chrome and top shell with the target reference
 - [x] Phase 4: Polish shared scrollbar styling across shell surfaces
 - [x] Phase 4: Add an explicit new-session entry point in the sessions rail

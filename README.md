@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **Phase 4 in progress** — design-alignment polish.
+Current milestone: **Phase 4 complete** — design alignment against `docs/target-ui-reference.png` with documented deviations.
 
 Working today:
 
@@ -52,9 +52,9 @@ Keyboard shortcuts:
 - `Ctrl+Shift+P` — command palette
 - `Ctrl+Shift+F` — global workspace search
 
-Next up (Phase 4):
+Next up:
 
-- finish the remaining visual-language polish and document any unavoidable deviations against `docs/target-ui-reference.png`
+- define the next milestone after Phase 4 (feature work or Phase 5 planning)
 
 ## Design alignment checklist
 
@@ -74,11 +74,11 @@ The target for Phase 4 is **1:1 implementation fidelity** with the reference des
   Implement the same output, problems, search, command history, and monitor balance instead of substituting a materially different layout.
 - [x] Match the system monitor card design to the reference.
   Reproduce the same telemetry emphasis, card balance, ring treatment, and sizing used in the concept.
-- [ ] Match the visual language across spacing, borders, radii, color, and typography.
+- [x] Match the visual language across spacing, borders, radii, color, and typography.
   Use the reference as the source of truth for the shell's density and finish rather than inventing adjacent styling.
 - [x] Seed realistic content that matches the reference presentation.
   Populate the interface with believable sessions, commands, telemetry, and inspector content so screenshots and reviews compare against the reference fairly.
-- [ ] Document any unavoidable deviations.
+- [x] Document any unavoidable deviations.
   If a behavior or layout cannot be implemented 1:1 because of Electron, PTY, or runtime constraints, record the exact constraint and the smallest acceptable fallback.
 
 ## Quick start

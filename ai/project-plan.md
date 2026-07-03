@@ -18,7 +18,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ## Current State (2026-07-02)
 
-**Phase:** 4 in progress.
+**Phase:** 4 complete.
 
 **Working today:**
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
@@ -139,12 +139,8 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. **Option C / visual language pass** — spacing, borders, radii, color, and typography checklist item
-2. Document unavoidable deviations in `decisions.md`
-3. Keep terminal-stability fixes in regression coverage while continuing visual polish
-4. Re-check screenshot fidelity against `docs/target-ui-reference.png` before closing Phase 4
-
-**Progress on #115:** Reference review content centralized in `ReferenceReviewContentService` with full preview seeding and supplemental Electron seeding for dock, session history, recovery, telemetry, and inspector context.
+1. **Define Phase 5** — pick the next product milestone after design alignment
+2. Keep regression coverage for terminal stability and workspace persistence while planning new work
 
 ---
 
@@ -170,6 +166,5 @@ When finishing:
 ### Phase 1: App Shell and Terminal Proof — done
 ### Phase 2: Workspace Model — done
 ### Phase 3: Multi-Tab and Layout — done
-### Phase 4: Session History and Management — in progress
-- Done: rename/delete, renderer refactor, frameless chrome, session history and recovery metadata, concurrent multi-pane PTY sessions, center workspace alignment, sidebar and tab hierarchy alignment, right inspector alignment, bottom dock and system monitor alignment, terminal interaction stabilization, session-creation discoverability, configurable new-session start preferences, shared scrollbar styling polish
-- Open: design-alignment polish
+### Phase 4: Session History and Management — done
+- Delivered rename/delete, renderer refactor, frameless chrome, session history and recovery metadata, concurrent multi-pane PTY sessions, full design-alignment pass (#110–#115), visual language tokens, documented deviations, and screenshot-reviewed closeout against `docs/target-ui-reference.png`
