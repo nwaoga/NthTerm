@@ -5,7 +5,7 @@
   </div>
   <div class="status-cluster">
     <span>{{ ws.workspaceName }}</span>
-    <span>{{ ws.runtimePanes.length }} terminals</span>
+    <span>{{ ws.getActiveTabTerminals().length }} terminals</span>
     <span>Layout: {{ ws.layoutMode === 'grid-2x2' ? '2x2' : '2-Up' }}</span>
   </div>
   <div class="status-cluster">

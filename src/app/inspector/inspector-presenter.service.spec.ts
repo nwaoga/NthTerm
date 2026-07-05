@@ -23,8 +23,13 @@ describe('InspectorPresenterService', () => {
       id: 'tab-1',
       title: 'API',
       cwd: 'C:/repo/apps/api',
+    }),
+    getFocusedTerminal: () => ({
+      id: 'terminal-1',
+      cwd: 'C:/repo/apps/api',
       startupCommand: 'npm run api',
       status: 'running',
+      shell: 'powershell',
     }),
     getFocusedTabShellLabel: () => 'PowerShell',
   };

@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { SessionListItem, TemplateListItem, WORKSPACE_TEMPLATES } from '../models';
-import { NewSessionStartMode } from '../preferences/app-preferences.service';
+import { SHELL_OPTIONS, TemplateListItem, WORKSPACE_TEMPLATES, WorkspaceListItem } from '../models';
+import { DefaultShellPreference, NewSessionStartMode } from '../preferences/app-preferences.service';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 
 @Component({
@@ -16,19 +16,22 @@ export class LeftRailComponent {
   @Input() newSessionStartMode: NewSessionStartMode = 'focused-tab';
   @Input() newSessionCustomPath = '';
   @Input() homeDirectory = '';
+  @Input() defaultShell: DefaultShellPreference = '';
 
   @Output() readonly preferencesToggle = new EventEmitter<void>();
   @Output() readonly utilityPanelPreferenceChange = new EventEmitter<boolean>();
   @Output() readonly newSessionRequested = new EventEmitter<void>();
   @Output() readonly newSessionStartModeChange = new EventEmitter<NewSessionStartMode>();
   @Output() readonly newSessionCustomPathChange = new EventEmitter<string>();
+  @Output() readonly defaultShellChange = new EventEmitter<DefaultShellPreference>();
   @Output() readonly workspaceSelected = new EventEmitter<string>();
   @Output() readonly templateSelected = new EventEmitter<TemplateListItem>();
-  @Output() readonly sessionRenameCommitted = new EventEmitter<string>();
-  @Output() readonly sessionDeleteRequested = new EventEmitter<SessionListItem>();
+  @Output() readonly workspaceRenameCommitted = new EventEmitter<string>();
+  @Output() readonly workspaceDeleteRequested = new EventEmitter<WorkspaceListItem>();
 
   protected readonly ws = inject(WorkspaceRuntimeService);
   protected readonly templates = WORKSPACE_TEMPLATES;
+  protected readonly shellOptions = SHELL_OPTIONS;
   protected readonly newSessionStartOptions: Array<{
     value: NewSessionStartMode;
     label: string;
@@ -47,7 +50,7 @@ export class LeftRailComponent {
     {
       value: 'custom',
       label: 'Custom path',
-      hint: 'Use the same saved directory for every new session.',
+      hint: 'Use the same saved directory for every new workspace.',
     },
   ];
 
@@ -63,23 +66,23 @@ export class LeftRailComponent {
     this.workspaceSelected.emit(workspaceId);
   }
 
-  protected startRenameSession(session: SessionListItem, event: MouseEvent): void {
+  protected startRenameWorkspace(workspace: WorkspaceListItem, event: MouseEvent): void {
     event.stopPropagation();
     event.preventDefault();
-    this.ws.startRenameSession(session);
+    this.ws.startRenameWorkspace(workspace);
   }
 
-  protected cancelRenameSession(): void {
-    this.ws.cancelRenameSession();
+  protected cancelRenameWorkspace(): void {
+    this.ws.cancelRenameWorkspace();
   }
 
-  protected commitRenameSession(sessionId: string): void {
-    this.sessionRenameCommitted.emit(sessionId);
+  protected commitRenameWorkspace(workspaceId: string): void {
+    this.workspaceRenameCommitted.emit(workspaceId);
   }
 
-  protected deleteSession(session: SessionListItem, event: MouseEvent): void {
+  protected deleteWorkspace(workspace: WorkspaceListItem, event: MouseEvent): void {
     event.stopPropagation();
-    this.sessionDeleteRequested.emit(session);
+    this.workspaceDeleteRequested.emit(workspace);
   }
 
   protected createWorkspaceFromTemplate(template: TemplateListItem): void {
@@ -100,20 +103,26 @@ export class LeftRailComponent {
     this.newSessionCustomPathChange.emit(value);
   }
 
+  protected setDefaultShell(value: string): void {
+    if (value === '' || value === 'powershell' || value === 'cmd' || value === 'bash' || value === 'zsh') {
+      this.defaultShellChange.emit(value);
+    }
+  }
+
   protected getNewSessionStartHint(): string {
     if (this.newSessionStartMode === 'home') {
       return this.homeDirectory || 'Uses your home directory when NthTerm is running on desktop.';
     }
 
     if (this.newSessionStartMode === 'custom') {
-      return this.newSessionCustomPath.trim() || 'Enter a directory to use for new sessions.';
+      return this.newSessionCustomPath.trim() || 'Enter a directory to use for new workspaces.';
     }
 
     return 'Falls back to the current workspace directory when no tab is focused.';
   }
 
-  protected isSessionActive(session: SessionListItem): boolean {
-    return this.ws.isSessionActive(session);
+  protected isWorkspaceActive(workspace: WorkspaceListItem): boolean {
+    return this.ws.isWorkspaceActive(workspace);
   }
 
   protected trackById(_index: number, item: { id: string }): string {

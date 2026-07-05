@@ -16,9 +16,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-07-03)
+## Current State (2026-07-05)
 
-**Phase:** 5 in progress.
+**Phase:** 6 in progress (shell picker + connected tab strip).
 
 **Working today:**
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
@@ -110,6 +110,88 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 - Workflow does not require signing secrets for the unsigned build path.
 
 **Out of scope:** Azure Pipelines, code signing certificates, auto-publishing GitHub Releases, and notarized macOS/Linux packages.
+
+### Phase 5 Task 4 — Windows PTY stability
+
+**Status:** In progress.
+
+**ADO:** [#122](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/122)
+
+**Scope:**
+- Reproduce `AttachConsole failed` and related Windows PTY errors under 2-up and 2x2 loads.
+- Identify whether failures come from spawn timing, concurrent session creation, shell choice, or packaged vs dev runtime differences.
+- Apply the smallest reliable fix or mitigation in Electron main / terminal session coordination.
+- Add regression coverage where practical for the affected spawn path.
+
+**Implemented so far:**
+- Electron main now serializes PTY spawns through `electron/terminal-spawn-coordinator.js` with Windows spacing, retry on retryable spawn errors, and explicit ConPTY options.
+- Renderer restore calls are serialized through `TerminalHostCoordinatorService` to prevent overlapping multi-pane session bootstraps.
+
+**Out of scope:** macOS/Linux PTY work unless required by a shared fix.
+
+### Phase 5 Task 5 — Release branding and signing readiness
+
+**Status:** Backlog.
+
+**ADO:** [#123](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/123)
+
+**Scope:**
+- Add application icon and installer branding assets for Electron Builder.
+- Wire icon/branding metadata into `package.json` / electron-builder config.
+- Document unsigned vs signed release paths and required certificate/secrets for future signing.
+- Keep GitHub Actions producing unsigned artifacts without requiring secrets in the first slice.
+
+**Out of scope:** purchasing certificates, auto-update channels, macOS notarization, Linux packaging.
+
+### Phase 5 Task 6 — Installer and upgrade validation
+
+**Status:** Backlog.
+
+**ADO:** [#124](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/124)
+
+**Scope:**
+- Install from the unsigned NSIS artifact produced by GitHub Actions or `npm run release:win`.
+- Verify packaged app launch, workspace persistence, and PTY startup from the installed location.
+- Test upgrade/reinstall over an existing install and confirm AppData user data is preserved.
+- Document installer/runtime constraints in `decisions.md`.
+
+**Out of scope:** signed installer trust prompts beyond documenting SmartScreen behavior, auto-update delivery, macOS/Linux installer validation.
+
+**Out of scope:** signed installer trust prompts beyond documenting SmartScreen behavior, auto-update delivery, macOS/Linux installer validation.
+
+### Phase 6 — Shell picker and connected tab strip
+
+**Status:** In progress.
+
+**ADO:**
+| ID | Title |
+|----|-------|
+| [#125](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/125) | Default shell preference for new terminals |
+| [#126](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/126) | Add Terminal shell picker UI |
+| [#127](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/127) | Inspector shell selection and restart guidance |
+| [#128](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/128) | Trapezoid connected workspace tab strip |
+
+**Scope:**
+- Persist a default shell preference for new terminals and expose it in left-rail Preferences.
+- Split the toolbar **Add Terminal** action so users can pick PowerShell, CMD, Bash, or Zsh before spawn.
+- Let the inspector edit the focused terminal shell draft with restart guidance.
+- Restyle workspace tabs as single-line, trapezoid tabs connected to the stage body (icon + title + close).
+
+**Key files:**
+- `src/app/preferences/app-preferences.service.ts`
+- `src/app/shell-toolbar/`
+- `src/app/workspace/workspace-area.component.*`
+- `src/app/left-rail/`
+- `src/app/styles/shell.css`
+
+**Acceptance criteria:**
+- Default shell preference persists and is used when Add Terminal is clicked without an explicit shell.
+- Toolbar and empty-state flows can create terminals with a chosen shell.
+- Inspector shell dropdown updates the focused terminal draft and documents restart requirement.
+- Tab strip matches the connected trapezoid tab pattern from the design reference.
+- `npm run build` and `npm run test:ci` pass.
+
+**Out of scope:** per-workspace shell profiles, WSL distro picker, concurrent background tab PTY persistence.
 
 ### Option A — Concurrent multi-pane PTY sessions
 
@@ -212,8 +294,10 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. Pick the next production-readiness task: Windows PTY stability, release branding/signing, or installer/upgrade validation.
-2. Keep packaged runtime smoke coverage in mind before changing `asar`, native module, or persistence paths.
+1. **Phase 6 / #125–#128** — Shell picker and connected tab strip (in progress).
+2. **Phase 5 Task 4 / #122** — Windows PTY stability under multi-pane load.
+3. Then **Task 5 / #123** branding/signing readiness or **Task 6 / #124** installer validation, depending on whether daily-use stability or shippable polish is the priority.
+4. Keep packaged runtime smoke coverage in mind before changing `asar`, native module, or persistence paths.
 
 ---
 

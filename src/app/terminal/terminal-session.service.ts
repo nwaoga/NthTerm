@@ -3,17 +3,17 @@ import { ChangeDetectorRef } from '@angular/core';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 
-import { RuntimeSessionInfo } from '../models';
-import { RuntimeTab } from '../models';
+import { RuntimeSessionInfo, RuntimeTab, RuntimeTerminal } from '../models';
 import { TerminalInfo } from '../terminal-bridge.service';
 import { TerminalBridgeService } from '../terminal-bridge.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
 import { UtilityPanelService } from '../utility-panel/utility-panel.service';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 
-interface PaneTerminalState {
+interface TerminalState {
+  terminalId: string;
   tabId: string;
-  attachedPaneId?: string;
+  attachedHostId?: string;
   terminal?: Terminal;
   fitAddon?: FitAddon;
   resizeObserver?: ResizeObserver;
@@ -34,8 +34,8 @@ export function sanitizeTerminalInput(data: string): string {
 
 @Injectable({ providedIn: 'root' })
 export class TerminalSessionService {
-  private paneHosts = new Map<string, HTMLElement>();
-  private tabSessions = new Map<string, PaneTerminalState>();
+  private terminalHosts = new Map<string, HTMLElement>();
+  private terminalSessions = new Map<string, TerminalState>();
   private removeDataListener?: () => void;
   private removeExitListener?: () => void;
   private removeInfoListener?: () => void;
@@ -55,7 +55,7 @@ export class TerminalSessionService {
       return this.previewSessionInfo;
     }
 
-    return this.getFocusedPaneState()?.info || null;
+    return this.getFocusedTerminalState()?.info || null;
   }
 
   get sessionActive(): boolean {
@@ -63,7 +63,7 @@ export class TerminalSessionService {
       return Boolean(this.previewSessionInfo);
     }
 
-    return Boolean(this.getFocusedPaneState()?.sessionId);
+    return Boolean(this.getFocusedTerminalState()?.sessionId);
   }
 
   setPreviewSessionInfo(info: RuntimeSessionInfo | null): void {
@@ -71,74 +71,100 @@ export class TerminalSessionService {
   }
 
   setTerminalHosts(hosts: Map<string, HTMLElement>): void {
-    this.paneHosts = hosts;
+    this.terminalHosts = hosts;
   }
 
-  focusPaneTerminal(paneId = this.workspace.focusedPaneId): void {
-    const state = this.getPaneState(paneId);
+  reattachPaneSession(terminalId: string): void {
+    this.reattachTerminalSession(terminalId);
+  }
+
+  reattachTerminalSession(terminalId: string): void {
+    const runtimeTerminal = this.workspace.getTerminalById(terminalId);
+    const tab = this.workspace.getActiveTab();
+    const host = this.terminalHosts.get(terminalId);
+    const state = this.terminalSessions.get(terminalId);
+
+    if (!runtimeTerminal || !tab || !host || !state?.container) {
+      return;
+    }
+
+    this.attachStateToHost(state, terminalId, host);
+  }
+
+  focusPaneTerminal(terminalId = this.workspace.focusedPaneId): void {
+    this.focusTerminal(terminalId);
+  }
+
+  focusTerminal(terminalId = this.workspace.focusedPaneId): void {
+    this.reattachTerminalSession(terminalId);
+    const state = this.getTerminalState(terminalId);
     if (!state?.terminal) {
       return;
     }
 
     this.ngZone.runOutsideAngular(() => {
-      requestAnimationFrame(() => state.terminal?.focus());
+      requestAnimationFrame(() => {
+        state.fitAddon?.fit();
+        state.terminal?.focus();
+      });
     });
   }
 
   async restorePaneSessions(): Promise<void> {
+    await this.restoreTerminalSessions();
+  }
+
+  async restoreTerminalSessions(): Promise<void> {
     if (this.workspace.previewMode) {
       return;
     }
 
     this.registerTerminalListeners();
-    const activeTabIds = new Set(this.workspace.runtimeTabs.map((tab) => tab.id));
-    const assignedTabIds = new Set<string>();
+    const activeTab = this.workspace.getActiveTab();
+    const activeTerminalIds = new Set(activeTab?.terminals.map((terminal) => terminal.id) || []);
+    const visibleTerminalIds = new Set<string>();
 
-    for (const pane of this.workspace.runtimePanes) {
-      const tab = this.workspace.getPaneTab(pane);
-      if (tab) {
-        assignedTabIds.add(tab.id);
-      }
-    }
-
-    for (const pane of this.workspace.runtimePanes) {
-      const tab = this.workspace.getPaneTab(pane);
-      if (!tab) {
+    for (const terminal of this.workspace.getActiveTabTerminals()) {
+      const host = this.terminalHosts.get(terminal.id);
+      if (!host) {
         continue;
       }
 
-      await this.ensurePaneSession(pane.id, tab);
+      visibleTerminalIds.add(terminal.id);
+      await this.ensureTerminalSession(terminal.id, terminal, activeTab!);
     }
 
-    for (const tabId of Array.from(this.tabSessions.keys())) {
-      if (!activeTabIds.has(tabId)) {
-        await this.disposeTabSession(tabId);
+    for (const terminalId of Array.from(this.terminalSessions.keys())) {
+      if (!activeTerminalIds.has(terminalId)) {
+        await this.disposeTerminalSession(terminalId);
         continue;
       }
 
-      if (!assignedTabIds.has(tabId)) {
-        this.parkTabSession(tabId);
+      if (!visibleTerminalIds.has(terminalId)) {
+        this.parkTerminalSession(terminalId);
       }
     }
 
-    await this.refreshFocusedPaneContext();
+    this.reattachVisibleTerminalSessions();
+    await this.refreshFocusedTerminalContext();
   }
 
   async relaunchTerminal(): Promise<void> {
-    const paneId = this.workspace.focusedPaneId;
-    const focusedTab = this.workspace.getFocusedPaneTab();
-    if (!focusedTab) {
+    const terminalId = this.workspace.focusedPaneId;
+    const focusedTab = this.workspace.getActiveTab();
+    const runtimeTerminal = this.workspace.getFocusedTerminal();
+    if (!focusedTab || !runtimeTerminal) {
       return;
     }
 
-    this.workspace.updateTabStatus(focusedTab.id, 'restarting');
-    await this.disposePaneSession(paneId);
-    await this.ensurePaneSession(paneId, focusedTab);
-    await this.refreshFocusedPaneContext();
+    this.workspace.updateTerminalStatus(terminalId, 'restarting');
+    await this.disposeTerminalSession(terminalId);
+    await this.ensureTerminalSession(terminalId, runtimeTerminal, focusedTab);
+    await this.refreshFocusedTerminalContext();
   }
 
   async interruptTerminal(): Promise<void> {
-    const state = this.getFocusedPaneState();
+    const state = this.getFocusedTerminalState();
     if (!state?.sessionId) {
       return;
     }
@@ -149,22 +175,22 @@ export class TerminalSessionService {
   }
 
   async killTerminal(): Promise<void> {
-    const paneId = this.workspace.focusedPaneId;
-    const state = this.getFocusedPaneState();
+    const terminalId = this.workspace.focusedPaneId;
+    const state = this.getFocusedTerminalState();
     if (!state?.sessionId) {
       return;
     }
 
-    const focusedTab = this.workspace.getFocusedPaneTab();
+    const focusedTab = this.workspace.getActiveTab();
     const sessionInfo = state.info;
-    await this.disposePaneSession(paneId);
+    await this.disposeTerminalSession(terminalId);
     void this.systemMonitor.refreshSessionEnvironment(undefined);
     this.workspace.status = 'Terminal session killed.';
     this.utility.appendOutput(this.workspace.status, 'warn');
 
     if (focusedTab) {
-      this.workspace.updateTabStatus(focusedTab.id, 'stopped');
-      this.workspace.recordSessionEvent(focusedTab, this.workspace.focusedPaneId, {
+      this.workspace.updateTerminalStatus(terminalId, 'stopped');
+      this.workspace.recordSessionEvent(focusedTab, terminalId, {
         status: 'killed',
         reason: 'Killed from inspector',
         startedAt: sessionInfo?.startedAt || null,
@@ -173,13 +199,13 @@ export class TerminalSessionService {
         exitCode: sessionInfo?.exitCode ?? null,
         detectedPort: sessionInfo?.detectedPort ?? null,
       });
-      this.workspace.updatePaneSessionSnapshot(paneId, null);
+      this.workspace.updateTerminalSessionSnapshot(terminalId, null);
       await this.workspace.persistWorkspaceState();
     }
   }
 
   async rerunCommand(command: string): Promise<void> {
-    const state = this.getFocusedPaneState();
+    const state = this.getFocusedTerminalState();
     if (!state?.sessionId || !command.trim()) {
       return;
     }
@@ -191,8 +217,8 @@ export class TerminalSessionService {
   syncTerminalSize(): void {
     this.ngZone.runOutsideAngular(() => {
       requestAnimationFrame(() => {
-        for (const state of this.tabSessions.values()) {
-          if (!state.host || !state.attachedPaneId) {
+        for (const state of this.terminalSessions.values()) {
+          if (!state.host || !state.attachedHostId) {
             continue;
           }
 
@@ -210,8 +236,8 @@ export class TerminalSessionService {
   }
 
   dispose(): void {
-    for (const tabId of Array.from(this.tabSessions.keys())) {
-      void this.disposeTabSession(tabId);
+    for (const terminalId of Array.from(this.terminalSessions.keys())) {
+      void this.disposeTerminalSession(terminalId);
     }
     this.removeInfoListener?.();
     this.removeDataListener?.();
@@ -222,26 +248,33 @@ export class TerminalSessionService {
     clearTimeout(this.resizeDebounceId);
   }
 
-  private async ensurePaneSession(paneId: string, tab: RuntimeTab): Promise<void> {
-    const host = this.paneHosts.get(paneId);
+  private async ensureTerminalSession(
+    terminalId: string,
+    runtimeTerminal: RuntimeTerminal,
+    tab: RuntimeTab
+  ): Promise<void> {
+    const host = this.terminalHosts.get(terminalId);
     if (!host) {
       return;
     }
 
-    const state = this.tabSessions.get(tab.id) || this.createPaneState(tab.id);
+    const state = this.terminalSessions.get(terminalId) || this.createTerminalState(terminalId, tab.id);
     await this.ensureTerminalSurface(state);
-    this.attachStateToHost(state, paneId, host);
+    this.attachStateToHost(state, terminalId, host);
 
     if (state.sessionId) {
-      this.workspace.updateTabStatus(tab.id, state.info?.status || 'running');
-      this.workspace.updatePaneSessionSnapshot(paneId, this.toPaneSnapshot(state, tab.cwd));
+      this.workspace.updateTerminalStatus(terminalId, state.info?.status || 'running');
+      this.workspace.updateTerminalSessionSnapshot(
+        terminalId,
+        this.toTerminalSnapshot(state, runtimeTerminal.cwd)
+      );
       return;
     }
 
-    await this.startPaneSession(state, tab);
+    await this.startTerminalSession(state, runtimeTerminal, tab);
   }
 
-  private async ensureTerminalSurface(state: PaneTerminalState): Promise<void> {
+  private async ensureTerminalSurface(state: TerminalState): Promise<void> {
     if (state.terminal && state.fitAddon && state.container) {
       return;
     }
@@ -287,8 +320,12 @@ export class TerminalSessionService {
     state.container = container;
   }
 
-  private async startPaneSession(state: PaneTerminalState, tab: RuntimeTab): Promise<void> {
-    const targetDirectory = tab.cwd?.trim() || this.workspace.workingDirectory.trim();
+  private async startTerminalSession(
+    state: TerminalState,
+    runtimeTerminal: RuntimeTerminal,
+    tab: RuntimeTab
+  ): Promise<void> {
+    const targetDirectory = runtimeTerminal.cwd?.trim() || tab.cwd?.trim() || this.workspace.workingDirectory.trim();
     if (!targetDirectory || !state.terminal || !state.fitAddon) {
       this.workspace.status = 'Working directory is required.';
       this.utility.appendOutput(this.workspace.status, 'warn');
@@ -296,7 +333,7 @@ export class TerminalSessionService {
     }
 
     this.workspace.status = `Launching terminal in ${targetDirectory}...`;
-    if (this.workspace.focusedPaneId === state.attachedPaneId) {
+    if (this.workspace.focusedPaneId === state.attachedHostId) {
       this.utility.appendOutput(this.workspace.status, 'info');
     }
     state.terminal.clear();
@@ -305,32 +342,32 @@ export class TerminalSessionService {
     state.sessionId = await this.terminalBridge.createSession({
       cwd: targetDirectory,
       workspaceName: this.workspace.workspaceName,
-      shell: tab.shell || '',
+      shell: runtimeTerminal.shell || '',
     });
     state.info = await this.terminalBridge.getSessionInfo(state.sessionId);
-    this.workspace.updateTabStatus(tab.id, 'running');
-    if (state.attachedPaneId) {
-      this.workspace.updatePaneSessionSnapshot(
-        state.attachedPaneId,
-        this.toPaneSnapshot(state, targetDirectory)
+    this.workspace.updateTerminalStatus(state.terminalId, 'running');
+    if (state.attachedHostId) {
+      this.workspace.updateTerminalSessionSnapshot(
+        state.attachedHostId,
+        this.toTerminalSnapshot(state, targetDirectory)
       );
     }
-    this.workspace.recordSessionLaunch(tab, state.attachedPaneId || this.workspace.focusedPaneId, {
-      shell: state.info?.shell || tab.shell || '',
+    this.workspace.recordSessionLaunch(tab, state.attachedHostId || this.workspace.focusedPaneId, {
+      shell: state.info?.shell || runtimeTerminal.shell || '',
       startedAt: state.info?.startedAt || null,
     });
     await this.workspace.persistWorkspaceState();
     this.syncTerminalSize();
-    if (this.workspace.focusedPaneId === state.attachedPaneId) {
+    if (this.workspace.focusedPaneId === state.attachedHostId) {
       await this.systemMonitor.refreshSessionEnvironment(state.sessionId);
-      if (state.attachedPaneId) {
-        this.focusPaneTerminal(state.attachedPaneId);
+      if (state.attachedHostId) {
+        this.focusTerminal(state.attachedHostId);
       }
       this.workspace.status = `Connected to ${targetDirectory}`;
       this.utility.appendOutput(`Terminal session attached to ${targetDirectory}`, 'info');
     }
     await new Promise((resolve) => setTimeout(resolve, 300));
-    await this.runStartupCommands(state.sessionId, tab.startupCommand);
+    await this.runStartupCommands(state.sessionId, runtimeTerminal.startupCommand);
   }
 
   private async runStartupCommands(sessionId: string | undefined, commands?: string): Promise<void> {
@@ -355,43 +392,43 @@ export class TerminalSessionService {
     }
 
     this.removeInfoListener = this.terminalBridge.onInfo((event) => {
-      const state = this.findPaneStateBySessionId(event.id);
+      const state = this.findTerminalStateBySessionId(event.id);
       if (!state) {
         return;
       }
 
       state.info = event;
-      const tab = this.workspace.runtimeTabs.find((item) => item.id === state.tabId);
-      if (state.attachedPaneId) {
-        this.workspace.updatePaneSessionSnapshot(
-          state.attachedPaneId,
-          this.toPaneSnapshot(state, tab?.cwd || event.cwd)
+      const runtimeTerminal = this.workspace.getTerminalById(state.terminalId);
+      if (state.attachedHostId) {
+        this.workspace.updateTerminalSessionSnapshot(
+          state.attachedHostId,
+          this.toTerminalSnapshot(state, runtimeTerminal?.cwd || event.cwd)
         );
       }
     });
 
     this.removeDataListener = this.terminalBridge.onData((event) => {
-      const state = this.findPaneStateBySessionId(event.id);
+      const state = this.findTerminalStateBySessionId(event.id);
       if (!state) {
         return;
       }
 
       this.ngZone.runOutsideAngular(() => state.terminal?.write(event.data));
       this.ngZone.run(() => {
-        const pane = state.attachedPaneId ? this.workspace.getPaneById(state.attachedPaneId) : undefined;
-        const tab = pane ? this.workspace.getPaneTab(pane) : undefined;
+        const tab = this.workspace.getActiveTab();
         const source = tab?.title || this.workspace.workspaceName || 'Terminal';
         this.utility.scanOutputForProblems(event.data, source);
       });
     });
 
     this.removeExitListener = this.terminalBridge.onExit((event) => {
-      const state = this.findPaneStateBySessionId(event.id);
+      const state = this.findTerminalStateBySessionId(event.id);
       if (!state) {
         return;
       }
 
       const tab = this.workspace.runtimeTabs.find((item) => item.id === state.tabId);
+      const runtimeTerminal = this.workspace.getTerminalById(state.terminalId);
       const endedAt = new Date().toISOString();
       state.info = {
         ...(state.info || this.buildEmptyInfo(event.id)),
@@ -402,8 +439,8 @@ export class TerminalSessionService {
       state.sessionId = undefined;
 
       if (tab) {
-        this.workspace.updateTabStatus(tab.id, 'stopped');
-        this.workspace.recordSessionEvent(tab, state.attachedPaneId || this.workspace.focusedPaneId, {
+        this.workspace.updateTerminalStatus(state.terminalId, 'stopped');
+        this.workspace.recordSessionEvent(tab, state.attachedHostId || this.workspace.focusedPaneId, {
           status: event.exitCode && event.exitCode !== 0 ? 'failed' : 'stopped',
           reason: event.exitCode && event.exitCode !== 0 ? 'Process exited with error' : 'Process exited',
           startedAt: state.info?.startedAt || null,
@@ -414,13 +451,13 @@ export class TerminalSessionService {
         });
       }
 
-      if (state.attachedPaneId) {
-        this.workspace.updatePaneSessionSnapshot(
-          state.attachedPaneId,
-          this.toPaneSnapshot(state, tab?.cwd || state.info?.cwd || '')
+      if (state.attachedHostId) {
+        this.workspace.updateTerminalSessionSnapshot(
+          state.attachedHostId,
+          this.toTerminalSnapshot(state, runtimeTerminal?.cwd || state.info?.cwd || '')
         );
       }
-      if (this.workspace.focusedPaneId === state.attachedPaneId) {
+      if (this.workspace.focusedPaneId === state.attachedHostId) {
         void this.systemMonitor.refreshSessionEnvironment(undefined);
         this.workspace.status = `Terminal exited (${event.exitCode ?? 'unknown'})`;
         this.utility.appendOutput(this.workspace.status, event.exitCode ? 'error' : 'info');
@@ -429,18 +466,8 @@ export class TerminalSessionService {
     });
   }
 
-  private async disposePaneSession(paneId: string): Promise<void> {
-    const pane = this.workspace.getPaneById(paneId);
-    const tab = pane ? this.workspace.getPaneTab(pane) : undefined;
-    if (!tab) {
-      return;
-    }
-
-    await this.disposeTabSession(tab.id);
-  }
-
-  private async disposeTabSession(tabId: string): Promise<void> {
-    const state = this.tabSessions.get(tabId);
+  private async disposeTerminalSession(terminalId: string): Promise<void> {
+    const state = this.terminalSessions.get(terminalId);
     if (!state) {
       return;
     }
@@ -452,13 +479,13 @@ export class TerminalSessionService {
       await this.terminalBridge.disposeSession(state.sessionId);
     }
 
-    this.tabSessions.delete(tabId);
-    if (state.attachedPaneId) {
-      this.workspace.updatePaneSessionSnapshot(state.attachedPaneId, null);
+    this.terminalSessions.delete(terminalId);
+    if (state.attachedHostId) {
+      this.workspace.updateTerminalSessionSnapshot(state.attachedHostId, null);
     }
   }
 
-  private trackTerminalInput(state: PaneTerminalState, data: string): void {
+  private trackTerminalInput(state: TerminalState, data: string): void {
     for (const char of data) {
       if (char === '\r' || char === '\n') {
         this.commitTerminalInput(state);
@@ -476,7 +503,7 @@ export class TerminalSessionService {
     }
   }
 
-  private commitTerminalInput(state: PaneTerminalState): void {
+  private commitTerminalInput(state: TerminalState): void {
     const command = state.inputBuffer.trim();
     state.inputBuffer = '';
 
@@ -484,20 +511,20 @@ export class TerminalSessionService {
       return;
     }
 
-    const pane = state.attachedPaneId ? this.workspace.getPaneById(state.attachedPaneId) : undefined;
-    const focusedTab = pane ? this.workspace.getPaneTab(pane) : undefined;
-    this.utility.trackCommand(
-      command,
-      focusedTab?.title || this.workspace.workspaceName || 'Terminal'
-    );
+    const tab = this.workspace.getActiveTab();
+    this.utility.trackCommand(command, tab?.title || this.workspace.workspaceName || 'Terminal');
   }
 
-  private getFocusedPaneState(): PaneTerminalState | undefined {
-    return this.getPaneState(this.workspace.focusedPaneId);
+  private getFocusedTerminalState(): TerminalState | undefined {
+    return this.getTerminalState(this.workspace.focusedPaneId);
   }
 
-  private findPaneStateBySessionId(sessionId: string): PaneTerminalState | undefined {
-    for (const state of this.tabSessions.values()) {
+  private getFocusedPaneState(): TerminalState | undefined {
+    return this.getFocusedTerminalState();
+  }
+
+  private findTerminalStateBySessionId(sessionId: string): TerminalState | undefined {
+    for (const state of this.terminalSessions.values()) {
       if (state.sessionId === sessionId) {
         return state;
       }
@@ -506,19 +533,21 @@ export class TerminalSessionService {
     return undefined;
   }
 
-  private createPaneState(tabId: string): PaneTerminalState {
-    const state: PaneTerminalState = {
+  private createTerminalState(terminalId: string, tabId: string): TerminalState {
+    const state: TerminalState = {
+      terminalId,
       tabId,
       info: null,
       inputBuffer: '',
     };
-    this.tabSessions.set(tabId, state);
+    this.terminalSessions.set(terminalId, state);
     return state;
   }
 
-  private async refreshFocusedPaneContext(): Promise<void> {
-    const focusedTab = this.workspace.getFocusedPaneTab();
-    const focusedState = this.getFocusedPaneState();
+  private async refreshFocusedTerminalContext(): Promise<void> {
+    const focusedTab = this.workspace.getActiveTab();
+    const focusedState = this.getFocusedTerminalState();
+    const focusedTerminal = this.workspace.getFocusedTerminal();
 
     if (!focusedTab || !focusedState?.sessionId) {
       await this.systemMonitor.refreshSessionEnvironment(undefined);
@@ -526,14 +555,14 @@ export class TerminalSessionService {
     }
 
     this.workspace.activeTabId = focusedTab.id;
-    this.workspace.workingDirectory = focusedTab.cwd;
+    this.workspace.workingDirectory = focusedTerminal?.cwd || focusedTab.cwd;
     await this.systemMonitor.refreshSessionEnvironment(focusedState.sessionId);
     this.syncTerminalSize();
-    this.focusPaneTerminal(this.workspace.focusedPaneId);
+    this.focusTerminal(this.workspace.focusedPaneId);
     this.changeDetectorRef?.markForCheck();
   }
 
-  private toPaneSnapshot(state: PaneTerminalState, cwd: string) {
+  private toTerminalSnapshot(state: TerminalState, cwd: string) {
     const info = state.info;
     return {
       sessionId: state.sessionId || info?.id || null,
@@ -549,16 +578,27 @@ export class TerminalSessionService {
     };
   }
 
-  private getPaneState(paneId: string): PaneTerminalState | undefined {
-    const pane = this.workspace.getPaneById(paneId);
-    if (!pane?.tabId) {
+  private getTerminalState(terminalId: string): TerminalState | undefined {
+    if (!terminalId) {
       return undefined;
     }
 
-    return this.tabSessions.get(pane.tabId);
+    return this.terminalSessions.get(terminalId);
   }
 
-  private attachStateToHost(state: PaneTerminalState, paneId: string, host: HTMLElement): void {
+  private getPaneState(terminalId: string): TerminalState | undefined {
+    return this.getTerminalState(terminalId);
+  }
+
+  private reattachVisibleTerminalSessions(): void {
+    for (const terminal of this.workspace.getActiveTabTerminals()) {
+      this.reattachTerminalSession(terminal.id);
+    }
+
+    this.syncTerminalSize();
+  }
+
+  private attachStateToHost(state: TerminalState, terminalId: string, host: HTMLElement): void {
     if (!state.container) {
       return;
     }
@@ -568,21 +608,34 @@ export class TerminalSessionService {
     }
 
     state.host = host;
-    state.attachedPaneId = paneId;
+    state.attachedHostId = terminalId;
+
+    this.ngZone.runOutsideAngular(() => {
+      requestAnimationFrame(() => {
+        state.fitAddon?.fit();
+        if (state.terminal && state.sessionId) {
+          void this.terminalBridge.resizeSession(
+            state.sessionId,
+            state.terminal.cols,
+            state.terminal.rows
+          );
+        }
+      });
+    });
   }
 
-  private parkTabSession(tabId: string): void {
-    const state = this.tabSessions.get(tabId);
+  private parkTerminalSession(terminalId: string): void {
+    const state = this.terminalSessions.get(terminalId);
     if (!state?.container) {
       return;
     }
 
-    if (state.attachedPaneId) {
-      this.workspace.updatePaneSessionSnapshot(state.attachedPaneId, null);
+    if (state.attachedHostId) {
+      this.workspace.updateTerminalSessionSnapshot(state.attachedHostId, null);
     }
     this.getParkingHost().appendChild(state.container);
     state.host = undefined;
-    state.attachedPaneId = undefined;
+    state.attachedHostId = undefined;
   }
 
   private getParkingHost(): HTMLDivElement {

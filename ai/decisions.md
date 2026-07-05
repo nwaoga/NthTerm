@@ -126,3 +126,13 @@
 - The GitHub Actions workflow separates fast validation from Windows artifact creation: Ubuntu runs `npm ci`, `npm run build`, and `npm run test:ci`; Windows waits for validation, runs `npm run release:win`, and uploads unsigned artifacts from `release/`.
 - The workflow file was validated locally with Prettier's YAML parser, and the unchanged build/test path was rechecked with `npm run build` and `npm run test:ci`; first remote GitHub Actions execution remains the completion gate for #118.
 - Phase 5 Task 3 is complete after the first GitHub Actions run succeeded on `main`, including both the build/test job and Windows release artifact job. The unsigned `nthterm-windows-unsigned` artifact was uploaded from the workflow run.
+- Phase 5 backlog after packaging/CI is split into three Azure DevOps stories: #122 Windows PTY stability, #123 release branding/signing readiness, and #124 installer/upgrade validation. Default recommended order starts with #122 because it addresses the main daily-use runtime constraint already documented from Phase 4.
+- Windows PTY stability mitigation now serializes spawn requests in Electron main and overlapping restore requests in the renderer. The main-process queue adds short Windows spacing and limited retry for retryable ConPTY/AttachConsole failures instead of allowing concurrent `node-pty` spawns during multi-pane boot.
+- `node-pty` 1.1.0 can throw uncaught `AttachConsole failed` from `conpty_console_list_agent.js` during ConPTY cleanup when the shell PID is already gone. NthTerm patches that helper on Windows via `electron/patch-node-pty-windows.js` (postinstall) to fall back to `[shellPid]`, matching the upstream fix in microsoft/node-pty#886.
+- PTY dispose/kill now runs through the same main-process queue as spawn, with a short Windows cooldown after kill, so rapid tab switches are less likely to overlap ConPTY cleanup with the next spawn.
+
+## 2026-07-05
+- Phase 6 adds Azure DevOps stories #125–#128 for shell picker UX and a connected trapezoid workspace tab strip aligned to the latest design screenshot.
+- Default shell preference is stored in `localStorage` via `AppPreferencesService` and surfaced in left-rail Preferences; toolbar **Add Terminal**, workspace empty state, and terminal draft creation all honor it unless the user picks a specific shell.
+- Workspace tabs now use a single-line connected strip (terminal icon, title, close) with the active tab fused to the workspace stage body instead of the earlier two-line pill tabs.
+- Inspector tab context includes a shell dropdown on the focused terminal with explicit restart guidance because shell changes apply to the saved draft until the PTY is relaunched.

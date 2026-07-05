@@ -433,21 +433,26 @@ class WorkspaceStore {
   }
 
   buildDefaultSnapshot(name, cwd) {
+    const tabId = 'tab-main';
     return {
       layout: {
         mode: 'grid-2x2',
-        activeTabId: 'tab-api',
-        focusedPaneId: 'pane-1',
-        panes: [
-          { id: 'pane-1', tabId: 'tab-api' },
-          { id: 'pane-2', tabId: 'tab-db' },
-          { id: 'pane-3', tabId: null },
-          { id: 'pane-4', tabId: null },
-        ],
+        activeTabId: tabId,
+        focusedTerminalId: '',
+        panes: [],
       },
       tabs: [
-        { id: 'tab-api', title: `${name} API`, cwd, status: 'running', accent: 'violet', shell: '', startupCommand: '' },
-        { id: 'tab-db', title: `${name} Database`, cwd, status: 'idle', accent: 'cyan', shell: '', startupCommand: '' },
+        {
+          id: tabId,
+          title: name,
+          cwd,
+          accent: 'violet',
+          layoutMode: 'grid-2x2',
+          colSplit: 50,
+          rowSplit: 50,
+          focusedTerminalId: '',
+          terminals: [],
+        },
       ],
       history: [],
       recovery: {

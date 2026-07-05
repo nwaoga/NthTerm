@@ -33,4 +33,14 @@ describe('AppPreferencesService', () => {
     expect(service.readNewSessionStartMode()).toBe('custom');
     expect(service.readNewSessionCustomPath()).toBe('C:\\Projects\\NthTerm');
   });
+
+  it('persists the default shell preference', () => {
+    expect(service.readDefaultShell()).toBe('');
+
+    service.writeDefaultShell('powershell');
+    expect(service.readDefaultShell()).toBe('powershell');
+
+    service.writeDefaultShell('zsh');
+    expect(service.readDefaultShell()).toBe('zsh');
+  });
 });

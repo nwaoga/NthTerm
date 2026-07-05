@@ -5,6 +5,14 @@ const crypto = require('node:crypto');
 const pty = require('node-pty');
 const { WorkspaceStore } = require('./workspace-store');
 const { formatEnvironment, getSystemMetrics } = require('./system-monitor');
+const {
+  TerminalSpawnCoordinator,
+  createWindowsSpawnOptions,
+} = require('./terminal-spawn-coordinator');
+
+const spawnCoordinator = new TerminalSpawnCoordinator({
+  spawnFn: (file, args, options) => pty.spawn(file, args, options),
+});
 
 const terminals = new Map();
 const workspaceStore = new WorkspaceStore();
@@ -97,7 +105,9 @@ function disposeTerminalsForWebContents(webContentsId) {
     }
 
     terminals.delete(id);
-    entry.terminal?.kill();
+    void spawnCoordinator.enqueueDispose(async () => {
+      entry.terminal?.kill();
+    });
   }
 }
 
@@ -134,7 +144,7 @@ function createWindow() {
 }
 
 function registerTerminalHandlers() {
-  ipcMain.handle('terminal:create', (event, options = {}) => {
+  ipcMain.handle('terminal:create', async (event, options = {}) => {
     const shell = resolveShell(options.shell);
     const id = crypto.randomUUID();
     const cwd = workspaceStore.resolveLaunchDirectory(options.cwd);
@@ -143,13 +153,21 @@ function registerTerminalHandlers() {
       ...process.env,
       ...(options.workspaceName ? { NTH_TERM_WORKSPACE: options.workspaceName } : {}),
     };
-    const terminal = pty.spawn(shell.file, shell.args, {
+    const spawnOptions = createWindowsSpawnOptions({
       name: 'xterm-256color',
       cols: 120,
       rows: 32,
       cwd,
       env,
     });
+
+    let terminal;
+    try {
+      terminal = await spawnCoordinator.enqueueSpawn(shell.file, shell.args, spawnOptions);
+    } catch (error) {
+      console.error('Failed to spawn terminal session:', error);
+      throw error;
+    }
     const info = {
       id,
       pid: terminal.pid,
@@ -226,14 +244,16 @@ function registerTerminalHandlers() {
     terminals.get(id)?.terminal?.write('\u0003');
   });
 
-  ipcMain.handle('terminal:dispose', (_event, id) => {
+  ipcMain.handle('terminal:dispose', async (_event, id) => {
     const entry = terminals.get(id);
     if (!entry) {
       return;
     }
 
     terminals.delete(id);
-    entry.terminal?.kill();
+    await spawnCoordinator.enqueueDispose(async () => {
+      entry.terminal?.kill();
+    });
   });
 }
 

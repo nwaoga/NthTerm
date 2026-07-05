@@ -17,16 +17,27 @@ describe('CommandPaletteService', () => {
     workspace = TestBed.inject(WorkspaceRuntimeService);
     utility = TestBed.inject(UtilityPanelService);
 
-    workspace.sessions = [{ id: 'ws-1', name: 'Cloud POS', icon: 'cloud', accent: 'violet' }];
+    workspace.workspaces = [{ id: 'ws-1', name: 'Cloud POS', icon: 'cloud', accent: 'violet' }];
     workspace.runtimeTabs = [
       {
         id: 'tab-1',
         title: 'API',
         cwd: 'C:\\Projects\\Api',
-        status: 'running',
         accent: 'violet',
-        shell: '',
-        startupCommand: '',
+        layoutMode: 'grid-2',
+        colSplit: 50,
+        rowSplit: 50,
+        focusedTerminalId: 'terminal-1',
+        terminals: [
+          {
+            id: 'terminal-1',
+            cwd: 'C:\\Projects\\Api',
+            shell: '',
+            startupCommand: '',
+            status: 'running',
+            session: null,
+          },
+        ],
       },
     ];
     utility.commandHistory = [

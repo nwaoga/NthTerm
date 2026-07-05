@@ -1,9 +1,12 @@
-export interface SessionListItem {
+export interface WorkspaceListItem {
   id: string;
   name: string;
   icon: string;
   accent: string;
 }
+
+/** @deprecated Use WorkspaceListItem */
+export type SessionListItem = WorkspaceListItem;
 
 export interface TemplateListItem {
   name: string;
@@ -13,14 +16,25 @@ export interface TemplateListItem {
   cwd: string;
 }
 
+export interface RuntimeTerminal {
+  id: string;
+  cwd: string;
+  shell: string;
+  startupCommand: string;
+  status: string;
+  session?: PaneSessionSnapshot | null;
+}
+
 export interface RuntimeTab {
   id: string;
   title: string;
   cwd: string;
-  status: string;
   accent: string;
-  shell: string;
-  startupCommand: string;
+  layoutMode: LayoutMode;
+  colSplit: number;
+  rowSplit: number;
+  focusedTerminalId: string;
+  terminals: RuntimeTerminal[];
 }
 
 export interface PaneSessionSnapshot {
@@ -34,12 +48,6 @@ export interface PaneSessionSnapshot {
   endedAt: string | null;
   exitCode: number | null;
   detectedPort: number | null;
-}
-
-export interface RuntimePane {
-  id: string;
-  tabId: string | null;
-  session?: PaneSessionSnapshot | null;
 }
 
 export interface SessionHistoryEntry {

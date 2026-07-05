@@ -3,6 +3,7 @@
     class="app-shell-toolbar-host"
     [viewMenuOpen]="viewMenuOpen"
     (createTabRequested)="onCreateTab()"
+    (createTerminalRequested)="onCreateTerminal($event)"
     (layoutModeChange)="onLayoutModeChange($event)"
     (globalSearchRequested)="openGlobalSearch()"
     (commandPaletteRequested)="openCommandPalette()"
@@ -17,15 +18,17 @@
     [newSessionStartMode]="newSessionStartMode"
     [newSessionCustomPath]="newSessionCustomPath"
     [homeDirectory]="homeDirectory"
+    [defaultShell]="defaultShell"
     (preferencesToggle)="togglePreferences()"
     (utilityPanelPreferenceChange)="setUtilityPanelPreference($event)"
     (newSessionRequested)="onNewSessionRequested()"
     (newSessionStartModeChange)="setNewSessionStartMode($event)"
     (newSessionCustomPathChange)="setNewSessionCustomPath($event)"
+    (defaultShellChange)="setDefaultShell($event)"
     (workspaceSelected)="onWorkspaceSelected($event)"
     (templateSelected)="onTemplateSelected($event)"
-    (sessionRenameCommitted)="onSessionRenameCommitted($event)"
-    (sessionDeleteRequested)="onSessionDeleteRequested($event)"
+    (workspaceRenameCommitted)="onWorkspaceRenameCommitted($event)"
+    (workspaceDeleteRequested)="onWorkspaceDeleteRequested($event)"
   />
 
   <section

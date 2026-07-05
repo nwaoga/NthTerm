@@ -10,13 +10,25 @@ import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service'
 import { WorkspaceAreaComponent } from './workspace-area.component';
 
 describe('WorkspaceAreaComponent', () => {
+  const runtimeTerminal = {
+    id: 'terminal-1',
+    status: 'running',
+    cwd: 'C:/repo/apps/api',
+    shell: 'powershell',
+    startupCommand: 'npm run api',
+    session: null,
+  };
+
   const runtimeTab = {
     id: 'tab-1',
     title: 'API',
-    status: 'running',
-    cwd: 'C:/repo/apps/api',
+    cwd: 'C:/repo',
     accent: 'violet',
-    startupCommand: 'npm run api',
+    layoutMode: 'grid-2' as const,
+    colSplit: 50,
+    rowSplit: 50,
+    focusedTerminalId: 'terminal-1',
+    terminals: [runtimeTerminal],
   };
 
   const workspaceService = {
@@ -37,25 +49,30 @@ describe('WorkspaceAreaComponent', () => {
       },
     ],
     createTabDraft: () => null,
+    createTerminalDraft: () => null,
     addTab: () => undefined,
+    addTerminal: () => undefined,
     persistWorkspaceState: async () => undefined,
     selectTab: async () => runtimeTab,
-    closeTab: async () => false,
-    focusPane: async () => 'unchanged',
+    closeTab: jasmine.createSpy('closeTab').and.resolveTo(null),
+    removeTerminal: jasmine.createSpy('removeTerminal').and.resolveTo(runtimeTerminal),
+    focusTerminal: async () => 'unchanged',
     updatePaneSplit: () => undefined,
     isTabActive: () => true,
-    isPaneFocused: () => true,
-    getPaneById: (paneId: string) => paneId === 'pane-1' ? { id: 'pane-1' } : undefined,
-    getPaneTab: () => runtimeTab,
-    getPaneTone: () => 'violet',
+    isTerminalFocused: () => true,
+    getActiveTabTerminals: () => [runtimeTerminal],
+    getEffectiveActiveLayoutMode: () => 'grid-2',
     getFocusedTab: () => runtimeTab,
-    getPaneDisplayTitle: () => 'API Server',
-    getPaneSummaryLine: () => 'Focused pane',
-    getPaneStatusLabel: () => 'Running',
-    isPaneRunning: () => true,
-    getPaneMetaLine: () => 'main • 7192',
-    shouldRenderPanePreview: () => true,
-    getPanePreviewText: () => '$ npm run api',
+    getFocusedTerminal: () => runtimeTerminal,
+    getTerminalDisplayTitle: () => 'API Server',
+    getTerminalSummaryLine: () => 'Focused terminal',
+    getTerminalStatusLabel: () => 'Running',
+    isTerminalRunning: () => true,
+    getTerminalMetaLine: () => 'main • 7192',
+    shouldRenderTerminalPreview: () => true,
+    getTerminalPreviewText: () => '$ npm run api',
+    getTerminalTone: () => 'violet',
+    focusedPaneId: 'terminal-1',
   };
 
   const terminalService = {
@@ -73,6 +90,8 @@ describe('WorkspaceAreaComponent', () => {
     relaunchTerminal: jasmine.createSpy('relaunchTerminal'),
     interruptTerminal: jasmine.createSpy('interruptTerminal'),
     killTerminal: jasmine.createSpy('killTerminal'),
+    reattachTerminalSession: jasmine.createSpy('reattachTerminalSession'),
+    focusTerminal: jasmine.createSpy('focusTerminal'),
     syncTerminalSize: () => undefined,
   };
 
@@ -113,7 +132,7 @@ describe('WorkspaceAreaComponent', () => {
             { label: 'Workspace', value: 'Cloud POS' },
             { label: 'Template', value: 'api' },
             { label: 'Layout', value: 'grid-2' },
-            { label: 'Focused Pane', value: 'pane-1' },
+            { label: 'Focused Terminal', value: 'terminal-1' },
             { label: 'Startup Command', value: 'npm run api' },
             { label: 'Launch Profile', value: 'dev' },
             { label: 'Status', value: 'running' },
@@ -124,9 +143,7 @@ describe('WorkspaceAreaComponent', () => {
   };
 
   const systemMonitorService = {
-    getVisibleEnvironmentVariables: () => [
-      { name: 'NODE_ENV', value: 'development' },
-    ],
+    getVisibleEnvironmentVariables: () => [{ name: 'NODE_ENV', value: 'development' }],
     formatClock: () => '08:11',
     formatTimestamp: () => 'ts',
     formatUptime: () => '12m 48s',
@@ -134,7 +151,7 @@ describe('WorkspaceAreaComponent', () => {
 
   const hostCoordinator = {
     registerHostResolver: () => undefined,
-    syncAndRestore: async () => undefined,
+    syncAndRestore: jasmine.createSpy('syncAndRestore').and.resolveTo(undefined),
   };
 
   beforeEach(async () => {
@@ -170,11 +187,22 @@ describe('WorkspaceAreaComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.workspace-stage')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.tab-strip .tab-pill.active')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.pane-grid')?.getAttribute('data-layout')).toBe('single');
+    expect(fixture.nativeElement.querySelector('.tab-strip .workspace-tab.active')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.pane-grid .terminal-card.focused')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.pane-state-pill.running')).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('main • 7192');
     expect(fixture.nativeElement.querySelector('.terminal-preview')?.textContent).toContain('npm run api');
+  });
+
+  it('shows an empty-state prompt when the active tab has no terminals', () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    const component = fixture.componentInstance;
+    spyOn(component as any, 'getActiveTerminals').and.returnValue([]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.workspace-empty-state')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Add a shell to this tab');
   });
 
   it('switches to the live session inspector view', () => {
@@ -192,5 +220,17 @@ describe('WorkspaceAreaComponent', () => {
     expect(text).toContain('Lifecycle + Recovery');
     expect(text).toContain('Environment Variables');
     expect(text).not.toContain('Launch + Recovery');
+  });
+
+  it('removes a terminal from the focused card', async () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    const removeButton = fixture.debugElement.query(By.css('[aria-label="Remove terminal"]'));
+    removeButton.nativeElement.click();
+    await fixture.whenStable();
+
+    expect(workspaceService.removeTerminal).toHaveBeenCalledWith('terminal-1');
+    expect(hostCoordinator.syncAndRestore).toHaveBeenCalled();
   });
 });

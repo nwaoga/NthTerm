@@ -201,7 +201,7 @@ describe('AppComponent', () => {
     expect(workspaceShell?.style.getPropertyValue('--dock-height')).toBe('368px');
   });
 
-  it('creates new sessions from the configured custom directory', async () => {
+  it('creates new workspaces from the configured custom directory', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -215,7 +215,7 @@ describe('AppComponent', () => {
     expect(workspaceBridge.createWorkspace).toHaveBeenCalledWith(
       jasmine.objectContaining({
         cwd: 'D:\\Workspaces\\NthTerm',
-        name: 'New Session',
+        name: 'New Workspace',
         templateId: 'empty-workspace',
       })
     );

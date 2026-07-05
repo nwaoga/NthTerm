@@ -15,7 +15,8 @@ export interface SavedWorkspace {
     layout: {
       mode: string;
       activeTabId: string;
-      focusedPaneId: string;
+      focusedPaneId?: string;
+      focusedTerminalId?: string;
       colSplit?: number;
       rowSplit?: number;
       panes: Array<{
@@ -28,10 +29,22 @@ export interface SavedWorkspace {
       id: string;
       title: string;
       cwd: string;
-      status: string;
       accent: string;
       shell?: string;
       startupCommand?: string;
+      status?: string;
+      layoutMode?: string;
+      colSplit?: number;
+      rowSplit?: number;
+      focusedTerminalId?: string;
+      terminals?: Array<{
+        id: string;
+        cwd: string;
+        shell?: string;
+        startupCommand?: string;
+        status: string;
+        session?: PaneSessionSnapshot | null;
+      }>;
     }>;
     history?: SessionHistoryEntry[];
     recovery?: RecoverySnapshot;

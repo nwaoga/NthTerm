@@ -58,7 +58,7 @@ export class InspectorPresenterService {
       { label: 'Shell', value: this.workspace.getFocusedTabShellLabel() },
       {
         label: 'Startup Command',
-        value: focusedTab?.startupCommand?.trim() || 'None',
+        value: this.workspace.getFocusedTerminal()?.startupCommand?.trim() || 'None',
       },
       { label: 'Workspace', value: this.workspace.workspaceName || 'n/a' },
       {
@@ -66,12 +66,12 @@ export class InspectorPresenterService {
         value: this.workspace.activeWorkspace?.templateId || 'custom',
       },
       { label: 'Layout', value: this.workspace.layoutMode },
-      { label: 'Focused Pane', value: this.workspace.focusedPaneId },
+      { label: 'Focused Terminal', value: this.workspace.focusedPaneId || 'n/a' },
       {
         label: 'Launch Profile',
         value: this.workspace.workspaceSummary.launchProfile || 'manual',
       },
-      { label: 'Status', value: focusedTab?.status || 'idle' },
+      { label: 'Status', value: this.workspace.getFocusedTerminal()?.status || 'idle' },
       {
         label: 'Last Recovery',
         value: this.workspace.recoverySnapshot.lastStopReason || 'Clean restore',
@@ -135,7 +135,7 @@ export class InspectorPresenterService {
   }
 
   private formatProcessSummary(focusedTab: ReturnType<WorkspaceRuntimeService['getFocusedTab']>): string {
-    const command = focusedTab?.startupCommand?.trim();
+    const command = this.workspace.getFocusedTerminal()?.startupCommand?.trim();
     if (!command) {
       return 'Interactive shell';
     }

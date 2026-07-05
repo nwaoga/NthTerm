@@ -44,7 +44,7 @@
 
   <div class="toolbar-actions">
     <div class="toolbar-action-group toolbar-action-group-primary">
-      <button type="button" class="toolbar-pill toolbar-pill-primary" (click)="createTab()">
+      <button type="button" class="toolbar-pill toolbar-pill-primary" (click)="createTab()" [disabled]="!canAddTab()">
         <span class="toolbar-icon toolbar-icon-leading" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="none">
             <path d="M10 4.2v11.6M4.2 10h11.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
@@ -52,6 +52,47 @@
         </span>
         <span>New Tab</span>
       </button>
+      <div class="split-action" (click)="$event.stopPropagation()">
+        <button
+          type="button"
+          class="toolbar-pill toolbar-pill-primary split-action-main"
+          (click)="createTerminal()"
+          [disabled]="!canAddTerminal()"
+        >
+          <span class="toolbar-icon toolbar-icon-leading" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none">
+              <path d="M5.2 6.2h9.6v7.6H5.2z" stroke="currentColor" stroke-width="1.4" />
+              <path d="M7.6 9.2h4.8M7.6 11.2h3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span>Add Terminal</span>
+        </button>
+        <button
+          type="button"
+          class="toolbar-pill toolbar-pill-primary split-action-menu"
+          aria-label="Choose shell for new terminal"
+          (click)="toggleShellMenu($event)"
+          [disabled]="!canAddTerminal()"
+        >
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        @if (shellMenuOpen) {
+          <div class="view-menu-dropdown shell-menu-dropdown" role="menu">
+            @for (option of shellOptions; track option.value) {
+              <button
+                type="button"
+                class="view-menu-item"
+                role="menuitem"
+                (click)="createTerminal(option.value)"
+              >
+                {{ option.label }}
+              </button>
+            }
+          </div>
+        }
+      </div>
       <div class="layout-switch" aria-label="Layout mode">
         <button
           type="button"

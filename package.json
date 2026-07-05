@@ -17,7 +17,9 @@
     "release:win": "npm run build && electron-builder --win",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless"
+    "test:electron": "node --test electron/terminal-spawn-coordinator.spec.js electron/patch-node-pty-windows.spec.js",
+    "test:ci": "npm run test:electron && ng test --watch=false --browsers=ChromeHeadless",
+    "postinstall": "node electron/patch-node-pty-windows.js"
   },
   "private": true,
   "author": "NthTerm contributors",

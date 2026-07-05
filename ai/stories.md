@@ -1,6 +1,32 @@
 # NthTerm Stories
 
 ## Backlog
+- [ ] Phase 6 / #125: Default shell preference for new terminals
+  - [x] Persist default shell in `AppPreferencesService`
+  - [x] Expose default shell in left-rail Preferences
+  - [x] Wire preference through toolbar, empty state, and terminal draft creation
+- [ ] Phase 6 / #126: Add Terminal shell picker UI
+  - [x] Split Add Terminal control with shell dropdown in toolbar
+  - [x] Shell chips in workspace empty state
+  - [x] Regression specs for shell emission and draft creation
+- [ ] Phase 6 / #127: Inspector shell selection and restart guidance
+  - [x] Shell dropdown on focused terminal in tab inspector
+  - [x] Restart guidance copy
+  - [ ] Verify relaunch applies updated shell draft
+- [ ] Phase 6 / #128: Trapezoid connected workspace tab strip
+  - [x] Single-line tab with icon, title, and close control
+  - [x] Active tab fused to workspace stage body
+  - [ ] Screenshot review against reference tab styling
+- [ ] Phase 5 / Task 4 / #122: Improve Windows PTY stability under multi-pane load
+  - [x] Serialize Windows PTY spawns in Electron main with spacing and retry
+  - [x] Serialize overlapping renderer restore requests
+  - [x] Add regression coverage for spawn queue and restore serialization
+  - [x] Patch node-pty `conpty_console_list_agent` AttachConsole fallback on Windows
+  - [x] Serialize PTY dispose/kill through the same main-process queue as spawn
+  - [ ] Verify reduced AttachConsole failures under 2-up and 2x2 load in Electron
+- [ ] Phase 5 / Task 5 / #123: Add release branding and signing readiness
+- [ ] Phase 5 / Task 6 / #124: Validate installer and upgrade behavior on Windows
+
 ## Done
 - [x] Phase 5 / Task 3: Add GitHub Actions release build workflow
   - [x] Run install, build, and `npm run test:ci` on pull requests and pushes to `main`

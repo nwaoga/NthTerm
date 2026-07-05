@@ -6,15 +6,15 @@ import { LeftRailComponent } from './left-rail.component';
 
 describe('LeftRailComponent', () => {
   const workspaceService = {
-    sessions: [
+    workspaces: [
       { id: 'ws-1', name: 'Cloud POS', icon: 'cloud', accent: 'violet' },
       { id: 'ws-2', name: 'MomentTrace', icon: 'spark', accent: 'blue' },
     ],
-    editingSessionId: null,
-    editingSessionName: '',
-    startRenameSession: jasmine.createSpy('startRenameSession'),
-    cancelRenameSession: jasmine.createSpy('cancelRenameSession'),
-    isSessionActive: (session: { id: string }) => session.id === 'ws-1',
+    editingWorkspaceId: null,
+    editingWorkspaceName: '',
+    startRenameWorkspace: jasmine.createSpy('startRenameWorkspace'),
+    cancelRenameWorkspace: jasmine.createSpy('cancelRenameWorkspace'),
+    isWorkspaceActive: (workspace: { id: string }) => workspace.id === 'ws-1',
   };
 
   beforeEach(async () => {
@@ -29,7 +29,7 @@ describe('LeftRailComponent', () => {
     }).compileComponents();
   });
 
-  it('emits workspace selection when a session row is clicked', () => {
+  it('emits workspace selection when a workspace row is clicked', () => {
     const fixture = TestBed.createComponent(LeftRailComponent);
     const component = fixture.componentInstance;
     const selectedSpy = jasmine.createSpy('workspaceSelected');
@@ -70,7 +70,7 @@ describe('LeftRailComponent', () => {
     checkbox.nativeElement.checked = false;
     checkbox.nativeElement.dispatchEvent(new Event('change'));
 
-    const select = fixture.debugElement.query(By.css('.preference-select'));
+    const select = fixture.debugElement.queryAll(By.css('.preference-select'))[1];
     select.nativeElement.value = 'home';
     select.nativeElement.dispatchEvent(new Event('change'));
     fixture.detectChanges();
@@ -81,7 +81,24 @@ describe('LeftRailComponent', () => {
     expect(startModeSpy).toHaveBeenCalledWith('home');
   });
 
-  it('emits a new session request from the new session button', () => {
+  it('emits default shell changes from preferences', () => {
+    const fixture = TestBed.createComponent(LeftRailComponent);
+    const component = fixture.componentInstance;
+    const shellSpy = jasmine.createSpy('defaultShellChange');
+
+    component.preferencesOpen = true;
+    component.defaultShell = '';
+    component.defaultShellChange.subscribe(shellSpy);
+    fixture.detectChanges();
+
+    const select = fixture.debugElement.queryAll(By.css('.preference-select'))[0];
+    select.nativeElement.value = 'powershell';
+    select.nativeElement.dispatchEvent(new Event('change'));
+
+    expect(shellSpy).toHaveBeenCalledWith('powershell');
+  });
+
+  it('emits a new workspace request from the new workspace button', () => {
     const fixture = TestBed.createComponent(LeftRailComponent);
     const component = fixture.componentInstance;
     const newSessionSpy = jasmine.createSpy('newSessionRequested');

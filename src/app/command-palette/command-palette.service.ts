@@ -175,7 +175,7 @@ export class CommandPaletteService {
     const matches = (value: string): boolean => value.toLowerCase().includes(query);
     const groups: SearchResultGroup[] = [];
 
-    const workspaceMatches = this.workspace.sessions
+    const workspaceMatches = this.workspace.workspaces
       .filter((session) => matches(session.name))
       .map((session) => ({
         id: session.id,
@@ -202,11 +202,11 @@ export class CommandPaletteService {
     }
 
     const tabMatches = this.workspace.runtimeTabs
-      .filter((tab) => matches(tab.title) || matches(tab.cwd) || matches(tab.status))
+      .filter((tab) => matches(tab.title) || matches(tab.cwd))
       .map((tab) => ({
         id: tab.id,
         title: tab.title,
-        detail: tab.cwd,
+        detail: `${tab.terminals.length} shell${tab.terminals.length === 1 ? '' : 's'} • ${tab.cwd}`,
         kind: 'tab' as PaletteEntryKind,
       }));
 
@@ -214,28 +214,25 @@ export class CommandPaletteService {
       groups.push({ label: 'Tabs', items: tabMatches });
     }
 
-    const paneMatches = this.workspace.runtimePanes
-      .map((pane, index) => ({
-        pane,
-        index,
-        tab: this.workspace.getPaneTab(pane),
-      }))
-      .filter(
-        ({ pane, tab }) =>
-          matches(pane.id) ||
-          matches(tab?.title || '') ||
-          matches(tab?.cwd || '') ||
-          matches(`pane ${pane.id}`)
-      )
-      .map(({ pane, index, tab }) => ({
-        id: pane.id,
-        title: tab?.title || `Pane ${index + 1}`,
-        detail: tab?.cwd || 'Unassigned pane',
-        kind: 'pane' as PaletteEntryKind,
-      }));
+    const terminalMatches = this.workspace.runtimeTabs.flatMap((tab) =>
+      tab.terminals
+        .filter(
+          (terminal) =>
+            matches(terminal.id) ||
+            matches(tab.title) ||
+            matches(terminal.cwd) ||
+            matches(terminal.status)
+        )
+        .map((terminal) => ({
+          id: terminal.id,
+          title: `${tab.title} • ${terminal.cwd}`,
+          detail: terminal.status,
+          kind: 'pane' as PaletteEntryKind,
+        }))
+    );
 
-    if (paneMatches.length) {
-      groups.push({ label: 'Panes', items: paneMatches });
+    if (terminalMatches.length) {
+      groups.push({ label: 'Terminals', items: terminalMatches });
     }
 
     const commandMatches = this.utility.commandHistory

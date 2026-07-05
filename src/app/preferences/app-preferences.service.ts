@@ -4,6 +4,9 @@ const BOTTOM_PANEL_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.visible';
 const BOTTOM_PANEL_HEIGHT_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.height';
 const NEW_SESSION_START_MODE_PREFERENCE_KEY = 'nthterm.preferences.newSession.startMode';
 const NEW_SESSION_CUSTOM_PATH_PREFERENCE_KEY = 'nthterm.preferences.newSession.customPath';
+const DEFAULT_SHELL_PREFERENCE_KEY = 'nthterm.preferences.defaultShell';
+
+export type DefaultShellPreference = '' | 'powershell' | 'cmd' | 'bash' | 'zsh';
 const DEFAULT_BOTTOM_PANEL_HEIGHT = 280;
 const MIN_BOTTOM_PANEL_HEIGHT = 160;
 const MAX_BOTTOM_PANEL_HEIGHT = 520;
@@ -88,6 +91,27 @@ export class AppPreferencesService {
     } catch {
       // Preference persistence is best-effort only.
     }
+  }
+
+  readDefaultShell(): DefaultShellPreference {
+    try {
+      const stored = localStorage.getItem(DEFAULT_SHELL_PREFERENCE_KEY);
+      return this.isDefaultShell(stored) ? stored : '';
+    } catch {
+      return '';
+    }
+  }
+
+  writeDefaultShell(shell: DefaultShellPreference): void {
+    try {
+      localStorage.setItem(DEFAULT_SHELL_PREFERENCE_KEY, shell);
+    } catch {
+      // Preference persistence is best-effort only.
+    }
+  }
+
+  private isDefaultShell(value: string | null): value is DefaultShellPreference {
+    return value === '' || value === 'powershell' || value === 'cmd' || value === 'bash' || value === 'zsh';
   }
 
   private isNewSessionStartMode(value: string | null): value is NewSessionStartMode {

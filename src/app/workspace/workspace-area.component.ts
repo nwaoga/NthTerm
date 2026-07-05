@@ -11,13 +11,15 @@ import {
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 
-import { RuntimePane, RuntimeTab } from '../models';
+import { RuntimeTab, RuntimeTerminal, SHELL_OPTIONS } from '../models';
+import { AppPreferencesService } from '../preferences/app-preferences.service';
 import { InspectorItem } from '../models';
 import { InspectorPresenterService } from '../inspector/inspector-presenter.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
 import { TerminalHostCoordinatorService } from '../terminal/terminal-host-coordinator.service';
 import { TerminalSessionService } from '../terminal/terminal-session.service';
 import { UtilityPanelService } from '../utility-panel/utility-panel.service';
+import { MAX_TABS_PER_WORKSPACE, MAX_TERMINALS_PER_TAB } from '../workspace/workspace-snapshot';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 
 @Component({
@@ -30,6 +32,11 @@ export class WorkspaceAreaComponent implements AfterViewInit {
 
   @Output() readonly terminalSyncRequested = new EventEmitter<void>();
 
+  protected readonly maxTabs = MAX_TABS_PER_WORKSPACE;
+  protected readonly maxTerminals = MAX_TERMINALS_PER_TAB;
+
+  protected readonly shellOptions = SHELL_OPTIONS;
+
   protected readonly ws = inject(WorkspaceRuntimeService);
   protected readonly terminal = inject(TerminalSessionService);
   protected readonly util = inject(UtilityPanelService);
@@ -38,6 +45,7 @@ export class WorkspaceAreaComponent implements AfterViewInit {
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly hostCoordinator = inject(TerminalHostCoordinatorService);
+  private readonly preferences = inject(AppPreferencesService);
 
   ngAfterViewInit(): void {
     this.hostCoordinator.registerHostResolver(
@@ -46,44 +54,95 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     );
   }
 
+  protected getActiveTerminals(): RuntimeTerminal[] {
+    return this.ws.getActiveTabTerminals();
+  }
+
+  protected canAddTab(): boolean {
+    return this.ws.runtimeTabs.length < this.maxTabs;
+  }
+
+  protected canAddTerminal(): boolean {
+    return this.getActiveTerminals().length < this.maxTerminals;
+  }
+
   protected async createTab(): Promise<void> {
     const nextTab = this.ws.createTabDraft();
-    if (!nextTab) return;
+    if (!nextTab || nextTab === 'blocked') {
+      if (nextTab === 'blocked') {
+        this.ws.status = `A workspace can have at most ${this.maxTabs} tabs.`;
+        this.util.appendOutput(this.ws.status, 'warn');
+      }
+      return;
+    }
+
     this.ws.addTab(nextTab);
     await this.ws.persistWorkspaceState();
     await this.hostCoordinator.syncAndRestore();
-    this.terminal.focusPaneTerminal();
+  }
+
+  protected async addTerminal(shell = this.preferences.readDefaultShell()): Promise<void> {
+    const draft = this.ws.createTerminalDraft(shell);
+    if (!draft || draft === 'blocked') {
+      if (draft === 'blocked') {
+        this.ws.status = `A tab can have at most ${this.maxTerminals} terminals.`;
+        this.util.appendOutput(this.ws.status, 'warn');
+      }
+      return;
+    }
+
+    this.ws.addTerminal(draft);
+    await this.ws.persistWorkspaceState();
+    await this.hostCoordinator.syncAndRestore();
+    this.terminal.focusTerminal(draft.id);
   }
 
   protected async selectTab(tabId: string): Promise<void> {
     const tab = await this.ws.selectTab(tabId);
     if (!tab) return;
     await this.hostCoordinator.syncAndRestore();
-    this.terminal.focusPaneTerminal();
+    const focusedId = this.ws.focusedPaneId;
+    if (focusedId) {
+      this.terminal.focusTerminal(focusedId);
+    }
   }
 
   protected async closeTab(tabId: string, event?: MouseEvent): Promise<void> {
     event?.stopPropagation();
-    const result = await this.ws.closeTab(tabId);
-    if (result === 'blocked') {
-      this.ws.status = 'At least one tab must remain open.';
-      this.util.appendOutput(this.ws.status, 'warn');
-      return;
-    }
-    if (result) {
-      await this.hostCoordinator.syncAndRestore();
-      this.terminal.focusPaneTerminal();
+    await this.ws.closeTab(tabId);
+    await this.hostCoordinator.syncAndRestore();
+    if (this.ws.focusedPaneId) {
+      this.terminal.focusTerminal(this.ws.focusedPaneId);
     }
   }
 
-  protected async focusPane(paneId: string): Promise<void> {
-    const result = await this.ws.focusPane(paneId);
+  protected async removeTerminal(terminalId: string, event?: MouseEvent): Promise<void> {
+    event?.stopPropagation();
+    event?.preventDefault();
+    const result = await this.ws.removeTerminal(terminalId);
     if (result === 'unchanged') {
-      this.terminal.focusPaneTerminal(paneId);
       return;
     }
     await this.hostCoordinator.syncAndRestore();
-    this.terminal.focusPaneTerminal(paneId);
+    if (this.ws.focusedPaneId) {
+      this.terminal.focusTerminal(this.ws.focusedPaneId);
+    }
+  }
+
+  protected async focusTerminal(terminalId: string): Promise<void> {
+    const result = await this.ws.focusTerminal(terminalId);
+    if (result === 'unchanged') {
+      this.terminal.reattachTerminalSession(terminalId);
+      this.terminal.focusTerminal(terminalId);
+      return;
+    }
+    await this.hostCoordinator.syncAndRestore();
+    this.terminal.focusTerminal(terminalId);
+  }
+
+  protected onTerminalHostClick(terminalId: string, event: MouseEvent): void {
+    event.stopPropagation();
+    void this.focusTerminal(terminalId);
   }
 
   protected setInspectorTab(tab: 'tab' | 'session'): void {
@@ -106,6 +165,18 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     event.preventDefault();
     event.stopPropagation();
     this.ws.paneResizeMode = mode;
+  }
+
+  protected showResizeHandles(): boolean {
+    return this.getActiveTerminals().length > 1;
+  }
+
+  protected getGridLayout(): string {
+    if (this.getActiveTerminals().length <= 1) {
+      return 'single';
+    }
+
+    return this.ws.getEffectiveActiveLayoutMode();
   }
 
   @HostListener('document:mousemove', ['$event'])
@@ -132,24 +203,21 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     return this.ws.isTabActive(tab);
   }
 
-  protected isPaneFocused(pane: RuntimePane): boolean {
-    return this.ws.isPaneFocused(pane);
-  }
-
-  protected getPaneById(paneId: string): RuntimePane | undefined {
-    return this.ws.getPaneById(paneId);
-  }
-
-  protected getPaneTab(pane: RuntimePane) {
-    return this.ws.getPaneTab(pane);
-  }
-
-  protected getPaneTone(pane: RuntimePane): string {
-    return this.ws.getPaneTone(pane);
+  protected isTerminalFocused(terminal: RuntimeTerminal): boolean {
+    return this.ws.isTerminalFocused(terminal);
   }
 
   protected getFocusedTab() {
     return this.ws.getFocusedTab();
+  }
+
+  protected setFocusedTerminalShell(shell: string): void {
+    this.ws.updateFocusedTerminalShell(shell);
+    void this.ws.persistWorkspaceState();
+  }
+
+  protected getFocusedTerminal() {
+    return this.ws.getFocusedTerminal();
   }
 
   protected getInspectorSummaryItems() {
@@ -160,7 +228,7 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     return this.pickInspectorItems(
       this.isSessionInspectorActive()
         ? ['Shell', 'Session Id', 'PID', 'Port']
-        : ['Directory', 'Shell', 'Workspace', 'Template', 'Layout', 'Focused Pane']
+        : ['Directory', 'Shell', 'Workspace', 'Template', 'Layout', 'Focused Terminal']
     );
   }
 
@@ -192,32 +260,36 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     return this.ws.sessionHistory.slice(0, 6);
   }
 
-  protected getPaneDisplayTitle(pane: RuntimePane, index: number): string {
-    return this.ws.getPaneDisplayTitle(pane, index);
+  protected getTerminalDisplayTitle(terminal: RuntimeTerminal, index: number): string {
+    return this.ws.getTerminalDisplayTitle(terminal, index);
   }
 
-  protected getPaneSummaryLine(pane: RuntimePane): string {
-    return this.ws.getPaneSummaryLine(pane);
+  protected getTerminalSummaryLine(terminal: RuntimeTerminal): string {
+    return this.ws.getTerminalSummaryLine(terminal);
   }
 
-  protected getPaneStatusLabel(pane: RuntimePane): string {
-    return this.ws.getPaneStatusLabel(pane);
+  protected getTerminalStatusLabel(terminal: RuntimeTerminal): string {
+    return this.ws.getTerminalStatusLabel(terminal);
   }
 
-  protected isPaneRunning(pane: RuntimePane): boolean {
-    return this.ws.isPaneRunning(pane);
+  protected isTerminalRunning(terminal: RuntimeTerminal): boolean {
+    return this.ws.isTerminalRunning(terminal);
   }
 
-  protected getPaneMetaLine(pane: RuntimePane): string {
-    return this.ws.getPaneMetaLine(pane);
+  protected getTerminalMetaLine(terminal: RuntimeTerminal): string {
+    return this.ws.getTerminalMetaLine(terminal);
   }
 
-  protected shouldRenderPanePreview(pane: RuntimePane): boolean {
-    return this.ws.shouldRenderPanePreview(pane);
+  protected shouldRenderTerminalPreview(terminal: RuntimeTerminal): boolean {
+    return this.ws.shouldRenderTerminalPreview(terminal);
   }
 
-  protected getPanePreviewText(pane: RuntimePane): string {
-    return this.ws.getPanePreviewText(pane);
+  protected getTerminalPreviewText(terminal: RuntimeTerminal): string {
+    return this.ws.getTerminalPreviewText(terminal);
+  }
+
+  protected getTerminalTone(terminal: RuntimeTerminal): string {
+    return this.ws.getTerminalTone(terminal);
   }
 
   protected formatClock(value: string): string {
@@ -255,14 +327,14 @@ export class WorkspaceAreaComponent implements AfterViewInit {
   }
 
   protected getInspectorHeroMeta(): string {
-    const focusedTab = this.getFocusedTab();
+    const focusedTerminal = this.getFocusedTerminal();
     if (this.isSessionInspectorActive()) {
       return this.terminal.sessionInfo?.id
         ? `Session ${this.terminal.sessionInfo.id}`
         : 'No active PTY attached';
     }
 
-    return focusedTab?.cwd || this.ws.workingDirectory || 'No working directory';
+    return focusedTerminal?.cwd || this.getFocusedTab()?.cwd || this.ws.workingDirectory || 'No working directory';
   }
 
   protected getInspectorHeroStatus(): string {
@@ -270,7 +342,7 @@ export class WorkspaceAreaComponent implements AfterViewInit {
       return this.terminal.sessionActive ? 'connected' : 'idle';
     }
 
-    return this.getFocusedTab()?.status || 'idle';
+    return this.getFocusedTerminal()?.status || 'idle';
   }
 
   private collectTerminalHosts(): Map<string, HTMLElement> {
@@ -280,11 +352,11 @@ export class WorkspaceAreaComponent implements AfterViewInit {
       return hosts;
     }
 
-    const elements = grid.querySelectorAll<HTMLElement>('[data-pane-terminal-host]');
+    const elements = grid.querySelectorAll<HTMLElement>('[data-terminal-host]');
     for (const element of elements) {
-      const paneId = element.dataset['paneTerminalHost'];
-      if (paneId) {
-        hosts.set(paneId, element);
+      const terminalId = element.dataset['terminalHost'];
+      if (terminalId) {
+        hosts.set(terminalId, element);
       }
     }
 

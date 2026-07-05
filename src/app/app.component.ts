@@ -14,10 +14,13 @@ import { CommandPaletteComponent } from './command-palette/command-palette.compo
 import { CommandPaletteService } from './command-palette/command-palette.service';
 import { LeftRailComponent } from './left-rail/left-rail.component';
 import { InspectorPresenterService } from './inspector/inspector-presenter.service';
-import { LayoutMode, SessionListItem, TemplateListItem, UtilityPanelId, WORKSPACE_TEMPLATES } from './models';
-import { NewSessionStartMode } from './preferences/app-preferences.service';
+import { LayoutMode, WorkspaceListItem, TemplateListItem, UtilityPanelId, WORKSPACE_TEMPLATES } from './models';
+import {
+  AppPreferencesService,
+  DefaultShellPreference,
+  NewSessionStartMode,
+} from './preferences/app-preferences.service';
 import { ReferenceReviewContentService } from './reference/reference-review-content.service';
-import { AppPreferencesService } from './preferences/app-preferences.service';
 import { ShellToolbarComponent } from './shell-toolbar/shell-toolbar.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
 import { SystemMonitorService } from './system/system-monitor.service';
@@ -51,6 +54,7 @@ export class AppComponent implements AfterViewInit {
   protected newSessionStartMode: NewSessionStartMode = 'focused-tab';
   protected newSessionCustomPath = '';
   protected homeDirectory = '';
+  protected defaultShell: DefaultShellPreference = '';
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -105,6 +109,7 @@ export class AppComponent implements AfterViewInit {
     this.utilityPanelHeight = this.preferences.readBottomPanelHeight();
     this.newSessionStartMode = this.preferences.readNewSessionStartMode();
     this.newSessionCustomPath = this.preferences.readNewSessionCustomPath();
+    this.defaultShell = this.preferences.readDefaultShell();
     if (!window.nthTermDesktop?.workspace) {
       this.loadPreviewState();
       this.changeDetectorRef.detectChanges();
@@ -113,7 +118,7 @@ export class AppComponent implements AfterViewInit {
       this.homeDirectory = defaults.homeDirectory;
       const workspaces = await this.workspaceBridge.listWorkspaces();
       const launchWorkspace = await this.workspaceBridge.getLaunchWorkspace();
-      this.ws.sessions = workspaces.map((w) => ({
+      this.ws.workspaces = workspaces.map((w) => ({
         id: w.id,
         name: w.name,
         icon: w.icon || 'cloud',
@@ -155,6 +160,11 @@ export class AppComponent implements AfterViewInit {
   protected setNewSessionCustomPath(path: string): void {
     this.newSessionCustomPath = path;
     this.preferences.writeNewSessionCustomPath(path);
+  }
+
+  protected setDefaultShell(shell: DefaultShellPreference): void {
+    this.defaultShell = shell;
+    this.preferences.writeDefaultShell(shell);
   }
 
   protected openUtilityPanel(tab: UtilityPanelId): void {
@@ -248,14 +258,14 @@ export class AppComponent implements AfterViewInit {
       WORKSPACE_TEMPLATES[0];
     const created = await this.ws.createWorkspaceFromTemplate(template, {
       cwd: this.resolveNewSessionDirectory(template.cwd),
-      name: this.ws.buildWorkspaceName('New Session'),
+      name: this.ws.buildWorkspaceName('New Workspace'),
     });
     await this.hostCoordinator.syncAndRestore();
-    this.util.appendOutput(`Created new session "${created.name}"`, 'info');
+    this.util.appendOutput(`Created new workspace "${created.name}"`, 'info');
   }
 
-  protected async onSessionRenameCommitted(sessionId: string): Promise<void> {
-    const result = await this.ws.commitRenameSession(sessionId);
+  protected async onWorkspaceRenameCommitted(workspaceId: string): Promise<void> {
+    const result = await this.ws.commitRenameWorkspace(workspaceId);
     if (!result) return;
     if ('error' in result) {
       this.ws.status = result.error;
@@ -265,18 +275,18 @@ export class AppComponent implements AfterViewInit {
     this.util.appendOutput(`Renamed workspace to "${result.name}"`, 'info');
   }
 
-  protected async onSessionDeleteRequested(session: SessionListItem): Promise<void> {
-    if (this.ws.sessions.length <= 1) {
+  protected async onWorkspaceDeleteRequested(workspace: WorkspaceListItem): Promise<void> {
+    if (this.ws.workspaces.length <= 1) {
       this.ws.status = 'At least one workspace must remain.';
       this.util.appendOutput(this.ws.status, 'warn');
       return;
     }
-    if (!confirm(`Delete workspace "${session.name}"? This cannot be undone.`)) return;
-    if (session.id === this.ws.selectedWorkspaceId) {
+    if (!confirm(`Delete workspace "${workspace.name}"? This cannot be undone.`)) return;
+    if (workspace.id === this.ws.selectedWorkspaceId) {
       await this.ws.persistWorkspaceState();
       this.terminal.dispose();
     }
-    const result = await this.ws.deleteSession(session.id);
+    const result = await this.ws.deleteWorkspace(workspace.id);
     if (!result) return;
     if ('error' in result) {
       this.ws.status = result.error;
@@ -289,10 +299,31 @@ export class AppComponent implements AfterViewInit {
 
   protected async onCreateTab(): Promise<void> {
     const nextTab = this.ws.createTabDraft();
-    if (!nextTab) return;
+    if (!nextTab || nextTab === 'blocked') {
+      if (nextTab === 'blocked') {
+        this.ws.status = 'A workspace can have at most 5 tabs.';
+        this.util.appendOutput(this.ws.status, 'warn');
+      }
+      return;
+    }
     this.ws.addTab(nextTab);
     await this.ws.persistWorkspaceState();
     await this.hostCoordinator.syncAndRestore();
+  }
+
+  protected async onCreateTerminal(shell: DefaultShellPreference = this.preferences.readDefaultShell()): Promise<void> {
+    const draft = this.ws.createTerminalDraft(shell);
+    if (!draft || draft === 'blocked') {
+      if (draft === 'blocked') {
+        this.ws.status = 'A tab can have at most 4 terminals.';
+        this.util.appendOutput(this.ws.status, 'warn');
+      }
+      return;
+    }
+    this.ws.addTerminal(draft);
+    await this.ws.persistWorkspaceState();
+    await this.hostCoordinator.syncAndRestore();
+    this.terminal.focusTerminal(draft.id);
   }
 
   protected async onLayoutModeChange(mode: LayoutMode): Promise<void> {

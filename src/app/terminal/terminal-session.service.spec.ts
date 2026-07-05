@@ -104,55 +104,106 @@ describe('TerminalSessionService', () => {
     workspace.selectedWorkspaceId = 'ws-1';
     workspace.workspaceName = 'Demo';
     workspace.workingDirectory = 'C:\\Tabs';
-    workspace.focusedPaneId = 'pane-1';
     workspace.activeTabId = 'tab-1';
     workspace.runtimeTabs = [
       {
         id: 'tab-1',
         title: 'One',
         cwd: 'C:\\Tabs\\One',
-        status: 'running',
         accent: 'violet',
-        shell: 'powershell',
-        startupCommand: '',
+        layoutMode: 'grid-2',
+        colSplit: 50,
+        rowSplit: 50,
+        focusedTerminalId: 'terminal-1',
+        terminals: [
+          {
+            id: 'terminal-1',
+            cwd: 'C:\\Tabs\\One',
+            shell: 'powershell',
+            startupCommand: '',
+            status: 'running',
+            session: null,
+          },
+        ],
       },
       {
         id: 'tab-2',
         title: 'Two',
         cwd: 'C:\\Tabs\\Two',
-        status: 'running',
         accent: 'amber',
-        shell: 'powershell',
-        startupCommand: '',
+        layoutMode: 'grid-2',
+        colSplit: 50,
+        rowSplit: 50,
+        focusedTerminalId: 'terminal-2',
+        terminals: [
+          {
+            id: 'terminal-2',
+            cwd: 'C:\\Tabs\\Two',
+            shell: 'powershell',
+            startupCommand: '',
+            status: 'running',
+            session: null,
+          },
+        ],
       },
     ];
-    workspace.runtimePanes = [{ id: 'pane-1', tabId: 'tab-1', session: null }];
-    service.setTerminalHosts(new Map([['pane-1', document.createElement('div')]]));
+    service.setTerminalHosts(new Map([['terminal-1', document.createElement('div')]]));
   });
 
-  it('keeps tab sessions alive when switching a pane between tabs', async () => {
+  it('keeps terminal sessions alive when switching tabs', async () => {
     terminalBridge.createSession.and.returnValues(
       Promise.resolve('session-1'),
-      Promise.resolve('session-2')
+      Promise.resolve('session-2'),
+      Promise.resolve('session-1b')
     );
 
-    await service.restorePaneSessions();
+    await service.restoreTerminalSessions();
     expect(terminalBridge.createSession).toHaveBeenCalledTimes(1);
 
-    workspace.runtimePanes = [{ id: 'pane-1', tabId: 'tab-2', session: null }];
     workspace.activeTabId = 'tab-2';
     workspace.workingDirectory = 'C:\\Tabs\\Two';
+    service.setTerminalHosts(new Map([['terminal-2', document.createElement('div')]]));
 
-    await service.restorePaneSessions();
+    await service.restoreTerminalSessions();
     expect(terminalBridge.createSession).toHaveBeenCalledTimes(2);
-    expect(terminalBridge.disposeSession).not.toHaveBeenCalled();
+    expect(terminalBridge.disposeSession).toHaveBeenCalledTimes(1);
 
-    workspace.runtimePanes = [{ id: 'pane-1', tabId: 'tab-1', session: null }];
     workspace.activeTabId = 'tab-1';
     workspace.workingDirectory = 'C:\\Tabs\\One';
+    service.setTerminalHosts(new Map([['terminal-1', document.createElement('div')]]));
 
-    await service.restorePaneSessions();
-    expect(terminalBridge.createSession).toHaveBeenCalledTimes(2);
-    expect(terminalBridge.disposeSession).not.toHaveBeenCalled();
+    await service.restoreTerminalSessions();
+    expect(terminalBridge.createSession).toHaveBeenCalledTimes(3);
+  });
+
+  it('reattaches a terminal surface when focusing it again', async () => {
+    const terminalOneHost = document.createElement('div');
+    const terminalTwoHost = document.createElement('div');
+    service.setTerminalHosts(
+      new Map([
+        ['terminal-1', terminalOneHost],
+        ['terminal-2', terminalTwoHost],
+      ])
+    );
+    workspace.runtimeTabs[0].terminals.push({
+      id: 'terminal-2',
+      cwd: 'C:\\Tabs\\One-B',
+      shell: 'powershell',
+      startupCommand: '',
+      status: 'running',
+      session: null,
+    });
+
+    await service.restoreTerminalSessions();
+    expect(terminalOneHost.childNodes.length).toBe(1);
+
+    terminalTwoHost.replaceChildren(...Array.from(terminalOneHost.childNodes));
+    terminalOneHost.replaceChildren();
+    expect(terminalOneHost.childNodes.length).toBe(0);
+    expect(terminalTwoHost.childNodes.length).toBe(1);
+
+    service.reattachTerminalSession('terminal-1');
+    expect(terminalOneHost.childNodes.length).toBe(1);
+    expect(terminalTwoHost.childNodes.length).toBe(0);
   });
 });

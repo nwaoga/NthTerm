@@ -55,7 +55,9 @@ Keyboard shortcuts:
 
 Next up:
 
-- pick the next production-readiness task: Windows PTY stability, release branding/signing, or installer validation
+- Phase 5 Task 4 / ADO #122: Windows PTY stability
+- Phase 5 Task 5 / ADO #123: release branding and signing readiness
+- Phase 5 Task 6 / ADO #124: installer and upgrade validation
 
 ## Design alignment checklist
 

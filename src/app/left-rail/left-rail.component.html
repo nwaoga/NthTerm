@@ -1,41 +1,41 @@
 <aside class="left-rail">
   <section class="rail-section">
     <div class="rail-section-header">
-      <p class="rail-title">Sessions</p>
+      <p class="rail-title">Workspaces</p>
       <button type="button" class="rail-create-button" (click)="createBlankWorkspace()">
         <span class="rail-create-icon" aria-hidden="true">
           <svg viewBox="0 0 16 16" fill="none">
             <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
           </svg>
         </span>
-        <span>New Session</span>
+        <span>New Workspace</span>
       </button>
     </div>
     <div class="session-list">
-      @for (session of ws.sessions; track trackById($index, session)) {
+      @for (workspace of ws.workspaces; track trackById($index, workspace)) {
         <div
           class="session-row"
-          [class.active]="isSessionActive(session)"
-          [attr.data-accent]="session.accent"
+          [class.active]="isWorkspaceActive(workspace)"
+          [attr.data-accent]="workspace.accent"
         >
-          @if (ws.editingSessionId === session.id) {
+          @if (ws.editingWorkspaceId === workspace.id) {
             <input
               class="session-rename-input"
-              [(ngModel)]="ws.editingSessionName"
+              [(ngModel)]="ws.editingWorkspaceName"
               type="text"
-              (keydown.enter)="commitRenameSession(session.id)"
-              (keydown.escape)="cancelRenameSession()"
-              (blur)="commitRenameSession(session.id)"
+              (keydown.enter)="commitRenameWorkspace(workspace.id)"
+              (keydown.escape)="cancelRenameWorkspace()"
+              (blur)="commitRenameWorkspace(workspace.id)"
             />
           } @else {
             <button
               type="button"
               class="session-item"
-              (click)="selectWorkspace(session.id)"
-              (dblclick)="startRenameSession(session, $event)"
+              (click)="selectWorkspace(workspace.id)"
+              (dblclick)="startRenameWorkspace(workspace, $event)"
             >
               <span class="session-icon" aria-hidden="true">
-                @switch (session.icon) {
+                @switch (workspace.icon) {
                   @case ('cloud') {
                     <svg viewBox="0 0 20 20" fill="none">
                       <path d="M6.7 15.4h6.1a3.2 3.2 0 0 0 .5-6.4 4.4 4.4 0 0 0-8.4 1.2 2.7 2.7 0 0 0 1.8 5.2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
@@ -66,7 +66,7 @@
                   }
                 }
               </span>
-              <span class="session-name">{{ session.name }}</span>
+              <span class="session-name">{{ workspace.name }}</span>
             </button>
             <div class="session-actions">
               <button
@@ -74,7 +74,7 @@
                 class="session-action-icon"
                 title="Rename workspace"
                 aria-label="Rename workspace"
-                (click)="startRenameSession(session, $event)"
+                (click)="startRenameWorkspace(workspace, $event)"
               >
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path d="m5.4 14.7 2.5-.5 6.1-6.1-2-2-6.1 6.1-.5 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
@@ -86,7 +86,7 @@
                 class="session-action-icon session-action-icon-danger"
                 title="Delete workspace"
                 aria-label="Delete workspace"
-                (click)="deleteSession(session, $event)"
+                (click)="deleteWorkspace(workspace, $event)"
               >
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path d="M6 6 14 14M14 6l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -201,7 +201,19 @@
           <span>Show bottom panel</span>
         </label>
         <label class="preference-field">
-          <span class="preference-label">New sessions start in</span>
+          <span class="preference-label">Default shell for new terminals</span>
+          <select
+            class="preference-select"
+            [ngModel]="defaultShell"
+            (ngModelChange)="setDefaultShell($event)"
+          >
+            @for (option of shellOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+        <label class="preference-field">
+          <span class="preference-label">New workspaces start in</span>
           <select
             class="preference-select"
             [ngModel]="newSessionStartMode"
