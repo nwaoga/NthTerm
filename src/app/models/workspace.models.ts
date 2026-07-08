@@ -1,3 +1,5 @@
+import { TerminalColorTheme } from './terminal-theme.models';
+
 export interface WorkspaceListItem {
   id: string;
   name: string;
@@ -8,14 +10,6 @@ export interface WorkspaceListItem {
 /** @deprecated Use WorkspaceListItem */
 export type SessionListItem = WorkspaceListItem;
 
-export interface TemplateListItem {
-  name: string;
-  accent: 'amber' | 'violet' | 'cyan' | 'blue' | 'slate';
-  icon: string;
-  templateId: string;
-  cwd: string;
-}
-
 export interface RuntimeTerminal {
   id: string;
   cwd: string;
@@ -23,6 +17,7 @@ export interface RuntimeTerminal {
   startupCommand: string;
   status: string;
   session?: PaneSessionSnapshot | null;
+  theme?: TerminalColorTheme | null;
 }
 
 export interface RuntimeTab {
@@ -84,44 +79,6 @@ export interface WorkspaceSummary {
   tabCount: number;
   paneCount: number;
 }
-
-export const WORKSPACE_TEMPLATES: TemplateListItem[] = [
-  {
-    name: 'Angular App',
-    accent: 'amber',
-    icon: 'spark',
-    templateId: 'angular-app',
-    cwd: 'C:\\Projects\\AngularApp',
-  },
-  {
-    name: 'ASP.NET API',
-    accent: 'violet',
-    icon: 'server',
-    templateId: 'aspnet-api',
-    cwd: 'C:\\Projects\\AspNetApi',
-  },
-  {
-    name: 'Full Stack',
-    accent: 'cyan',
-    icon: 'cloud',
-    templateId: 'full-stack',
-    cwd: 'C:\\Projects\\FullStack',
-  },
-  {
-    name: 'Docker Compose',
-    accent: 'blue',
-    icon: 'server',
-    templateId: 'docker-compose',
-    cwd: 'C:\\Projects\\DockerCompose',
-  },
-  {
-    name: 'Empty Workspace',
-    accent: 'slate',
-    icon: 'person',
-    templateId: 'empty-workspace',
-    cwd: '.',
-  },
-];
 
 export const SHELL_OPTIONS = [
   { value: '', label: 'System Default' },

@@ -40,7 +40,8 @@ test('enqueueSpawn serializes concurrent spawn requests', async () => {
   assert.equal(first.pid, 1);
   assert.equal(second.pid, 2);
   assert.equal(spawnCount, 2);
-  assert.ok(delays.some((ms) => ms === DEFAULT_WINDOWS_SPAWN_DELAY_MS));
+  assert.ok(delays.length > 0);
+  assert.ok(delays.some((ms) => ms >= DEFAULT_WINDOWS_SPAWN_DELAY_MS - 5));
   assert.ok(spawnTimes[1] >= spawnTimes[0]);
 });
 

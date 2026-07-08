@@ -5,7 +5,6 @@ import {
   PaletteEntry,
   PaletteEntryKind,
   SearchResultGroup,
-  WORKSPACE_TEMPLATES,
 } from '../models';
 import { SystemMonitorService } from '../system/system-monitor.service';
 import { UtilityPanelService } from '../utility-panel/utility-panel.service';
@@ -33,12 +32,6 @@ export class CommandPaletteService {
     if (!focusSearch) {
       this.query = '';
     }
-  }
-
-  openGlobalSearch(): void {
-    this.utility.activeTab = 'search';
-    this.query = this.utility.searchQuery;
-    this.openPalette(true);
   }
 
   close(): void {
@@ -101,9 +94,6 @@ export class CommandPaletteService {
       case 'tab':
         await dispatcher.selectTab(entry.id);
         break;
-      case 'template':
-        await dispatcher.createWorkspaceFromTemplate(entry.id);
-        break;
       case 'command':
         await dispatcher.rerunCommand(entry.label);
         break;
@@ -138,6 +128,7 @@ export class CommandPaletteService {
     return [
       { id: 'save-workspace', kind: 'action', group: 'Workspace', label: 'Save Workspace', detail: 'Persist the current workspace layout and tabs' },
       { id: 'restore-workspace', kind: 'action', group: 'Workspace', label: 'Restore Workspace', detail: 'Reload the active workspace from SQLite' },
+      { id: 'new-workspace', kind: 'action', group: 'Workspace', label: 'New Workspace', detail: 'Create a blank workspace' },
       { id: 'new-tab', kind: 'action', group: 'Workspace', label: 'New Tab', detail: 'Create a terminal tab in the focused pane' },
       { id: 'restart-terminal', kind: 'action', group: 'Terminal', label: 'Restart Terminal', detail: 'Restart the focused pane session' },
       { id: 'stop-terminal', kind: 'action', group: 'Terminal', label: 'Stop Terminal', detail: 'Send Ctrl+C to the active PTY' },
@@ -186,19 +177,6 @@ export class CommandPaletteService {
 
     if (workspaceMatches.length) {
       groups.push({ label: 'Workspaces', items: workspaceMatches });
-    }
-
-    const templateMatches = WORKSPACE_TEMPLATES.filter(
-      (template) => matches(template.name) || matches(template.cwd)
-    ).map((template) => ({
-      id: template.templateId,
-      title: template.name,
-      detail: template.cwd,
-      kind: 'template' as PaletteEntryKind,
-    }));
-
-    if (templateMatches.length) {
-      groups.push({ label: 'Templates', items: templateMatches });
     }
 
     const tabMatches = this.workspace.runtimeTabs
@@ -294,6 +272,9 @@ export class CommandPaletteService {
       case 'restore-workspace':
         await dispatcher.restoreWorkspace();
         break;
+      case 'new-workspace':
+        await dispatcher.createWorkspace();
+        break;
       case 'new-tab':
         await dispatcher.createTab();
         break;
@@ -313,7 +294,7 @@ export class CommandPaletteService {
         dispatcher.openUtilityPanel('problems');
         break;
       case 'open-search':
-        dispatcher.openUtilityPanel('search');
+        dispatcher.openGlobalSearch();
         break;
       case 'open-history':
         dispatcher.openUtilityPanel('command-history');

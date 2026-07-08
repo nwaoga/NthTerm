@@ -4,7 +4,41 @@ app-root {
   overflow: hidden;
   color: var(--shell-text);
   font-family: var(--shell-font-ui);
-  --titlebar-inset: 40px;
+  --titlebar-inset: var(--shell-titlebar-overlay-width, 152px);
+
+  /* Radii */
+  --shell-radius-sm: 8px;
+  --shell-radius-md: 12px;
+  --shell-radius-lg: 14px;
+  --shell-radius-xl: 16px;
+  --shell-radius-stage: 22px;
+  --shell-radius-pill: 999px;
+
+  /* Spacing */
+  --shell-space-xs: 4px;
+  --shell-space-sm: 8px;
+  --shell-space-md: 12px;
+  --shell-space-lg: 14px;
+  --shell-space-xl: 16px;
+  --shell-gap-section: 12px;
+  --shell-gap-card: 10px;
+
+  /* Typography */
+  --shell-font-ui: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --shell-font-mono: "Cascadia Code", Consolas, monospace;
+  --shell-font-size-label: 0.72rem;
+  --shell-font-size-body: 0.92rem;
+  --shell-font-size-title: 1.02rem;
+  --shell-letter-label: 0.12em;
+}
+
+:root[data-shell-theme='midnight'] {
+  color-scheme: dark;
+  --scrollbar-thumb: rgba(126, 102, 201, 0.56);
+  --scrollbar-thumb-hover: rgba(170, 131, 255, 0.78);
+  --scrollbar-thumb-gradient: linear-gradient(180deg, rgba(186, 132, 255, 0.9), rgba(90, 126, 255, 0.68));
+  --scrollbar-thumb-gradient-hover: linear-gradient(180deg, rgba(213, 165, 255, 0.96), rgba(107, 152, 255, 0.8));
+  --scrollbar-corner: rgba(7, 11, 20, 0.4);
 
   /* Surface */
   --shell-bg-base: #090d16;
@@ -34,35 +68,432 @@ app-root {
   --shell-danger: #e5484d;
   --shell-running: #9ef0b8;
 
-  /* Radii */
-  --shell-radius-sm: 8px;
-  --shell-radius-md: 12px;
-  --shell-radius-lg: 14px;
-  --shell-radius-xl: 16px;
-  --shell-radius-stage: 22px;
-  --shell-radius-pill: 999px;
-
-  /* Spacing */
-  --shell-space-xs: 4px;
-  --shell-space-sm: 8px;
-  --shell-space-md: 12px;
-  --shell-space-lg: 14px;
-  --shell-space-xl: 16px;
-  --shell-gap-section: 12px;
-  --shell-gap-card: 10px;
-
-  /* Typography */
-  --shell-font-ui: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --shell-font-mono: "Cascadia Code", Consolas, monospace;
-  --shell-font-size-label: 0.72rem;
-  --shell-font-size-body: 0.92rem;
-  --shell-font-size-title: 1.02rem;
-  --shell-letter-label: 0.12em;
-
   /* Elevation */
   --shell-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --shell-shadow-panel: 0 10px 24px rgba(2, 6, 15, 0.14);
   --shell-shadow-stage: 0 14px 32px rgba(3, 6, 14, 0.28);
+
+  /* Component surfaces */
+  --shell-rail-bg: linear-gradient(180deg, rgba(15, 19, 33, 0.98), rgba(10, 16, 27, 0.98));
+  --shell-toolbar-bg:
+    radial-gradient(circle at 28% 0%, rgba(116, 62, 201, 0.2), transparent 34%),
+    radial-gradient(circle at 72% 0%, rgba(75, 111, 255, 0.11), transparent 26%),
+    linear-gradient(180deg, rgba(21, 17, 40, 0.985), rgba(17, 21, 35, 0.97));
+  --shell-control-bg: rgba(18, 22, 36, 0.82);
+  --shell-control-fg: #d7deeb;
+  --shell-control-border: rgba(141, 154, 187, 0.14);
+  --shell-row-bg: rgba(17, 22, 36, 0.52);
+  --shell-row-border: rgba(141, 154, 187, 0.1);
+  --shell-row-active-bg: linear-gradient(180deg, rgba(61, 30, 93, 0.9), rgba(53, 27, 83, 0.88));
+  --shell-row-active-fg: #f7fbff;
+  --shell-row-active-border: rgba(197, 139, 255, 0.48);
+  --shell-tab-bg: linear-gradient(180deg, rgba(26, 32, 50, 0.96), rgba(17, 22, 36, 0.94));
+  --shell-tab-fg: #9aa8c0;
+  --shell-tab-active-bg: linear-gradient(180deg, rgba(36, 42, 64, 0.99), rgba(14, 20, 34, 0.99));
+  --shell-tab-active-fg: #e8edf7;
+  --shell-terminal-frame-bg:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 30%),
+    linear-gradient(180deg, rgba(21, 27, 44, 0.985), rgba(10, 14, 24, 0.985));
+  --shell-terminal-header-bg: linear-gradient(180deg, rgba(29, 36, 55, 0.94), rgba(19, 24, 38, 0.92));
+  --shell-workspace-context-bg: linear-gradient(180deg, rgba(27, 23, 44, 0.72), rgba(22, 20, 38, 0.66));
+  --shell-workspace-context-fg: #e7edf8;
+  --shell-layout-switch-bg: rgba(15, 18, 30, 0.78);
+  --shell-pill-primary-bg: linear-gradient(180deg, rgba(56, 40, 90, 0.98), rgba(35, 26, 60, 0.96));
+  --shell-pill-primary-fg: #ffffff;
+  --shell-pill-ghost-bg: rgba(15, 20, 32, 0.5);
+  --shell-pill-active-bg: rgba(41, 27, 64, 0.94);
+  --shell-pill-active-fg: #ffffff;
+  --shell-pill-hover-bg: rgba(30, 34, 52, 0.92);
+  --shell-pill-hover-border: rgba(186, 152, 255, 0.24);
+  --shell-modal-bg: rgba(12, 16, 29, 0.98);
+  --shell-backdrop: rgba(4, 8, 16, 0.72);
+  --shell-input-bg: rgba(8, 11, 20, 0.92);
+  --shell-input-fg: #eff3f9;
+  --shell-brand-badge-bg: linear-gradient(180deg, rgba(184, 88, 255, 0.98), rgba(102, 85, 255, 0.94));
+  --shell-muted-label: #7f8db0;
+  --shell-pane-pill-bg: rgba(13, 19, 31, 0.8);
+  --shell-pane-pill-fg: #d7deeb;
+  --shell-create-button-bg: linear-gradient(180deg, rgba(39, 29, 66, 0.92), rgba(28, 24, 50, 0.88));
+  --shell-create-button-border: rgba(168, 136, 255, 0.18);
+  --shell-create-button-fg: #eef3fb;
+  --shell-row-hover-bg: rgba(23, 28, 44, 0.72);
+  --shell-preferences-bg: rgba(8, 12, 22, 0.72);
+  --shell-stage-bg:
+    radial-gradient(circle at top center, rgba(106, 72, 188, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(14, 20, 34, 0.985), rgba(9, 13, 22, 0.99));
+  --shell-inspector-card-bg:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.03), transparent 40%),
+    linear-gradient(180deg, rgba(16, 22, 37, 0.98), rgba(11, 16, 28, 0.98));
+  --shell-dock-bg: linear-gradient(180deg, rgba(12, 16, 28, 0.985), rgba(9, 13, 22, 0.99));
+  --shell-dock-tabs-bg: rgba(11, 15, 26, 0.98);
+  --shell-dock-tab-fg: #9aa8bf;
+  --shell-dock-tab-active-fg: #ffffff;
+  --shell-chip-bg: rgba(18, 23, 37, 0.88);
+  --shell-chip-fg: #eef3fb;
+  --shell-status-fg: #c2ccdc;
+  --shell-surface-tile-bg: rgba(255, 255, 255, 0.03);
+  --shell-card-meta-fg: #8c9ab2;
+  --shell-card-icon-fg: #b9c7de;
+  --shell-running-pill-bg: rgba(18, 58, 40, 0.82);
+  --shell-running-pill-fg: #9ef0b8;
+  --shell-focused-pill-bg: rgba(63, 35, 102, 0.7);
+  --shell-inspector-status-bg: rgba(52, 33, 81, 0.92);
+  --shell-inspector-status-fg: #f4ebff;
+  --shell-tab-add-bg: rgba(18, 22, 36, 0.55);
+  --shell-tab-add-fg: #8f9db5;
+  --shell-terminal-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 10px 20px rgba(2, 6, 15, 0.12);
+  --shell-terminal-card-focused-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 0 1px rgba(186, 112, 255, 0.14),
+    0 16px 30px rgba(15, 10, 30, 0.22);
+  --shell-tab-active-glow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 -8px 18px rgba(106, 72, 188, 0.08);
+  --shell-toolbar-chip-bg: rgba(16, 20, 31, 0.5);
+  --shell-toolbar-chip-fg: #c6d2e7;
+  --shell-toolbar-summary-fg: #7f8daa;
+  --shell-context-name-fg: #dbe5f5;
+  --shell-workspace-picker-bg: rgba(22, 26, 43, 0.86);
+  --shell-workspace-picker-fg: #eef3fb;
+  --shell-card-action-bg: rgba(12, 17, 28, 0.88);
+  --shell-card-action-fg: #b8c4da;
+  --shell-history-bg: rgba(255, 255, 255, 0.03);
+  --shell-history-fg: #d8dfec;
+  --shell-tab-icon-fg: #8f9db5;
+  --shell-tab-icon-active-fg: #c889ff;
+  --shell-tab-close-fg: #7f8da6;
+  --shell-tab-close-hover-fg: #e8edf7;
+  --shell-pane-summary-fg: #9ba8be;
+  --shell-inspector-active-bg: rgba(44, 31, 70, 0.94);
+  --shell-inspector-active-fg: #fff;
+  --shell-inspector-tab-bg: rgba(16, 21, 36, 0.88);
+  --shell-dock-header-glow: radial-gradient(circle at top center, rgba(116, 62, 201, 0.14), transparent 42%);
+  --shell-status-bar-glow: radial-gradient(circle at bottom center, rgba(116, 62, 201, 0.16), transparent 45%);
+  --shell-dock-panel-bg:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.03), transparent 40%),
+    linear-gradient(180deg, rgba(16, 22, 37, 0.98), rgba(11, 16, 28, 0.98));
+  --shell-output-text: #cce3d2;
+  --shell-metric-ring-center: rgba(10, 14, 24, 0.96);
+  --shell-metric-ring-track: rgba(141, 154, 187, 0.14);
+  --shell-kbd-bg: rgba(0, 0, 0, 0.22);
+  --shell-kbd-fg: #aeb9cb;
+  --shell-kbd-border: rgba(141, 154, 187, 0.22);
+  --shell-toolbar-icon-fg: #d4ddef;
+  --shell-toolbar-divider: rgba(141, 154, 187, 0.14);
+  --shell-context-icon-fg: #b892ef;
+  --shell-accent-hover-bg: rgba(189, 111, 255, 0.08);
+  --shell-accent-hover-border: rgba(189, 111, 255, 0.34);
+  --shell-action-primary-bg: rgba(42, 115, 255, 0.8);
+  --shell-action-danger-bg: rgba(164, 39, 54, 0.8);
+  --shell-log-meta-fg: #98a5bc;
+  --shell-placeholder-bg: rgba(8, 12, 20, 0.72);
+  --shell-placeholder-fg: #a8b2c5;
+  --shell-placeholder-title-fg: #f2f6fb;
+  --shell-placeholder-border: rgba(109, 126, 164, 0.2);
+  --shell-shell-picker-bg: rgba(18, 22, 36, 0.82);
+  --shell-shell-picker-fg: #b7c3d8;
+  --shell-shell-picker-hover-fg: #e8edf7;
+  --shell-shell-picker-hover-border: rgba(184, 125, 255, 0.42);
+  --shell-toolbar-height: 66px;
+  --shell-titlebar-overlay-width: 152px;
+  --shell-toolbar-edge-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.015);
+  --shell-session-action-fg: rgba(184, 195, 216, 0.55);
+}
+
+:root[data-shell-theme='coffee'] {
+  color-scheme: light;
+  --scrollbar-thumb: rgba(160, 120, 80, 0.42);
+  --scrollbar-thumb-hover: rgba(184, 116, 63, 0.62);
+  --scrollbar-thumb-gradient: linear-gradient(180deg, rgba(196, 143, 94, 0.72), rgba(168, 112, 62, 0.58));
+  --scrollbar-thumb-gradient-hover: linear-gradient(180deg, rgba(219, 176, 132, 0.82), rgba(184, 116, 63, 0.68));
+  --scrollbar-corner: rgba(232, 224, 212, 0.6);
+
+  --shell-bg-base: #e8e0d4;
+  --shell-bg-workspace: #f3ede4;
+  --shell-bg-panel: rgba(255, 252, 247, 0.98);
+  --shell-bg-elevated: #fffdf9;
+  --shell-bg-inset: rgba(248, 242, 233, 0.96);
+  --shell-text: #3f372e;
+  --shell-text-strong: #2a241d;
+  --shell-text-muted: #7a6f63;
+  --shell-text-label: #8a7768;
+  --shell-text-success: #276749;
+  --shell-border: rgba(120, 96, 72, 0.2);
+  --shell-border-subtle: rgba(120, 96, 72, 0.12);
+  --shell-border-strong: rgba(120, 96, 72, 0.32);
+  --shell-border-rail: rgba(184, 116, 63, 0.22);
+  --shell-border-accent: rgba(184, 116, 63, 0.16);
+  --shell-accent: #b8743f;
+  --shell-accent-strong: rgba(184, 116, 63, 0.82);
+  --shell-accent-soft: rgba(184, 116, 63, 0.48);
+  --shell-success: #2f855a;
+  --shell-success-soft: rgba(47, 133, 90, 0.14);
+  --shell-danger: #c53030;
+  --shell-running: #276749;
+  --shell-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --shell-shadow-panel: 0 8px 20px rgba(80, 60, 40, 0.08);
+  --shell-shadow-stage: 0 12px 28px rgba(80, 60, 40, 0.1);
+  --shell-rail-bg: linear-gradient(180deg, #f0e8dc, #e9e0d3);
+  --shell-toolbar-bg: linear-gradient(180deg, #faf6f0, #efe7db);
+  --shell-control-bg: rgba(255, 251, 246, 0.92);
+  --shell-control-fg: #4a4036;
+  --shell-control-border: rgba(120, 96, 72, 0.22);
+  --shell-row-bg: rgba(255, 249, 242, 0.72);
+  --shell-row-border: rgba(120, 96, 72, 0.16);
+  --shell-row-active-bg: linear-gradient(180deg, rgba(219, 176, 132, 0.52), rgba(196, 143, 94, 0.42));
+  --shell-row-active-fg: #2a241d;
+  --shell-row-active-border: rgba(184, 116, 63, 0.55);
+  --shell-tab-bg: linear-gradient(180deg, #faf4eb, #efe5d8);
+  --shell-tab-fg: #7a6f63;
+  --shell-tab-active-bg: linear-gradient(180deg, #fffdf9, #f6ede2);
+  --shell-tab-active-fg: #2a241d;
+  --shell-terminal-frame-bg: linear-gradient(180deg, #faf6f0, #efe8dc);
+  --shell-terminal-header-bg: linear-gradient(180deg, #f5ede3, #ebe1d4);
+  --shell-workspace-context-bg: linear-gradient(180deg, rgba(255, 249, 242, 0.95), rgba(244, 235, 224, 0.9));
+  --shell-workspace-context-fg: #3f372e;
+  --shell-layout-switch-bg: rgba(255, 251, 246, 0.9);
+  --shell-pill-primary-bg: linear-gradient(180deg, rgba(196, 143, 94, 0.95), rgba(168, 112, 62, 0.92));
+  --shell-pill-primary-fg: #fffdf9;
+  --shell-pill-ghost-bg: rgba(255, 249, 242, 0.72);
+  --shell-pill-active-bg: rgba(219, 176, 132, 0.42);
+  --shell-pill-active-fg: #2a241d;
+  --shell-pill-hover-bg: rgba(244, 232, 216, 0.95);
+  --shell-pill-hover-border: rgba(184, 116, 63, 0.28);
+  --shell-modal-bg: rgba(255, 252, 247, 0.98);
+  --shell-backdrop: rgba(58, 46, 34, 0.32);
+  --shell-input-bg: #fffdf9;
+  --shell-input-fg: #2a241d;
+  --shell-brand-badge-bg: linear-gradient(180deg, #c4956a, #a86f42);
+  --shell-muted-label: #8a7768;
+  --shell-pane-pill-bg: rgba(255, 249, 242, 0.95);
+  --shell-pane-pill-fg: #4a4036;
+  --shell-create-button-bg: linear-gradient(180deg, #fff9f2, #f3e8da);
+  --shell-create-button-border: rgba(184, 116, 63, 0.28);
+  --shell-create-button-fg: #2a241d;
+  --shell-row-hover-bg: rgba(244, 232, 216, 0.82);
+  --shell-preferences-bg: rgba(255, 252, 247, 0.92);
+  --shell-stage-bg: linear-gradient(180deg, #faf6f0, #efe8dc);
+  --shell-inspector-card-bg: linear-gradient(180deg, #fffdf9, #f7efe4);
+  --shell-dock-bg: linear-gradient(180deg, #faf6f0, #efe7db);
+  --shell-dock-tabs-bg: #f5ede3;
+  --shell-dock-tab-fg: #7a6f63;
+  --shell-dock-tab-active-fg: #2a241d;
+  --shell-chip-bg: rgba(255, 249, 242, 0.96);
+  --shell-chip-fg: #4a4036;
+  --shell-status-fg: #6b6156;
+  --shell-surface-tile-bg: rgba(255, 249, 242, 0.92);
+  --shell-card-meta-fg: #8a7768;
+  --shell-card-icon-fg: #8a7768;
+  --shell-running-pill-bg: rgba(39, 103, 73, 0.14);
+  --shell-running-pill-fg: #276749;
+  --shell-focused-pill-bg: rgba(219, 176, 132, 0.35);
+  --shell-inspector-status-bg: rgba(219, 176, 132, 0.42);
+  --shell-inspector-status-fg: #2a241d;
+  --shell-tab-add-bg: rgba(255, 249, 242, 0.92);
+  --shell-tab-add-fg: #7a6f63;
+  --shell-terminal-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 8px 18px rgba(80, 60, 40, 0.08);
+  --shell-terminal-card-focused-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 0 0 1px rgba(184, 116, 63, 0.28),
+    0 12px 24px rgba(80, 60, 40, 0.12);
+  --shell-tab-active-glow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 -6px 16px rgba(184, 116, 63, 0.12);
+  --shell-toolbar-chip-bg: rgba(255, 249, 242, 0.92);
+  --shell-toolbar-chip-fg: #6b6156;
+  --shell-toolbar-summary-fg: #8a7768;
+  --shell-context-name-fg: #3f372e;
+  --shell-workspace-picker-bg: rgba(255, 251, 246, 0.96);
+  --shell-workspace-picker-fg: #3f372e;
+  --shell-card-action-bg: rgba(255, 249, 242, 0.96);
+  --shell-card-action-fg: #5c4d3f;
+  --shell-history-bg: rgba(255, 249, 242, 0.92);
+  --shell-history-fg: #4a4036;
+  --shell-tab-icon-fg: #8a7768;
+  --shell-tab-icon-active-fg: #b8743f;
+  --shell-tab-close-fg: #8a7768;
+  --shell-tab-close-hover-fg: #2a241d;
+  --shell-pane-summary-fg: #7a6f63;
+  --shell-inspector-active-bg: rgba(219, 176, 132, 0.42);
+  --shell-inspector-active-fg: #2a241d;
+  --shell-inspector-tab-bg: rgba(255, 249, 242, 0.96);
+  --shell-dock-header-glow: none;
+  --shell-status-bar-glow: none;
+  --shell-dock-panel-bg: linear-gradient(180deg, #fffdf9, #f7efe4);
+  --shell-output-text: #2f6040;
+  --shell-metric-ring-center: #fff9f2;
+  --shell-metric-ring-track: rgba(120, 96, 72, 0.18);
+  --shell-kbd-bg: rgba(255, 252, 247, 0.92);
+  --shell-kbd-fg: #6b6156;
+  --shell-kbd-border: rgba(120, 96, 72, 0.22);
+  --shell-toolbar-icon-fg: #6b6156;
+  --shell-toolbar-divider: rgba(120, 96, 72, 0.16);
+  --shell-context-icon-fg: #b8743f;
+  --shell-accent-hover-bg: rgba(184, 116, 63, 0.1);
+  --shell-accent-hover-border: rgba(184, 116, 63, 0.34);
+  --shell-action-primary-bg: rgba(37, 99, 235, 0.88);
+  --shell-action-danger-bg: rgba(197, 48, 48, 0.88);
+  --shell-log-meta-fg: #8a7768;
+  --shell-placeholder-bg: rgba(255, 249, 242, 0.92);
+  --shell-placeholder-fg: #7a6f63;
+  --shell-placeholder-title-fg: #2a241d;
+  --shell-placeholder-border: rgba(120, 96, 72, 0.24);
+  --shell-shell-picker-bg: rgba(255, 249, 242, 0.96);
+  --shell-shell-picker-fg: #4a4036;
+  --shell-shell-picker-hover-fg: #2a241d;
+  --shell-shell-picker-hover-border: rgba(184, 116, 63, 0.42);
+  --shell-toolbar-height: 66px;
+  --shell-titlebar-overlay-width: 152px;
+  --shell-toolbar-edge-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -1px 0 rgba(120, 96, 72, 0.08);
+  --shell-session-action-fg: rgba(122, 111, 99, 0.72);
+}
+
+:root[data-shell-theme='white'] {
+  color-scheme: light;
+  --scrollbar-thumb: rgba(148, 163, 184, 0.45);
+  --scrollbar-thumb-hover: rgba(100, 116, 139, 0.65);
+  --scrollbar-thumb-gradient: linear-gradient(180deg, rgba(148, 163, 184, 0.55), rgba(100, 116, 139, 0.42));
+  --scrollbar-thumb-gradient-hover: linear-gradient(180deg, rgba(148, 163, 184, 0.72), rgba(71, 85, 105, 0.58));
+  --scrollbar-corner: rgba(238, 241, 246, 0.8);
+
+  --shell-bg-base: #eef1f6;
+  --shell-bg-workspace: #ffffff;
+  --shell-bg-panel: rgba(255, 255, 255, 0.98);
+  --shell-bg-elevated: #ffffff;
+  --shell-bg-inset: rgba(246, 248, 252, 0.96);
+  --shell-text: #1f2937;
+  --shell-text-strong: #111827;
+  --shell-text-muted: #6b7280;
+  --shell-text-label: #64748b;
+  --shell-text-success: #047857;
+  --shell-border: rgba(148, 163, 184, 0.28);
+  --shell-border-subtle: rgba(148, 163, 184, 0.16);
+  --shell-border-strong: rgba(100, 116, 139, 0.36);
+  --shell-border-rail: rgba(59, 130, 246, 0.18);
+  --shell-border-accent: rgba(59, 130, 246, 0.14);
+  --shell-accent: #3b82f6;
+  --shell-accent-strong: rgba(59, 130, 246, 0.82);
+  --shell-accent-soft: rgba(59, 130, 246, 0.42);
+  --shell-success: #059669;
+  --shell-success-soft: rgba(5, 150, 105, 0.12);
+  --shell-danger: #dc2626;
+  --shell-running: #047857;
+  --shell-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --shell-shadow-panel: 0 8px 20px rgba(15, 23, 42, 0.06);
+  --shell-shadow-stage: 0 12px 28px rgba(15, 23, 42, 0.08);
+  --shell-rail-bg: linear-gradient(180deg, #f8fafc, #eef2f7);
+  --shell-toolbar-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
+  --shell-control-bg: rgba(255, 255, 255, 0.96);
+  --shell-control-fg: #334155;
+  --shell-control-border: rgba(148, 163, 184, 0.28);
+  --shell-row-bg: rgba(255, 255, 255, 0.82);
+  --shell-row-border: rgba(148, 163, 184, 0.22);
+  --shell-row-active-bg: linear-gradient(180deg, rgba(191, 219, 254, 0.72), rgba(147, 197, 253, 0.52));
+  --shell-row-active-fg: #0f172a;
+  --shell-row-active-border: rgba(59, 130, 246, 0.45);
+  --shell-tab-bg: linear-gradient(180deg, #f8fafc, #eef2f7);
+  --shell-tab-fg: #64748b;
+  --shell-tab-active-bg: linear-gradient(180deg, #ffffff, #f1f5f9);
+  --shell-tab-active-fg: #0f172a;
+  --shell-terminal-frame-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
+  --shell-terminal-header-bg: linear-gradient(180deg, #f8fafc, #eef2f7);
+  --shell-workspace-context-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.96));
+  --shell-workspace-context-fg: #1f2937;
+  --shell-layout-switch-bg: rgba(248, 250, 252, 0.96);
+  --shell-pill-primary-bg: linear-gradient(180deg, rgba(96, 165, 250, 0.96), rgba(37, 99, 235, 0.92));
+  --shell-pill-primary-fg: #ffffff;
+  --shell-pill-ghost-bg: rgba(248, 250, 252, 0.88);
+  --shell-pill-active-bg: rgba(191, 219, 254, 0.72);
+  --shell-pill-active-fg: #0f172a;
+  --shell-pill-hover-bg: rgba(241, 245, 249, 0.98);
+  --shell-pill-hover-border: rgba(59, 130, 246, 0.24);
+  --shell-modal-bg: rgba(255, 255, 255, 0.98);
+  --shell-backdrop: rgba(15, 23, 42, 0.28);
+  --shell-input-bg: #ffffff;
+  --shell-input-fg: #111827;
+  --shell-brand-badge-bg: linear-gradient(180deg, #60a5fa, #2563eb);
+  --shell-muted-label: #64748b;
+  --shell-pane-pill-bg: rgba(248, 250, 252, 0.98);
+  --shell-pane-pill-fg: #334155;
+  --shell-create-button-bg: linear-gradient(180deg, #ffffff, #eef2f7);
+  --shell-create-button-border: rgba(59, 130, 246, 0.24);
+  --shell-create-button-fg: #0f172a;
+  --shell-row-hover-bg: rgba(241, 245, 249, 0.95);
+  --shell-preferences-bg: rgba(255, 255, 255, 0.96);
+  --shell-stage-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
+  --shell-inspector-card-bg: linear-gradient(180deg, #ffffff, #f8fafc);
+  --shell-dock-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
+  --shell-dock-tabs-bg: #f8fafc;
+  --shell-dock-tab-fg: #64748b;
+  --shell-dock-tab-active-fg: #0f172a;
+  --shell-chip-bg: rgba(248, 250, 252, 0.98);
+  --shell-chip-fg: #334155;
+  --shell-status-fg: #64748b;
+  --shell-surface-tile-bg: rgba(248, 250, 252, 0.98);
+  --shell-card-meta-fg: #64748b;
+  --shell-card-icon-fg: #64748b;
+  --shell-running-pill-bg: rgba(5, 150, 105, 0.12);
+  --shell-running-pill-fg: #047857;
+  --shell-focused-pill-bg: rgba(191, 219, 254, 0.72);
+  --shell-inspector-status-bg: rgba(191, 219, 254, 0.72);
+  --shell-inspector-status-fg: #0f172a;
+  --shell-tab-add-bg: rgba(248, 250, 252, 0.98);
+  --shell-tab-add-fg: #64748b;
+  --shell-terminal-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 8px 18px rgba(15, 23, 42, 0.06);
+  --shell-terminal-card-focused-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 0 1px rgba(59, 130, 246, 0.28),
+    0 12px 24px rgba(15, 23, 42, 0.08);
+  --shell-tab-active-glow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 -6px 16px rgba(59, 130, 246, 0.1);
+  --shell-toolbar-chip-bg: rgba(248, 250, 252, 0.98);
+  --shell-toolbar-chip-fg: #475569;
+  --shell-toolbar-summary-fg: #64748b;
+  --shell-context-name-fg: #1f2937;
+  --shell-workspace-picker-bg: rgba(255, 255, 255, 0.98);
+  --shell-workspace-picker-fg: #1f2937;
+  --shell-card-action-bg: rgba(248, 250, 252, 0.98);
+  --shell-card-action-fg: #475569;
+  --shell-history-bg: rgba(248, 250, 252, 0.98);
+  --shell-history-fg: #334155;
+  --shell-tab-icon-fg: #64748b;
+  --shell-tab-icon-active-fg: #3b82f6;
+  --shell-tab-close-fg: #64748b;
+  --shell-tab-close-hover-fg: #0f172a;
+  --shell-pane-summary-fg: #64748b;
+  --shell-inspector-active-bg: rgba(191, 219, 254, 0.72);
+  --shell-inspector-active-fg: #0f172a;
+  --shell-inspector-tab-bg: rgba(248, 250, 252, 0.98);
+  --shell-dock-header-glow: none;
+  --shell-status-bar-glow: none;
+  --shell-dock-panel-bg: linear-gradient(180deg, #ffffff, #f8fafc);
+  --shell-output-text: #047857;
+  --shell-metric-ring-center: #ffffff;
+  --shell-metric-ring-track: rgba(148, 163, 184, 0.18);
+  --shell-kbd-bg: rgba(248, 250, 252, 0.98);
+  --shell-kbd-fg: #64748b;
+  --shell-kbd-border: rgba(148, 163, 184, 0.28);
+  --shell-toolbar-icon-fg: #64748b;
+  --shell-toolbar-divider: rgba(148, 163, 184, 0.18);
+  --shell-context-icon-fg: #3b82f6;
+  --shell-accent-hover-bg: rgba(59, 130, 246, 0.08);
+  --shell-accent-hover-border: rgba(59, 130, 246, 0.28);
+  --shell-action-primary-bg: rgba(37, 99, 235, 0.88);
+  --shell-action-danger-bg: rgba(220, 38, 38, 0.88);
+  --shell-log-meta-fg: #64748b;
+  --shell-placeholder-bg: rgba(248, 250, 252, 0.98);
+  --shell-placeholder-fg: #64748b;
+  --shell-placeholder-title-fg: #0f172a;
+  --shell-placeholder-border: rgba(148, 163, 184, 0.28);
+  --shell-shell-picker-bg: rgba(248, 250, 252, 0.98);
+  --shell-shell-picker-fg: #334155;
+  --shell-shell-picker-hover-fg: #0f172a;
+  --shell-shell-picker-hover-border: rgba(59, 130, 246, 0.34);
+  --shell-toolbar-height: 66px;
+  --shell-titlebar-overlay-width: 152px;
+  --shell-toolbar-edge-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(148, 163, 184, 0.12);
+  --shell-session-action-fg: rgba(100, 116, 139, 0.72);
 }
 
 button,
@@ -99,8 +530,7 @@ input {
   min-height: 0;
   padding: var(--shell-space-lg) var(--shell-space-md) var(--shell-space-lg);
   border-right: 1px solid var(--shell-border-rail);
-  background:
-    linear-gradient(180deg, rgba(15, 19, 33, 0.98), rgba(10, 16, 27, 0.98));
+  background: var(--shell-rail-bg);
   overflow: hidden auto;
   scrollbar-gutter: stable;
   -webkit-app-region: drag;
@@ -167,11 +597,10 @@ input {
   align-items: center;
   gap: 7px;
   padding: 7px 10px;
-  border: 1px solid rgba(168, 136, 255, 0.18);
+  border: 1px solid var(--shell-create-button-border);
   border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(39, 29, 66, 0.92), rgba(28, 24, 50, 0.88));
-  color: #eef3fb;
+  background: var(--shell-create-button-bg);
+  color: var(--shell-create-button-fg);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -180,16 +609,15 @@ input {
 }
 
 .rail-create-button:hover {
-  border-color: rgba(191, 151, 255, 0.34);
-  background:
-    linear-gradient(180deg, rgba(48, 35, 79, 0.96), rgba(34, 26, 59, 0.92));
+  border-color: var(--shell-accent-soft);
+  filter: brightness(1.04);
 }
 
 .rail-create-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #cf8bff;
+  color: var(--shell-accent);
 }
 
 .rail-create-icon svg {
@@ -197,8 +625,7 @@ input {
   height: 13px;
 }
 
-.session-list,
-.template-list {
+.session-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -206,54 +633,57 @@ input {
 
 .session-row {
   position: relative;
-  border: 1px solid rgba(141, 154, 187, 0.1);
+  border: 1px solid var(--shell-row-border);
   border-radius: 12px;
-  background: rgba(17, 22, 36, 0.52);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  background: var(--shell-row-bg);
+  box-shadow: var(--shell-shadow-inset);
 }
 
 .session-row.active {
-  border-color: rgba(197, 139, 255, 0.48);
-  background:
-    linear-gradient(180deg, rgba(61, 30, 93, 0.9), rgba(53, 27, 83, 0.88));
+  border-color: var(--shell-row-active-border);
+  background: var(--shell-row-active-bg);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 10px 24px rgba(0, 0, 0, 0.16);
+    var(--shell-shadow-inset),
+    var(--shell-shadow-panel);
 }
 
 .session-row.active .session-name {
-  color: #f7fbff;
+  color: var(--shell-row-active-fg);
 }
 
 .session-row.active .session-icon {
-  color: #c9e1ff;
+  color: var(--shell-accent);
 }
 
-.session-row[data-accent='amber'].active {
+:root[data-shell-theme='midnight'] .session-row[data-accent='amber'].active {
   border-color: rgba(255, 196, 86, 0.52);
   background: rgba(64, 39, 12, 0.78);
 }
 
-.session-row[data-accent='cyan'].active {
+:root[data-shell-theme='midnight'] .session-row[data-accent='cyan'].active {
   border-color: rgba(89, 203, 255, 0.44);
   background: rgba(12, 43, 64, 0.78);
 }
 
-.session-row[data-accent='blue'].active {
+:root[data-shell-theme='midnight'] .session-row[data-accent='blue'].active {
   border-color: rgba(94, 159, 255, 0.44);
   background: rgba(16, 35, 77, 0.78);
 }
 
-.template-item,
+:root[data-shell-theme='midnight'] .session-row[data-accent='violet'].active {
+  border-color: rgba(197, 139, 255, 0.48);
+  background: linear-gradient(180deg, rgba(61, 30, 93, 0.9), rgba(53, 27, 83, 0.88));
+}
+
 .toolbar-pill,
 .workspace-tab,
 .tab-add,
 .inspector-tabs button,
 .inspector-actions button,
 .card-actions button {
-  border: 1px solid rgba(141, 154, 187, 0.14);
-  background: rgba(18, 22, 36, 0.82);
-  color: #d7deeb;
+  border: 1px solid var(--shell-control-border);
+  background: var(--shell-control-bg);
+  color: var(--shell-control-fg);
 }
 
 .session-item {
@@ -306,7 +736,7 @@ input {
   border: 0;
   border-radius: 4px;
   background: transparent;
-  color: rgba(184, 195, 216, 0.55);
+  color: var(--shell-session-action-fg);
   line-height: 1;
   cursor: pointer;
 }
@@ -317,8 +747,8 @@ input {
 }
 
 .session-action-icon:hover {
-  color: #eff3f9;
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--shell-text-strong);
+  background: var(--shell-row-hover-bg);
 }
 
 .session-action-icon-danger:hover {
@@ -329,34 +759,19 @@ input {
   width: calc(100% - 8px);
   margin: 4px;
   padding: 10px 12px;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 10px;
-  background: rgba(8, 11, 20, 0.92);
-  color: #eff3f9;
+  background: var(--shell-input-bg);
+  color: var(--shell-input-fg);
 }
 
-.template-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  cursor: pointer;
-  justify-content: flex-start;
-  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
-  font-size: 0.96rem;
-}
-
-.template-item:hover,
-.session-row:hover {
-  border-color: rgba(141, 154, 187, 0.18);
-  background-color: rgba(23, 28, 44, 0.72);
+.session-row:hover:not(.active) {
+  border-color: var(--shell-border-strong);
+  background-color: var(--shell-row-hover-bg);
 }
 
 .session-row.active:hover {
-  background:
-    linear-gradient(180deg, rgba(65, 33, 99, 0.92), rgba(56, 29, 88, 0.9));
+  background: var(--shell-row-active-bg);
 }
 
 .session-icon {
@@ -364,7 +779,7 @@ input {
   place-items: center;
   width: 16px;
   height: 16px;
-  color: #9ad0ff;
+  color: var(--shell-accent);
 }
 
 .session-icon svg,
@@ -373,35 +788,11 @@ input {
   height: 16px;
 }
 
-.template-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: #64748b;
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.02);
-}
-
-.template-item[data-accent='amber'] .template-dot {
-  background: #f5b942;
-}
-
-.template-item[data-accent='violet'] .template-dot {
-  background: #9f58ff;
-}
-
-.template-item[data-accent='cyan'] .template-dot {
-  background: #4dd6ff;
-}
-
-.template-item[data-accent='blue'] .template-dot {
-  background: #48a5ff;
-}
-
 .tool-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  color: #c1cadb;
+  color: var(--shell-text-muted);
   font-size: 0.94rem;
 }
 
@@ -427,7 +818,7 @@ input {
   place-items: center;
   width: 16px;
   height: 16px;
-  color: #9cb0d3;
+  color: var(--shell-text-label);
 }
 
 .preferences-card {
@@ -436,16 +827,50 @@ input {
   gap: 10px;
   margin-top: 2px;
   padding: 12px;
-  border: 1px solid rgba(141, 154, 187, 0.14);
+  border: 1px solid var(--shell-border);
   border-radius: 12px;
-  background: rgba(8, 12, 22, 0.72);
+  background: var(--shell-preferences-bg);
+}
+
+.preference-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--shell-border-subtle);
+}
+
+.preference-section-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preference-section-title {
+  margin: 0;
+  color: var(--shell-text-strong);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.preference-section-copy {
+  margin: 0;
+  color: var(--shell-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.inspector-terminal-heading {
+  margin-bottom: 2px;
 }
 
 .preference-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #c1cadb;
+  color: var(--shell-text-muted);
   font-size: 0.86rem;
 }
 
@@ -456,7 +881,7 @@ input {
 }
 
 .preference-label {
-  color: #aeb9cb;
+  color: var(--shell-text-label);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -465,18 +890,55 @@ input {
 .preference-input {
   width: 100%;
   padding: 9px 10px;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 10px;
-  background: rgba(8, 11, 20, 0.92);
-  color: #eff3f9;
+  background: var(--shell-input-bg);
+  color: var(--shell-input-fg);
 }
 
 .preference-hint {
   margin: 0;
-  color: #7f8daa;
+  color: var(--shell-text-muted);
   font-size: 0.78rem;
   line-height: 1.45;
   word-break: break-word;
+}
+
+.theme-color-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.theme-color-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.theme-color-input {
+  width: 100%;
+  height: 38px;
+  padding: 4px;
+  border: 1px solid var(--shell-border);
+  border-radius: 10px;
+  background: var(--shell-input-bg);
+  cursor: pointer;
+}
+
+.preference-reset-button {
+  align-self: flex-start;
+  padding: 7px 10px;
+  border: 1px solid var(--shell-border);
+  border-radius: 10px;
+  background: var(--shell-control-bg);
+  color: var(--shell-control-fg);
+  cursor: pointer;
+}
+
+.preference-reset-button:hover {
+  border-color: var(--shell-accent-soft);
+  color: var(--shell-text-strong);
 }
 
 .rail-status {
@@ -549,31 +1011,26 @@ app-workspace-area .content-layout {
 
 .dock-resize-handle:hover::before,
 .workspace-shell-dock-resizing .dock-resize-handle::before {
-  background: rgba(189, 111, 255, 0.72);
-  box-shadow: 0 0 0 4px rgba(189, 111, 255, 0.12);
+  background: var(--shell-accent-strong);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--shell-accent) 12%, transparent);
 }
 
 .shell-toolbar {
   display: grid;
-  grid-template-columns: 224px minmax(248px, 332px) minmax(0, 1fr);
+  grid-template-columns: 224px minmax(0, 1fr);
   align-items: center;
   gap: 14px;
   flex-wrap: nowrap;
-  min-height: 66px;
+  min-height: var(--shell-toolbar-height);
   padding: 8px 18px 10px 18px;
   border-bottom: 1px solid var(--shell-border-accent);
-  background:
-    radial-gradient(circle at 28% 0%, rgba(116, 62, 201, 0.2), transparent 34%),
-    radial-gradient(circle at 72% 0%, rgba(75, 111, 255, 0.11), transparent 26%),
-    linear-gradient(180deg, rgba(21, 17, 40, 0.985), rgba(17, 21, 35, 0.97));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.015);
+  background: var(--shell-toolbar-bg);
+  box-shadow: var(--shell-toolbar-edge-shadow);
   -webkit-app-region: drag;
 }
 
 .shell-toolbar.windows-titlebar {
-  padding-right: 164px;
+  padding-right: calc(var(--shell-titlebar-overlay-width) + 18px);
 }
 
 .shell-toolbar-leading {
@@ -638,7 +1095,7 @@ app-workspace-area .content-layout {
 }
 
 .desktop-brand-label {
-  color: #7f8db0;
+  color: var(--shell-muted-label);
   font-size: 0.69rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -653,7 +1110,7 @@ app-workspace-area .content-layout {
   width: 29px;
   height: 29px;
   border-radius: 8px;
-  background: linear-gradient(180deg, rgba(184, 88, 255, 0.98), rgba(102, 85, 255, 0.94));
+  background: var(--shell-brand-badge-bg);
   color: #fff;
   font-weight: 700;
   line-height: 1;
@@ -675,11 +1132,10 @@ app-workspace-area .content-layout {
   width: 100%;
   min-width: 0;
   padding: 6px 12px 7px;
-  border: 1px solid rgba(141, 154, 187, 0.12);
+  border: 1px solid var(--shell-border);
   border-radius: 14px;
-  background:
-    linear-gradient(180deg, rgba(27, 23, 44, 0.72), rgba(22, 20, 38, 0.66));
-  color: #e7edf8;
+  background: var(--shell-workspace-context-bg);
+  color: var(--shell-workspace-context-fg);
   font-weight: 500;
   overflow: hidden;
   white-space: nowrap;
@@ -693,7 +1149,7 @@ app-workspace-area .content-layout {
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  color: #b892ef;
+  color: var(--shell-context-icon-fg);
 }
 
 .workspace-context-copy {
@@ -704,7 +1160,7 @@ app-workspace-area .content-layout {
 }
 
 .workspace-context-label {
-  color: #8090ad;
+  color: var(--shell-muted-label);
   font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -714,7 +1170,7 @@ app-workspace-area .content-layout {
 
 .workspace-context-name {
   overflow: hidden;
-  color: #dbe5f5;
+  color: var(--shell-context-name-fg);
   font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.15;
@@ -730,10 +1186,10 @@ app-workspace-area .content-layout {
   margin-left: auto;
   min-height: 20px;
   padding: 0 8px;
-  border: 1px solid rgba(141, 154, 187, 0.1);
+  border: 1px solid var(--shell-border-subtle);
   border-radius: 999px;
-  background: rgba(16, 20, 31, 0.46);
-  color: #95a3bd;
+  background: var(--shell-toolbar-chip-bg);
+  color: var(--shell-toolbar-chip-fg);
   font-size: 0.66rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -741,10 +1197,19 @@ app-workspace-area .content-layout {
   opacity: 0.82;
 }
 
+.toolbar-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
 .toolbar-centerband {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  flex: 0 1 auto;
+  max-width: 332px;
   min-width: 0;
 }
 
@@ -763,10 +1228,10 @@ app-workspace-area .content-layout {
   flex: 0 0 auto;
   min-height: 20px;
   padding: 0 8px;
-  border: 1px solid rgba(141, 154, 187, 0.12);
+  border: 1px solid var(--shell-border-subtle);
   border-radius: 999px;
-  background: rgba(16, 20, 31, 0.5);
-  color: #c6d2e7;
+  background: var(--shell-toolbar-chip-bg);
+  color: var(--shell-toolbar-chip-fg);
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -776,7 +1241,7 @@ app-workspace-area .content-layout {
 .toolbar-center-summary {
   min-width: 0;
   overflow: hidden;
-  color: #7f8daa;
+  color: var(--shell-toolbar-summary-fg);
   font-size: 0.76rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -787,10 +1252,10 @@ app-workspace-area .content-layout {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 8px;
-  background: rgba(22, 26, 43, 0.86);
-  color: #eef3fb;
+  background: var(--shell-workspace-picker-bg);
+  color: var(--shell-workspace-picker-fg);
   font-weight: 500;
 }
 
@@ -808,8 +1273,8 @@ app-workspace-area .content-layout {
   align-self: stretch;
   gap: 10px;
   align-items: center;
-  justify-content: flex-end;
-  margin-left: auto;
+  justify-content: flex-start;
+  flex: 1 1 auto;
   min-width: 0;
   flex-wrap: nowrap;
   padding: 4px 0;
@@ -824,12 +1289,12 @@ app-workspace-area .content-layout {
 
 .toolbar-action-group-primary {
   padding-right: 12px;
-  border-right: 1px solid rgba(141, 154, 187, 0.14);
+  border-right: 1px solid var(--shell-toolbar-divider);
 }
 
 .toolbar-action-group-secondary {
   padding-right: 12px;
-  border-right: 1px solid rgba(141, 154, 187, 0.14);
+  border-right: 1px solid var(--shell-toolbar-divider);
 }
 
 .toolbar-action-group-utility {
@@ -839,7 +1304,7 @@ app-workspace-area .content-layout {
 .toolbar-divider {
   width: 1px;
   height: 24px;
-  background: rgba(141, 154, 187, 0.16);
+  background: var(--shell-toolbar-divider);
 }
 
 .toolbar-pill.toolbar-search,
@@ -859,10 +1324,10 @@ app-workspace-area .content-layout {
 
 .toolbar-pill kbd {
   padding: 2px 6px;
-  border: 1px solid rgba(141, 154, 187, 0.22);
+  border: 1px solid var(--shell-kbd-border);
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.22);
-  color: #aeb9cb;
+  background: var(--shell-kbd-bg);
+  color: var(--shell-kbd-fg);
   font-size: 0.72rem;
   font-family: inherit;
   line-height: 1.25;
@@ -873,7 +1338,7 @@ app-workspace-area .content-layout {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #d4ddef;
+  color: var(--shell-toolbar-icon-fg);
 }
 
 .toolbar-icon svg {
@@ -893,17 +1358,17 @@ app-workspace-area .content-layout {
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 999px;
-  background: rgba(18, 22, 36, 0.88);
-  color: #d7deeb;
+  background: var(--shell-control-bg);
+  color: var(--shell-control-fg);
   cursor: pointer;
 }
 
 .toolbar-avatar {
   font-size: 0.82rem;
   font-weight: 600;
-  background: linear-gradient(180deg, rgba(74, 82, 109, 0.94), rgba(28, 33, 50, 0.94));
+  background: var(--shell-toolbar-chip-bg);
 }
 
 .toolbar-settings-button {
@@ -921,10 +1386,10 @@ app-workspace-area .content-layout {
   z-index: 20;
   min-width: 210px;
   padding: 6px;
-  border: 1px solid rgba(141, 154, 187, 0.18);
+  border: 1px solid var(--shell-border-strong);
   border-radius: 12px;
-  background: rgba(12, 16, 29, 0.98);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  background: var(--shell-modal-bg);
+  box-shadow: var(--shell-shadow-stage);
 }
 
 .view-menu-item {
@@ -936,25 +1401,25 @@ app-workspace-area .content-layout {
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #d7deeb;
+  color: var(--shell-control-fg);
   text-align: left;
   cursor: pointer;
 }
 
 .view-menu-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--shell-row-hover-bg);
 }
 
 .view-menu-check {
   width: 14px;
-  color: #b57dff;
+  color: var(--shell-accent);
   font-size: 0.82rem;
 }
 
 .view-menu-divider {
   height: 1px;
   margin: 4px 0;
-  background: rgba(141, 154, 187, 0.14);
+  background: var(--shell-border-subtle);
 }
 
 .layout-switch {
@@ -962,9 +1427,9 @@ app-workspace-area .content-layout {
   gap: 0;
   flex-shrink: 0;
   padding: 3px;
-  border: 1px solid rgba(141, 154, 187, 0.12);
+  border: 1px solid var(--shell-control-border);
   border-radius: 11px;
-  background: rgba(15, 18, 30, 0.78);
+  background: var(--shell-layout-switch-bg);
 }
 
 .toolbar-pill,
@@ -988,14 +1453,14 @@ app-workspace-area .content-layout {
 }
 
 .toolbar-pill.muted {
-  color: #c2cbda;
+  color: var(--shell-text-muted);
 }
 
 .toolbar-pill-primary {
   min-width: 122px;
-  border-color: rgba(141, 154, 187, 0.08);
-  background:
-    linear-gradient(180deg, rgba(56, 40, 90, 0.98), rgba(35, 26, 60, 0.96));
+  border-color: var(--shell-border-subtle);
+  background: var(--shell-pill-primary-bg);
+  color: var(--shell-pill-primary-fg);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 10px 24px rgba(20, 15, 46, 0.24);
@@ -1033,7 +1498,7 @@ app-workspace-area .content-layout {
 }
 
 .toolbar-pill-ghost {
-  background: rgba(15, 20, 32, 0.5);
+  background: var(--shell-pill-ghost-bg);
 }
 
 .toolbar-pill-segment {
@@ -1043,16 +1508,16 @@ app-workspace-area .content-layout {
 }
 
 .toolbar-pill.active {
-  border-color: rgba(189, 111, 255, 0.48);
-  background: rgba(41, 27, 64, 0.94);
-  color: #ffffff;
+  border-color: var(--shell-accent-soft);
+  background: var(--shell-pill-active-bg);
+  color: var(--shell-pill-active-fg);
 }
 
 .toolbar-pill:hover,
 .toolbar-icon-button:hover,
 .toolbar-avatar:hover {
-  border-color: rgba(186, 152, 255, 0.24);
-  background: rgba(30, 34, 52, 0.92);
+  border-color: var(--shell-pill-hover-border);
+  background: var(--shell-pill-hover-bg);
 }
 
 .content-layout {
@@ -1106,14 +1571,13 @@ app-workspace-area .content-layout {
   height: 36px;
   padding: 0 8px 0 10px;
   text-align: left;
-  border: 1px solid rgba(100, 116, 154, 0.2);
+  border: 1px solid var(--shell-border);
   border-bottom: none;
   border-radius: 10px 10px 0 0;
-  background:
-    linear-gradient(180deg, rgba(26, 32, 50, 0.96), rgba(17, 22, 36, 0.94));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--shell-tab-bg);
+  box-shadow: var(--shell-shadow-inset);
   clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 100%, 0 100%);
-  color: #9aa8c0;
+  color: var(--shell-tab-fg);
   flex-shrink: 0;
   cursor: pointer;
 }
@@ -1124,24 +1588,19 @@ app-workspace-area .content-layout {
   margin-bottom: -1px;
   padding-bottom: 1px;
   border-color: var(--shell-border-strong);
-  color: #e8edf7;
-  background:
-    linear-gradient(180deg, rgba(36, 42, 64, 0.99), rgba(14, 20, 34, 0.99));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 -8px 18px rgba(106, 72, 188, 0.08);
+  color: var(--shell-tab-active-fg);
+  background: var(--shell-tab-active-bg);
+  background: var(--shell-tab-active-glow);
 }
 
 .workspace-tab[data-tone='violet'].active {
-  border-color: rgba(184, 125, 255, 0.42);
-  box-shadow:
-    inset 0 0 0 1px rgba(188, 114, 255, 0.18),
-    0 -8px 18px rgba(106, 72, 188, 0.12);
+  border-color: var(--shell-accent-soft);
+  box-shadow: var(--shell-tab-active-glow);
 }
 
 .workspace-tab:hover:not(.active) {
-  border-color: rgba(141, 154, 187, 0.28);
-  color: #c5d0e3;
+  border-color: var(--shell-border-strong);
+  color: var(--shell-text);
 }
 
 .workspace-tab-icon {
@@ -1151,11 +1610,11 @@ app-workspace-area .content-layout {
   width: 15px;
   height: 15px;
   flex: 0 0 auto;
-  color: #8f9db5;
+  color: var(--shell-tab-icon-fg);
 }
 
 .workspace-tab.active .workspace-tab-icon {
-  color: #c889ff;
+  color: var(--shell-tab-icon-active-fg);
 }
 
 .workspace-tab-icon svg {
@@ -1182,13 +1641,13 @@ app-workspace-area .content-layout {
   height: 20px;
   flex: 0 0 auto;
   border-radius: 6px;
-  color: #7f8da6;
+  color: var(--shell-tab-close-fg);
   line-height: 1;
 }
 
 .workspace-tab-close:hover {
-  color: #e8edf7;
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--shell-tab-close-hover-fg);
+  background: var(--shell-row-hover-bg);
 }
 
 .workspace-tab-close svg {
@@ -1206,9 +1665,7 @@ app-workspace-area .content-layout {
   padding: var(--shell-space-md);
   border: 1px solid var(--shell-border-strong);
   border-radius: 0 var(--shell-radius-stage) var(--shell-radius-stage) var(--shell-radius-stage);
-  background:
-    radial-gradient(circle at top center, rgba(106, 72, 188, 0.18), transparent 34%),
-    linear-gradient(180deg, rgba(14, 20, 34, 0.985), rgba(9, 13, 22, 0.99));
+  background: var(--shell-stage-bg);
   box-shadow:
     var(--shell-shadow-inset),
     var(--shell-shadow-stage);
@@ -1220,15 +1677,15 @@ app-workspace-area .content-layout {
   height: 34px;
   margin-bottom: 1px;
   padding: 0;
-  border: 1px dashed rgba(141, 154, 187, 0.22);
+  border: 1px dashed var(--shell-border-strong);
   border-radius: 10px 10px 0 0;
-  background: rgba(18, 22, 36, 0.55);
-  color: #8f9db5;
+  background: var(--shell-tab-add-bg);
+  color: var(--shell-tab-add-fg);
 }
 
 .tab-add:hover {
-  border-color: rgba(141, 154, 187, 0.34);
-  color: #d7deeb;
+  border-color: var(--shell-accent-soft);
+  color: var(--shell-text-strong);
 }
 
 .tab-add svg {
@@ -1284,17 +1741,17 @@ app-workspace-area .content-layout {
 
 .shell-picker-chip {
   padding: 6px 12px;
-  border: 1px solid rgba(141, 154, 187, 0.18);
+  border: 1px solid var(--shell-border);
   border-radius: 999px;
-  background: rgba(18, 22, 36, 0.82);
-  color: #b7c3d8;
+  background: var(--shell-shell-picker-bg);
+  color: var(--shell-shell-picker-fg);
   font-size: 0.84rem;
   cursor: pointer;
 }
 
 .shell-picker-chip:hover {
-  border-color: rgba(184, 125, 255, 0.42);
-  color: #e8edf7;
+  border-color: var(--shell-shell-picker-hover-border);
+  color: var(--shell-shell-picker-hover-fg);
 }
 
 .inspector-shell-field {
@@ -1405,12 +1862,13 @@ app-workspace-area .content-layout {
   cursor: row-resize;
 }
 
-.terminal-card,
-.inspector,
-.inspector-card {
+.terminal-card {
   border: 1px solid var(--shell-border);
   border-radius: var(--shell-radius-xl);
-  background: var(--shell-bg-inset);
+}
+
+.inspector {
+  background: transparent;
 }
 
 .terminal-card {
@@ -1420,20 +1878,14 @@ app-workspace-area .content-layout {
   overflow: hidden;
   cursor: pointer;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 30%),
-    linear-gradient(180deg, rgba(21, 27, 44, 0.985), rgba(10, 14, 24, 0.985));
+    var(--shell-terminal-frame-bg);
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 10px 20px rgba(2, 6, 15, 0.12);
+  box-shadow: var(--shell-terminal-card-shadow);
 }
 
 .terminal-card.focused {
   border-color: var(--shell-accent-soft);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 0 0 1px rgba(186, 112, 255, 0.14),
-    0 16px 30px rgba(15, 10, 30, 0.22);
+  box-shadow: var(--shell-terminal-card-focused-shadow);
   transform: translateY(-1px);
 }
 
@@ -1472,9 +1924,8 @@ app-workspace-area .content-layout {
 }
 
 .terminal-card-header {
-  border-bottom: 1px solid rgba(141, 154, 187, 0.09);
-  background:
-    linear-gradient(180deg, rgba(29, 36, 55, 0.94), rgba(19, 24, 38, 0.92));
+  border-bottom: 1px solid var(--shell-border-subtle);
+  background: var(--shell-terminal-header-bg);
 }
 
 .terminal-card-body {
@@ -1503,10 +1954,10 @@ app-workspace-area .content-layout {
 .pane-state-pill {
   flex: 0 0 auto;
   padding: 4px 10px;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 999px;
-  background: rgba(13, 19, 31, 0.8);
-  color: #d7deeb;
+  background: var(--shell-pane-pill-bg);
+  color: var(--shell-pane-pill-fg);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.03em;
@@ -1514,26 +1965,26 @@ app-workspace-area .content-layout {
 }
 
 .pane-state-pill.focused {
-  border-color: rgba(186, 112, 255, 0.34);
-  background: rgba(63, 35, 102, 0.7);
+  border-color: var(--shell-accent-soft);
+  background: var(--shell-focused-pill-bg);
 }
 
 .pane-state-pill.running {
-  border-color: rgba(88, 214, 141, 0.34);
-  background: rgba(18, 58, 40, 0.82);
-  color: var(--shell-running);
+  border-color: color-mix(in srgb, var(--shell-success) 34%, transparent);
+  background: var(--shell-running-pill-bg);
+  color: var(--shell-running-pill-fg);
 }
 
 .pane-state-pill.running.focused {
-  border-color: rgba(112, 232, 159, 0.42);
-  background: rgba(22, 68, 46, 0.88);
-  color: #b6f7cb;
+  border-color: color-mix(in srgb, var(--shell-success) 42%, transparent);
+  background: var(--shell-running-pill-bg);
+  color: var(--shell-running-pill-fg);
 }
 
 .pane-summary-inline {
   min-width: 0;
   overflow: hidden;
-  color: #9ba8be;
+  color: var(--shell-pane-summary-fg);
   font-size: 0.86rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1560,7 +2011,7 @@ app-workspace-area .content-layout {
   width: 17px;
   height: 17px;
   flex: 0 0 auto;
-  color: #b9c7de;
+  color: var(--shell-card-icon-fg);
 }
 
 .card-title-icon svg {
@@ -1586,7 +2037,7 @@ app-workspace-area .content-layout {
 
 .card-meta {
   margin: 0;
-  color: #8c9ab2;
+  color: var(--shell-card-meta-fg);
   font-size: 0.78rem;
   letter-spacing: 0.02em;
 }
@@ -1619,18 +2070,18 @@ app-workspace-area .content-layout {
   width: 30px;
   height: 30px;
   padding: 0;
-  border: 1px solid rgba(141, 154, 187, 0.14);
+  border: 1px solid var(--shell-border);
   border-radius: 10px;
-  background: rgba(12, 17, 28, 0.88);
-  color: #b8c4da;
+  background: var(--shell-card-action-bg);
+  color: var(--shell-card-action-fg);
   font-size: 0.92rem;
   line-height: 1;
 }
 
 .card-action-icon:hover {
-  border-color: rgba(186, 152, 255, 0.24);
-  background: rgba(24, 30, 48, 0.96);
-  color: #eef3fb;
+  border-color: var(--shell-accent-soft);
+  background: var(--shell-pill-hover-bg);
+  color: var(--shell-text-strong);
 }
 
 .mini-actions span {
@@ -1654,7 +2105,7 @@ app-workspace-area .content-layout {
 }
 
 .field label {
-  color: #8391ab;
+  color: var(--shell-text-label);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1664,24 +2115,24 @@ app-workspace-area .content-layout {
 .field input {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid rgba(141, 154, 187, 0.14);
+  border: 1px solid var(--shell-border);
   border-radius: 8px;
-  background: rgba(9, 13, 24, 0.92);
-  color: #f4f8ff;
+  background: var(--shell-input-bg);
+  color: var(--shell-input-fg);
 }
 
 .field input:focus {
-  outline: 2px solid rgba(98, 162, 255, 0.42);
+  outline: 2px solid color-mix(in srgb, var(--shell-accent) 42%, transparent);
   outline-offset: 2px;
 }
 
 .field select {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 8px;
-  background: rgba(8, 11, 20, 0.92);
-  color: #eff3f9;
+  background: var(--shell-input-bg);
+  color: var(--shell-input-fg);
 }
 
 .terminal-host {
@@ -1695,8 +2146,9 @@ app-workspace-area .content-layout {
   overflow: hidden;
   border: 1px solid rgba(109, 126, 164, 0.12);
   border-radius: 14px;
+  color: var(--terminal-surface-fg, #d8e1e8);
   background:
-    linear-gradient(180deg, rgba(7, 12, 21, 0.985), rgba(8, 12, 20, 0.985));
+    linear-gradient(180deg, color-mix(in srgb, var(--terminal-surface-bg, #0d1320) 96%, white 4%), var(--terminal-surface-bg, #0d1320));
   box-shadow:
     inset 0 0 0 1px rgba(132, 146, 178, 0.08),
     inset 0 14px 24px rgba(255, 255, 255, 0.01);
@@ -1730,10 +2182,10 @@ app-workspace-area .content-layout {
   justify-content: center;
   gap: 10px;
   padding: 18px;
-  color: #a8b2c5;
-  border: 1px dashed rgba(109, 126, 164, 0.2);
+  color: var(--shell-placeholder-fg);
+  border: 1px dashed var(--shell-placeholder-border);
   border-radius: 12px;
-  background: rgba(8, 12, 20, 0.72);
+  background: var(--shell-placeholder-bg);
 }
 
 .placeholder-body p {
@@ -1741,7 +2193,7 @@ app-workspace-area .content-layout {
 }
 
 .placeholder-body p:first-child {
-  color: #f2f6fb;
+  color: var(--shell-placeholder-title-fg);
   font-size: 1rem;
   font-weight: 600;
 }
@@ -1754,7 +2206,7 @@ app-workspace-area .content-layout {
 }
 
 .preview-label {
-  color: #8ea1bd;
+  color: var(--shell-text-label);
   font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -1768,8 +2220,7 @@ app-workspace-area .content-layout {
   min-height: 0;
   max-height: none;
   border-top: 1px solid var(--shell-border);
-  background:
-    linear-gradient(180deg, rgba(12, 16, 28, 0.985), rgba(9, 13, 22, 0.99));
+  background: var(--shell-dock-bg);
   overflow: hidden;
 }
 
@@ -1780,9 +2231,7 @@ app-workspace-area .content-layout {
   gap: var(--shell-space-xl);
   padding: var(--shell-space-lg) var(--shell-space-xl) var(--shell-space-md);
   border-bottom: 1px solid var(--shell-border-subtle);
-  background:
-    radial-gradient(circle at top center, rgba(116, 62, 201, 0.14), transparent 42%),
-    var(--shell-bg-panel);
+  background: var(--shell-dock-header-glow), var(--shell-bg-panel);
 }
 
 .dock-heading {
@@ -1814,10 +2263,10 @@ app-workspace-area .content-layout {
   justify-content: center;
   min-height: 24px;
   padding: 0 10px;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 999px;
-  background: rgba(18, 23, 37, 0.88);
-  color: #eef3fb;
+  background: var(--shell-chip-bg);
+  color: var(--shell-chip-fg);
   font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -1825,7 +2274,7 @@ app-workspace-area .content-layout {
 }
 
 .dock-status-inline {
-  color: #97a5bc;
+  color: var(--shell-text-muted);
   font-size: 0.82rem;
 }
 
@@ -1834,8 +2283,8 @@ app-workspace-area .content-layout {
   gap: 2px;
   flex-shrink: 0;
   padding: 0 14px;
-  border-bottom: 1px solid rgba(141, 154, 187, 0.12);
-  background: rgba(11, 15, 26, 0.98);
+  border-bottom: 1px solid var(--shell-border-subtle);
+  background: var(--shell-dock-tabs-bg);
 }
 
 .dock-tab {
@@ -1847,7 +2296,7 @@ app-workspace-area .content-layout {
   border-radius: 0;
   padding: 11px 14px;
   background: transparent;
-  color: #9aa8bf;
+  color: var(--shell-dock-tab-fg);
   font-size: 0.92rem;
   font-weight: 500;
   cursor: pointer;
@@ -1859,7 +2308,7 @@ app-workspace-area .content-layout {
 
 .dock-tab.active {
   border-bottom-color: var(--shell-accent-strong);
-  color: #ffffff;
+  color: var(--shell-dock-tab-active-fg);
 }
 
 .dock-count {
@@ -1880,16 +2329,26 @@ app-workspace-area .content-layout {
 }
 
 .dock-content {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px 14px 14px;
+}
+
+.dock-content > .utility-panel {
+  flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
   scrollbar-gutter: stable;
-  padding: 12px 14px 14px;
 }
 
 .dock-content-split {
   display: grid;
+  flex: 1 1 auto;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  align-items: stretch;
   gap: 14px;
   min-height: 0;
   height: 100%;
@@ -1934,7 +2393,7 @@ app-workspace-area .content-layout {
 
 .utility-panel-subtitle {
   margin: 6px 0 0;
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.8rem;
   line-height: 1.4;
 }
@@ -1952,7 +2411,7 @@ app-workspace-area .content-layout {
 
 .utility-empty {
   margin: 0;
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.9rem;
 }
 
@@ -1964,7 +2423,7 @@ app-workspace-area .content-layout {
   font-family: var(--shell-font-mono);
   font-size: 0.86rem;
   line-height: 1.65;
-  color: #cce3d2;
+  color: var(--shell-output-text);
 }
 
 .output-log-stream {
@@ -1982,9 +2441,9 @@ app-workspace-area .content-layout {
   gap: 12px;
   margin: 0;
   padding: 11px 13px;
-  border: 1px solid rgba(141, 154, 187, 0.09);
+  border: 1px solid var(--shell-border-subtle);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.032);
+  background: var(--shell-surface-tile-bg);
 }
 
 .output-log-level {
@@ -1994,8 +2453,8 @@ app-workspace-area .content-layout {
   min-width: 52px;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(141, 154, 187, 0.12);
-  color: #e6edf7;
+  background: color-mix(in srgb, var(--shell-border) 60%, transparent);
+  color: var(--shell-text-strong);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -2011,7 +2470,7 @@ app-workspace-area .content-layout {
 }
 
 .output-log-copy strong {
-  color: #98a5bc;
+  color: var(--shell-log-meta-fg);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -2053,8 +2512,8 @@ app-workspace-area .content-layout {
   gap: 10px;
   padding: 15px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(141, 154, 187, 0.08);
+  background: var(--shell-surface-tile-bg);
+  border: 1px solid var(--shell-border-subtle);
 }
 
 .problem-row[data-severity='error'] {
@@ -2078,8 +2537,8 @@ app-workspace-area .content-layout {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(141, 154, 187, 0.12);
-  color: #d8dfec;
+  background: color-mix(in srgb, var(--shell-border) 60%, transparent);
+  color: var(--shell-text);
 }
 
 .problem-row[data-severity='error'] .problem-severity {
@@ -2093,7 +2552,7 @@ app-workspace-area .content-layout {
 }
 
 .problem-main strong {
-  color: #eff3f9;
+  color: var(--shell-text-strong);
   font-size: 0.92rem;
   font-weight: 500;
   word-break: break-word;
@@ -2103,7 +2562,7 @@ app-workspace-area .content-layout {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.82rem;
 }
 
@@ -2115,17 +2574,17 @@ app-workspace-area .content-layout {
 }
 
 .search-field span {
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.82rem;
 }
 
 .search-field input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 12px;
-  background: rgba(8, 11, 20, 0.92);
-  color: #eff3f9;
+  background: var(--shell-input-bg);
+  color: var(--shell-input-fg);
 }
 
 .search-results {
@@ -2146,26 +2605,27 @@ app-workspace-area .content-layout {
   gap: 6px;
   width: 100%;
   padding: 13px 14px;
-  border: 1px solid rgba(141, 154, 187, 0.09);
+  border: 1px solid var(--shell-border-subtle);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--shell-surface-tile-bg);
   color: inherit;
   text-align: left;
   cursor: pointer;
 }
 
 .search-result-row:hover {
-  border-color: rgba(189, 111, 255, 0.28);
+  border-color: var(--shell-accent-hover-border);
+  background: var(--shell-accent-hover-bg);
 }
 
 .search-result-row strong {
-  color: #eff3f9;
+  color: var(--shell-text-strong);
   font-size: 0.92rem;
   font-weight: 500;
 }
 
 .search-result-row span {
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.82rem;
 }
 
@@ -2180,16 +2640,16 @@ app-workspace-area .content-layout {
   gap: 12px;
   width: 100%;
   padding: 13px 14px;
-  border: 1px solid rgba(141, 154, 187, 0.09);
+  border: 1px solid var(--shell-border-subtle);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  color: #d8dfec;
+  background: var(--shell-surface-tile-bg);
+  color: var(--shell-history-fg);
   font-size: 0.9rem;
   text-align: left;
 }
 
 .history-row:hover {
-  border-color: rgba(189, 111, 255, 0.28);
+  border-color: var(--shell-accent-hover-border);
 }
 
 .history-row span {
@@ -2198,37 +2658,61 @@ app-workspace-area .content-layout {
 }
 
 .history-row strong {
-  color: #98a5bc;
+  color: var(--shell-log-meta-fg);
   font-weight: 500;
   white-space: nowrap;
 }
 
-.tool-link {
-  cursor: pointer;
-}
-
 .tool-link:hover {
-  color: #ffffff;
+  color: var(--shell-text-strong);
 }
 
 .output-panel,
 .monitor-panel {
   min-height: 0;
   height: 100%;
-  border: 1px solid rgba(141, 154, 187, 0.14);
+  border: 1px solid var(--shell-border);
   border-radius: 16px;
-  background:
-    linear-gradient(180deg, rgba(12, 16, 28, 0.96), rgba(8, 12, 20, 0.96));
+  background: var(--shell-dock-panel-bg);
   padding: 14px 15px;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 12px 24px rgba(2, 6, 15, 0.12);
+    var(--shell-shadow-inset),
+    var(--shell-shadow-panel);
+}
+
+.dock-content-split .output-panel,
+.dock-content-split .monitor-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dock-content-split .output-panel.utility-panel {
+  overflow: hidden;
+}
+
+.dock-content-split .utility-panel-header {
+  flex: 0 0 auto;
+  margin-bottom: 12px;
+}
+
+.dock-content-split .output-log-stream {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+.dock-content-split .monitor-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: start;
 }
 
 .monitor-panel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
 }
 
 .metric-ring {
@@ -2238,10 +2722,9 @@ app-workspace-area .content-layout {
   align-items: center;
   gap: 14px;
   padding: 13px 14px;
-  border: 1px solid rgba(141, 154, 187, 0.1);
+  border: 1px solid var(--shell-border-subtle);
   border-radius: 14px;
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.04), rgba(12, 16, 29, 0.94));
+  background: var(--shell-surface-tile-bg);
   --metric-progress: 0;
   --metric-color: #ad59ff;
 }
@@ -2255,7 +2738,7 @@ app-workspace-area .content-layout {
   background:
     conic-gradient(
       var(--metric-color) calc(var(--metric-progress) * 1%),
-      rgba(141, 154, 187, 0.14) 0
+      var(--shell-metric-ring-track) 0
     );
 }
 
@@ -2264,8 +2747,8 @@ app-workspace-area .content-layout {
   position: absolute;
   inset: 7px;
   border-radius: 999px;
-  background: rgba(10, 14, 24, 0.96);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  background: var(--shell-metric-ring-center);
+  box-shadow: var(--shell-shadow-inset);
 }
 
 .metric-ring-copy {
@@ -2293,12 +2776,12 @@ app-workspace-area .content-layout {
 }
 
 .metric-ring span {
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.82rem;
 }
 
 .metric-ring strong {
-  color: #eff3f9;
+  color: var(--shell-text-strong);
   font-size: 0.98rem;
   line-height: 1.35;
   word-break: break-word;
@@ -2326,7 +2809,7 @@ app-workspace-area .content-layout {
 
 .inspector-rail-subtitle {
   margin: 6px 0 0;
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.82rem;
   line-height: 1.45;
 }
@@ -2340,10 +2823,10 @@ app-workspace-area .content-layout {
   flex: 0 0 auto;
   min-height: 24px;
   padding: 0 10px;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 999px;
-  background: rgba(16, 21, 36, 0.88);
-  color: #dce5f2;
+  background: var(--shell-chip-bg);
+  color: var(--shell-chip-fg);
   font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -2360,24 +2843,24 @@ app-workspace-area .content-layout {
   flex: 1;
   min-height: 44px;
   border-radius: 12px;
-  background: rgba(16, 21, 36, 0.88);
+  background: var(--shell-inspector-tab-bg);
 }
 
 .inspector-tabs button.active {
-  border-color: rgba(189, 111, 255, 0.42);
-  color: #fff;
-  background: rgba(44, 31, 70, 0.94);
+  border-color: var(--shell-accent-soft);
+  color: var(--shell-inspector-active-fg);
+  background: var(--shell-inspector-active-bg);
 }
 
 .inspector-card {
   flex-shrink: 0;
   padding: 15px;
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.03), transparent 40%),
-    linear-gradient(180deg, rgba(16, 22, 37, 0.98), rgba(11, 16, 28, 0.98));
+  border: 1px solid var(--shell-border);
+  border-radius: var(--shell-radius-xl);
+  background: var(--shell-inspector-card-bg);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 10px 24px rgba(2, 6, 15, 0.14);
+    var(--shell-shadow-inset),
+    var(--shell-shadow-panel);
 }
 
 .inspector-card.compact {
@@ -2417,14 +2900,14 @@ app-workspace-area .content-layout {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  color: #a6b2c8;
+  color: var(--shell-text-muted);
   font-size: 0.84rem;
 }
 
 .inspector-status-pill {
-  border-color: rgba(187, 125, 255, 0.28);
-  background: rgba(52, 33, 81, 0.92);
-  color: #f4ebff;
+  border-color: var(--shell-accent-soft);
+  background: var(--shell-inspector-status-bg);
+  color: var(--shell-inspector-status-fg);
 }
 
 .inspector-summary-grid {
@@ -2440,9 +2923,9 @@ app-workspace-area .content-layout {
   gap: 6px;
   min-width: 0;
   padding: 13px;
-  border: 1px solid rgba(141, 154, 187, 0.09);
+  border: 1px solid var(--shell-border-subtle);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--shell-surface-tile-bg);
 }
 
 .inspector-summary-tile span,
@@ -2485,11 +2968,11 @@ app-workspace-area .content-layout {
 }
 
 .inspector-actions .primary {
-  background: rgba(42, 115, 255, 0.8);
+  background: var(--shell-action-primary-bg);
 }
 
 .inspector-actions .danger {
-  background: rgba(164, 39, 54, 0.8);
+  background: var(--shell-action-danger-bg);
 }
 
 .inspector-actions button:disabled {
@@ -2511,10 +2994,10 @@ app-workspace-area .content-layout {
   gap: 12px;
   min-width: 0;
   padding: 11px 12px;
-  border: 1px solid rgba(141, 154, 187, 0.09);
+  border: 1px solid var(--shell-border-subtle);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  color: #d8dfec;
+  background: var(--shell-history-bg);
+  color: var(--shell-history-fg);
   font-size: 0.9rem;
 }
 
@@ -2526,7 +3009,7 @@ app-workspace-area .content-layout {
 
 .history-entry strong,
 .history-list strong {
-  color: #98a5bc;
+  color: var(--shell-text-muted);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -2539,10 +3022,8 @@ app-workspace-area .content-layout {
   min-height: 36px;
   padding: var(--shell-space-sm) var(--shell-space-lg);
   border-top: 1px solid var(--shell-border-subtle);
-  background:
-    radial-gradient(circle at bottom center, rgba(116, 62, 201, 0.16), transparent 45%),
-    var(--shell-bg-panel);
-  color: #c2ccdc;
+  background: var(--shell-status-bar-glow), var(--shell-bg-panel);
+  color: var(--shell-status-fg);
   font-size: 0.84rem;
   -webkit-app-region: drag;
 }
@@ -2564,7 +3045,7 @@ app-workspace-area .content-layout {
   top: 50%;
   width: 1px;
   height: 14px;
-  background: rgba(141, 154, 187, 0.18);
+  background: var(--shell-border);
   transform: translateY(-50%);
 }
 
@@ -2583,7 +3064,7 @@ app-workspace-area .content-layout {
   display: grid;
   place-items: start center;
   padding-top: 12vh;
-  background: rgba(4, 8, 16, 0.72);
+  background: var(--shell-backdrop);
 }
 
 .command-palette {
@@ -2593,10 +3074,10 @@ app-workspace-area .content-layout {
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border: 1px solid rgba(141, 154, 187, 0.18);
+  border: 1px solid var(--shell-border-strong);
   border-radius: 18px;
-  background: rgba(12, 16, 29, 0.98);
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+  background: var(--shell-modal-bg);
+  box-shadow: var(--shell-shadow-stage);
 }
 
 .command-palette-input {
@@ -2606,7 +3087,7 @@ app-workspace-area .content-layout {
 }
 
 .command-palette-input span {
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -2616,10 +3097,10 @@ app-workspace-area .content-layout {
 .command-palette-input input {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid rgba(141, 154, 187, 0.16);
+  border: 1px solid var(--shell-border);
   border-radius: 12px;
-  background: rgba(8, 11, 20, 0.92);
-  color: #eff3f9;
+  background: var(--shell-input-bg);
+  color: var(--shell-input-fg);
 }
 
 .command-palette-results {
@@ -2633,7 +3114,7 @@ app-workspace-area .content-layout {
 
 .palette-group-label {
   margin: 8px 0 4px;
-  color: #7d8ba4;
+  color: var(--shell-text-muted);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -2647,18 +3128,12 @@ app-workspace-area .content-layout {
   gap: 12px;
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid rgba(141, 154, 187, 0.08);
+  border: 1px solid var(--shell-border-subtle);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  color: #d8dfec;
+  background: var(--shell-control-bg);
+  color: var(--shell-control-fg);
   text-align: left;
   cursor: pointer;
-}
-
-.palette-result-row.active,
-.palette-result-row:hover {
-  border-color: rgba(189, 111, 255, 0.34);
-  background: rgba(189, 111, 255, 0.08);
 }
 
 .palette-result-main {
@@ -2668,20 +3143,26 @@ app-workspace-area .content-layout {
   min-width: 0;
 }
 
+.palette-result-row.active,
+.palette-result-row:hover {
+  border-color: var(--shell-accent-hover-border);
+  background: var(--shell-accent-hover-bg);
+}
+
 .palette-result-main strong {
-  color: #eff3f9;
+  color: var(--shell-text-strong);
   font-size: 0.92rem;
   font-weight: 500;
 }
 
 .palette-result-main span {
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.82rem;
 }
 
 .palette-result-row kbd,
 .command-palette-footer span {
-  color: #8f9ab0;
+  color: var(--shell-text-muted);
   font-size: 0.78rem;
 }
 
@@ -2689,7 +3170,92 @@ app-workspace-area .content-layout {
   display: flex;
   gap: 14px;
   padding-top: 4px;
-  border-top: 1px solid rgba(141, 154, 187, 0.08);
+  border-top: 1px solid var(--shell-border-subtle);
+}
+
+.settings-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--shell-backdrop);
+}
+
+.settings-modal {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(82vh, 720px);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--shell-border-strong);
+  border-radius: 18px;
+  background: var(--shell-modal-bg);
+  box-shadow: var(--shell-shadow-stage);
+  overflow: hidden;
+}
+
+.settings-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--shell-border-subtle);
+}
+
+.settings-modal-eyebrow {
+  margin: 0 0 4px;
+  color: var(--shell-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-modal-title {
+  margin: 0;
+  color: var(--shell-text-strong);
+  font-size: 1.18rem;
+  font-weight: 650;
+}
+
+.settings-modal-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--shell-border);
+  border-radius: 10px;
+  background: var(--shell-control-bg);
+  color: var(--shell-control-fg);
+  cursor: pointer;
+}
+
+.settings-modal-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.settings-modal-close:hover {
+  border-color: var(--shell-accent-soft);
+  color: var(--shell-text-strong);
+}
+
+.settings-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px 20px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+.settings-modal-body .preference-section:first-of-type {
+  padding-top: 4px;
+  border-top: 0;
 }
 
 @media (max-width: 900px) {
@@ -2767,8 +3333,15 @@ app-workspace-area .content-layout {
     padding-right: 14px;
   }
 
+  .toolbar-main {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
   .toolbar-centerband {
     width: 100%;
+    max-width: none;
   }
 
   .desktop-workspace-context {

@@ -43,59 +43,21 @@ describe('LeftRailComponent', () => {
     expect(selectedSpy).toHaveBeenCalledWith('ws-2');
   });
 
-  it('emits template and preference events from sidebar controls', () => {
+  it('does not render a templates section in the left rail', () => {
     const fixture = TestBed.createComponent(LeftRailComponent);
-    const component = fixture.componentInstance;
-    const templateSpy = jasmine.createSpy('templateSelected');
-    const toggleSpy = jasmine.createSpy('preferencesToggle');
-    const panelPreferenceSpy = jasmine.createSpy('utilityPanelPreferenceChange');
-    const startModeSpy = jasmine.createSpy('newSessionStartModeChange');
-
-    component.preferencesOpen = true;
-    component.utilityPanelVisible = true;
-    component.newSessionStartMode = 'focused-tab';
-    component.templateSelected.subscribe(templateSpy);
-    component.preferencesToggle.subscribe(toggleSpy);
-    component.utilityPanelPreferenceChange.subscribe(panelPreferenceSpy);
-    component.newSessionStartModeChange.subscribe(startModeSpy);
     fixture.detectChanges();
 
-    const templateButton = fixture.debugElement.query(By.css('.template-item'));
-    templateButton.nativeElement.click();
-
-    const appearanceButton = fixture.debugElement.query(By.css('.tool-button'));
-    appearanceButton.nativeElement.click();
-
-    const checkbox = fixture.debugElement.query(By.css('.preference-toggle input'));
-    checkbox.nativeElement.checked = false;
-    checkbox.nativeElement.dispatchEvent(new Event('change'));
-
-    const select = fixture.debugElement.queryAll(By.css('.preference-select'))[1];
-    select.nativeElement.value = 'home';
-    select.nativeElement.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-
-    expect(templateSpy).toHaveBeenCalled();
-    expect(toggleSpy).toHaveBeenCalled();
-    expect(panelPreferenceSpy).toHaveBeenCalledWith(false);
-    expect(startModeSpy).toHaveBeenCalledWith('home');
+    expect(fixture.nativeElement.textContent).not.toContain('Templates');
+    expect(fixture.nativeElement.querySelector('.template-item')).toBeNull();
   });
 
-  it('emits default shell changes from preferences', () => {
+  it('does not render settings in the left rail', () => {
     const fixture = TestBed.createComponent(LeftRailComponent);
-    const component = fixture.componentInstance;
-    const shellSpy = jasmine.createSpy('defaultShellChange');
-
-    component.preferencesOpen = true;
-    component.defaultShell = '';
-    component.defaultShellChange.subscribe(shellSpy);
     fixture.detectChanges();
 
-    const select = fixture.debugElement.queryAll(By.css('.preference-select'))[0];
-    select.nativeElement.value = 'powershell';
-    select.nativeElement.dispatchEvent(new Event('change'));
-
-    expect(shellSpy).toHaveBeenCalledWith('powershell');
+    expect(fixture.nativeElement.textContent).not.toContain('Settings');
+    expect(fixture.nativeElement.textContent).not.toContain('Appearance');
+    expect(fixture.nativeElement.querySelector('.preferences-card')).toBeNull();
   });
 
   it('emits a new workspace request from the new workspace button', () => {
@@ -110,23 +72,5 @@ describe('LeftRailComponent', () => {
     createButton.nativeElement.click();
 
     expect(newSessionSpy).toHaveBeenCalled();
-  });
-
-  it('emits custom path changes when the custom start mode is active', () => {
-    const fixture = TestBed.createComponent(LeftRailComponent);
-    const component = fixture.componentInstance;
-    const customPathSpy = jasmine.createSpy('newSessionCustomPathChange');
-
-    component.preferencesOpen = true;
-    component.newSessionStartMode = 'custom';
-    component.newSessionCustomPath = '';
-    component.newSessionCustomPathChange.subscribe(customPathSpy);
-    fixture.detectChanges();
-
-    const input = fixture.debugElement.query(By.css('.preference-input'));
-    input.nativeElement.value = 'D:\\Workspaces\\NthTerm';
-    input.nativeElement.dispatchEvent(new Event('input'));
-
-    expect(customPathSpy).toHaveBeenCalledWith('D:\\Workspaces\\NthTerm');
   });
 });

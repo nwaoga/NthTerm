@@ -2,7 +2,6 @@ export type PaletteEntryKind =
   | 'action'
   | 'workspace'
   | 'tab'
-  | 'template'
   | 'command'
   | 'output'
   | 'problem'
@@ -33,9 +32,10 @@ export interface PaletteActionDispatcher {
   setInspectorTab(tab: 'tab' | 'session'): void;
   setLayoutMode(mode: import('./workspace.models').LayoutMode): Promise<void>;
   openCommandPalette(): void;
+  openGlobalSearch(): void;
   selectWorkspace(workspaceId: string): Promise<void>;
   selectTab(tabId: string): Promise<void>;
-  createWorkspaceFromTemplate(templateId: string): Promise<void>;
+  createWorkspace(): Promise<void>;
   rerunCommand(command: string): Promise<void>;
   focusPane(paneId: string): Promise<void>;
   appendOutput(message: string, level?: import('./utility.models').OutputLine['level']): void;

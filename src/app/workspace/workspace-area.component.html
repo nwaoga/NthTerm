@@ -203,6 +203,10 @@
               <span class="inspector-section-badge">Tab</span>
             </div>
             @if (!isSessionInspectorActive() && getFocusedTerminal()) {
+              <div class="preference-section-heading inspector-terminal-heading">
+                <p class="preference-section-title">Terminal appearance</p>
+                <p class="preference-section-copy">Text and background inside this terminal only. Workspace themes are in Settings.</p>
+              </div>
               <label class="preference-field inspector-shell-field">
                 <span class="preference-label">Shell</span>
                 <select
@@ -216,6 +220,36 @@
                 </select>
                 <p class="preference-hint">Restart the terminal to apply a shell change.</p>
               </label>
+              <div class="preference-field inspector-shell-field">
+                <span class="preference-label">Colors</span>
+                <div class="theme-color-row">
+                  <label class="theme-color-field">
+                    <span class="preference-label">Text</span>
+                    <input
+                      class="theme-color-input"
+                      type="color"
+                      [value]="getResolvedTerminalTheme().foreground"
+                      (input)="setFocusedTerminalForeground($any($event.target).value)"
+                    />
+                  </label>
+                  <label class="theme-color-field">
+                    <span class="preference-label">Background</span>
+                    <input
+                      class="theme-color-input"
+                      type="color"
+                      [value]="getResolvedTerminalTheme().background"
+                      (input)="setFocusedTerminalBackground($any($event.target).value)"
+                    />
+                  </label>
+                </div>
+                @if (focusedTerminalUsesDefaultTheme()) {
+                  <p class="preference-hint">Using the app default terminal colors.</p>
+                } @else {
+                  <button type="button" class="preference-reset-button" (click)="resetFocusedTerminalTheme()">
+                    Use app default colors
+                  </button>
+                }
+              </div>
             }
             <div class="inspector-detail-list">
               @for (item of getInspectorPrimaryItems(); track trackByLabel($index, item)) {

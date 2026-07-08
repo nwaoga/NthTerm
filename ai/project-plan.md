@@ -16,20 +16,25 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-07-05)
+## Current State (2026-07-08)
 
-**Phase:** 6 in progress (shell picker + connected tab strip).
+**Phase:** 7 shipped (shell polish + terminal theming). Phase 5 Task 4 (#122) still in progress.
 
 **Working today:**
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
 - Tab-owned terminal sessions that stay alive across tab switches in the same pane
 - SQLite workspace persistence (tabs, pane layout, splits, rename/delete, recovery metadata)
 - Feature-oriented renderer refactor (services + shell components)
-- Command palette, global search, utility panels, inspector, system monitor
-- Frameless desktop window with custom drag regions
+- Command palette, global search (keyboard + dock), utility panels, inspector, system monitor
+- System themes for app chrome: Midnight, Coffee, White (terminal colors stay separate)
+- Settings modal (gear in toolbar) for workspace appearance, terminal defaults, and ANSI palette
+- Rich terminal ANSI output with VS Code–style palettes and explicit Git status colors
+- Toolbar cleanup: workspace actions left-aligned; search/dock shortcut buttons removed
+- Bottom dock resize keeps output and system monitor panels aligned
+- Frameless desktop window with per-theme Windows title bar overlay
 - Electron Builder packaging configuration for local unpacked builds and Windows release artifacts
 
-**Last shipped:** Phase 4 design-alignment closeout, including shared shell visual tokens, documented reference deviations, and screenshot-reviewed completion against `repo/docs/target-ui-reference.png`.
+**Last shipped:** Phase 7 shell polish and terminal theming (system themes, settings modal, ANSI palettes, toolbar/dock alignment, spawn-time color env).
 
 **Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline; Phase 5 should preserve it while adding production readiness).
 
@@ -161,7 +166,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ### Phase 6 — Shell picker and connected tab strip
 
-**Status:** In progress.
+**Status:** Done (2026-07-08).
 
 **ADO:**
 | ID | Title |
@@ -170,6 +175,28 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 | [#126](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/126) | Add Terminal shell picker UI |
 | [#127](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/127) | Inspector shell selection and restart guidance |
 | [#128](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/128) | Trapezoid connected workspace tab strip |
+
+**Shipped:** Default shell preference, split Add Terminal shell picker, inspector shell dropdown with restart guidance, and connected trapezoid workspace tab strip.
+
+### Phase 7 — Shell polish, system themes, and rich terminal colors
+
+**Status:** Done (2026-07-08).
+
+**ADO:** [#129](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/129)
+
+**Scope:**
+- System themes for app chrome (`midnight`, `coffee`, `white`) with per-theme CSS tokens and Windows title bar overlay
+- Settings modal moved from left rail to toolbar gear
+- Remove templates rail section; toolbar search/dock shortcut cleanup and left-aligned action cluster
+- Bottom dock resize alignment for split output/monitor panels
+- Terminal ANSI palettes (VS Code Dark+/Light+, Dracula, Monokai, One Dark, Solarized Dark, Nord) with Settings picker
+- Spawn-time color env (`FORCE_COLOR`, Git `color.status.*`, PowerShell 7 preference when installed)
+- Split global search (dock tab + `Ctrl+Shift+F`) from command palette overlay
+
+**Acceptance criteria met:**
+- `npm run build` and `npm run test:ci` pass (78 tests)
+- Git status shows semantic colors (green branch, red modified, magenta untracked)
+- Light themes no longer leak dark inspector/dock surfaces or purple scrollbars
 
 **Scope:**
 - Persist a default shell preference for new terminals and expose it in left-rail Preferences.
@@ -294,9 +321,9 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. **Phase 6 / #125–#128** — Shell picker and connected tab strip (in progress).
-2. **Phase 5 Task 4 / #122** — Windows PTY stability under multi-pane load.
-3. Then **Task 5 / #123** branding/signing readiness or **Task 6 / #124** installer validation, depending on whether daily-use stability or shippable polish is the priority.
+1. **Phase 5 Task 4 / #122** — Windows PTY stability under multi-pane load (verify AttachConsole mitigation in daily use).
+2. **Task 5 / #123** branding/signing readiness or **Task 6 / #124** installer validation.
+3. Optional follow-ups: inspector hide toggle, per-workspace shell profiles, WSL distro picker.
 4. Keep packaged runtime smoke coverage in mind before changing `asar`, native module, or persistence paths.
 
 ---

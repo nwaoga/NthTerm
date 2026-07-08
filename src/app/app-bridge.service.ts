@@ -1,8 +1,16 @@
 import { Injectable } from '@angular/core';
 
+export interface ShellTitleBarThemePayload {
+  windowBackground: string;
+  color: string;
+  symbolColor: string;
+  height: number;
+}
+
 export interface AppApi {
   quitReady(): Promise<void>;
   onBeforeQuit(listener: () => void): () => void;
+  applyTitleBarTheme?(theme: ShellTitleBarThemePayload): Promise<void>;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -13,6 +21,10 @@ export class AppBridgeService {
 
   onBeforeQuit(listener: () => void): () => void {
     return this.getApi().onBeforeQuit(listener);
+  }
+
+  applyTitleBarTheme(theme: ShellTitleBarThemePayload): void {
+    window.nthTermDesktop?.app?.applyTitleBarTheme?.(theme);
   }
 
   private getApi(): AppApi {

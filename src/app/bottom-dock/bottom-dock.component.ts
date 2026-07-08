@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { OutputLine, SearchResultGroup, UtilityPanelId } from '../models';
@@ -14,6 +14,7 @@ import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service'
   templateUrl: './bottom-dock.component.html',
 })
 export class BottomDockComponent {
+  @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
   @Output() readonly utilityTabChange = new EventEmitter<UtilityPanelId>();
 
   protected readonly util = inject(UtilityPanelService);
@@ -34,6 +35,18 @@ export class BottomDockComponent {
   protected setUtilityTab(tab: UtilityPanelId): void {
     this.util.activeTab = tab;
     this.utilityTabChange.emit(tab);
+  }
+
+  focusSearchInput(): void {
+    if (this.util.activeTab !== 'search') {
+      this.util.activeTab = 'search';
+    }
+
+    setTimeout(() => {
+      const input = this.searchInput?.nativeElement;
+      input?.focus();
+      input?.select();
+    });
   }
 
   protected clearOutput(): void {

@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { BottomDockComponent } from './bottom-dock.component';
@@ -164,4 +164,19 @@ describe('BottomDockComponent', () => {
     expect(text).toContain('1 captured commands');
     expect(text).toContain('npm run api');
   });
+
+  it('focuses the search input when focusSearchInput is called', fakeAsync(() => {
+    const fixture = TestBed.createComponent(BottomDockComponent);
+    utilityPanelService.activeTab = 'output';
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.focusSearchInput();
+    fixture.detectChanges();
+    tick();
+
+    expect(utilityPanelService.activeTab).toBe('search');
+    const input = fixture.debugElement.query(By.css('input[type="search"]')).nativeElement as HTMLInputElement;
+    expect(document.activeElement).toBe(input);
+  }));
 });

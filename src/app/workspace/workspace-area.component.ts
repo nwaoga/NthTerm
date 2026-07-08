@@ -13,6 +13,7 @@ import { NgTemplateOutlet } from '@angular/common';
 
 import { RuntimeTab, RuntimeTerminal, SHELL_OPTIONS } from '../models';
 import { AppPreferencesService } from '../preferences/app-preferences.service';
+import { resolveTerminalTheme } from '../terminal/terminal-theme.util';
 import { InspectorItem } from '../models';
 import { InspectorPresenterService } from '../inspector/inspector-presenter.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
@@ -216,6 +217,58 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     void this.ws.persistWorkspaceState();
   }
 
+  protected getResolvedTerminalTheme(terminal = this.getFocusedTerminal()) {
+    return resolveTerminalTheme(terminal?.theme ?? null, this.preferences.readDefaultTerminalTheme());
+  }
+
+  protected focusedTerminalUsesDefaultTheme(): boolean {
+    return this.ws.usesDefaultTerminalTheme(this.getFocusedTerminal());
+  }
+
+  protected setFocusedTerminalForeground(value: string): void {
+    const terminal = this.getFocusedTerminal();
+    if (!terminal) {
+      return;
+    }
+
+    const resolved = this.getResolvedTerminalTheme(terminal);
+    this.ws.updateFocusedTerminalThemeColors(value, resolved.background);
+    this.applyFocusedTerminalTheme();
+    void this.ws.persistWorkspaceState();
+  }
+
+  protected setFocusedTerminalBackground(value: string): void {
+    const terminal = this.getFocusedTerminal();
+    if (!terminal) {
+      return;
+    }
+
+    const resolved = this.getResolvedTerminalTheme(terminal);
+    this.ws.updateFocusedTerminalThemeColors(resolved.foreground, value);
+    this.applyFocusedTerminalTheme();
+    void this.ws.persistWorkspaceState();
+  }
+
+  protected resetFocusedTerminalTheme(): void {
+    const terminal = this.getFocusedTerminal();
+    if (!terminal) {
+      return;
+    }
+
+    this.ws.resetFocusedTerminalTheme();
+    this.applyFocusedTerminalTheme();
+    void this.ws.persistWorkspaceState();
+  }
+
+  private applyFocusedTerminalTheme(): void {
+    const terminal = this.getFocusedTerminal();
+    if (!terminal) {
+      return;
+    }
+
+    this.terminal.applyTerminalTheme(terminal.id, terminal);
+  }
+
   protected getFocusedTerminal() {
     return this.ws.getFocusedTerminal();
   }
@@ -228,7 +281,7 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     return this.pickInspectorItems(
       this.isSessionInspectorActive()
         ? ['Shell', 'Session Id', 'PID', 'Port']
-        : ['Directory', 'Shell', 'Workspace', 'Template', 'Layout', 'Focused Terminal']
+        : ['Directory', 'Shell', 'Workspace', 'Layout', 'Focused Terminal']
     );
   }
 

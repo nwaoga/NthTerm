@@ -1,22 +1,6 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Phase 6 / #125: Default shell preference for new terminals
-  - [x] Persist default shell in `AppPreferencesService`
-  - [x] Expose default shell in left-rail Preferences
-  - [x] Wire preference through toolbar, empty state, and terminal draft creation
-- [ ] Phase 6 / #126: Add Terminal shell picker UI
-  - [x] Split Add Terminal control with shell dropdown in toolbar
-  - [x] Shell chips in workspace empty state
-  - [x] Regression specs for shell emission and draft creation
-- [ ] Phase 6 / #127: Inspector shell selection and restart guidance
-  - [x] Shell dropdown on focused terminal in tab inspector
-  - [x] Restart guidance copy
-  - [ ] Verify relaunch applies updated shell draft
-- [ ] Phase 6 / #128: Trapezoid connected workspace tab strip
-  - [x] Single-line tab with icon, title, and close control
-  - [x] Active tab fused to workspace stage body
-  - [ ] Screenshot review against reference tab styling
 - [ ] Phase 5 / Task 4 / #122: Improve Windows PTY stability under multi-pane load
   - [x] Serialize Windows PTY spawns in Electron main with spacing and retry
   - [x] Serialize overlapping renderer restore requests
@@ -28,6 +12,19 @@
 - [ ] Phase 5 / Task 6 / #124: Validate installer and upgrade behavior on Windows
 
 ## Done
+- [x] Phase 7 / #129: Shell polish, system themes, and rich terminal colors
+  - [x] System themes (Midnight, Coffee, White) with shell CSS tokens and Windows title bar overlay
+  - [x] Settings modal in toolbar gear; preferences removed from left rail
+  - [x] Toolbar cleanup and left-aligned workspace action cluster
+  - [x] Bottom dock resize alignment for output/system monitor split
+  - [x] Terminal ANSI palette presets with Settings picker
+  - [x] Spawn-time color env and PowerShell 7 preference on Windows
+  - [x] Global search vs command palette behavior split
+- [x] Phase 6 / #125–#128: Shell picker and connected tab strip
+  - [x] Default shell preference in Settings and spawn paths
+  - [x] Split Add Terminal shell picker in toolbar and empty state
+  - [x] Inspector shell dropdown with restart guidance
+  - [x] Connected trapezoid workspace tab strip
 - [x] Phase 5 / Task 3: Add GitHub Actions release build workflow
   - [x] Run install, build, and `npm run test:ci` on pull requests and pushes to `main`
   - [x] Build Windows desktop artifacts with `npm run release:win`

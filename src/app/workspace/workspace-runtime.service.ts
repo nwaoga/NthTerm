@@ -11,7 +11,6 @@ import {
   SessionListItem,
   WorkspaceListItem,
   SessionHistoryEntry,
-  TemplateListItem,
   WorkspaceSummary,
 } from '../models';
 import {
@@ -206,6 +205,7 @@ export class WorkspaceRuntimeService {
             startupCommand: terminal.startupCommand || '',
             status: terminal.status,
             session: terminal.session || null,
+            theme: terminal.theme ?? null,
           })),
         })),
         history: this.sessionHistory,
@@ -370,23 +370,28 @@ export class WorkspaceRuntimeService {
     return this.deleteWorkspace(sessionId);
   }
 
-  async createWorkspaceFromTemplate(
-    template: TemplateListItem,
-    options?: { cwd?: string; name?: string }
-  ): Promise<SavedWorkspace> {
+  async createWorkspace(options?: {
+    cwd?: string;
+    name?: string;
+    icon?: string;
+    accent?: string;
+  }): Promise<SavedWorkspace> {
     if (this.selectedWorkspaceId) {
       await this.persistWorkspaceState();
     }
 
-    const cwd = options?.cwd || template.cwd;
-    const starterTab = createEmptyTabSnapshot(options?.name || template.name, cwd, template.accent);
+    const cwd = options?.cwd || '.';
+    const name = options?.name || this.buildWorkspaceName('New Workspace');
+    const icon = options?.icon || 'person';
+    const accent = options?.accent || 'slate';
+    const starterTab = createEmptyTabSnapshot(name, cwd, accent);
 
     const created = await this.workspaceBridge.createWorkspace({
-      name: options?.name || this.buildWorkspaceName(template.name),
+      name,
       cwd,
-      templateId: template.templateId,
-      icon: template.icon,
-      accent: template.accent,
+      templateId: '',
+      icon,
+      accent,
       layoutMode: 'grid-2x2',
       launchProfile: 'manual',
       sessionSnapshot: {
@@ -485,6 +490,36 @@ export class WorkspaceRuntimeService {
     if (terminal) {
       this.updateTerminalField(terminal.id, 'shell', value);
     }
+  }
+
+  updateFocusedTerminalTheme(theme: RuntimeTerminal['theme']): void {
+    const terminal = this.getFocusedTerminal();
+    if (terminal) {
+      this.updateTerminalField(terminal.id, 'theme', theme);
+    }
+  }
+
+  updateFocusedTerminalThemeColors(foreground: string, background: string): void {
+    const terminal = this.getFocusedTerminal();
+    if (!terminal) {
+      return;
+    }
+
+    this.updateTerminalField(terminal.id, 'theme', {
+      foreground,
+      background,
+    });
+  }
+
+  resetFocusedTerminalTheme(): void {
+    const terminal = this.getFocusedTerminal();
+    if (terminal) {
+      this.updateTerminalField(terminal.id, 'theme', null);
+    }
+  }
+
+  usesDefaultTerminalTheme(terminal: RuntimeTerminal | undefined): boolean {
+    return !terminal?.theme;
   }
 
   /** @deprecated Use updateFocusedTerminalShell */

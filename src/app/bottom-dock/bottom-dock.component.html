@@ -157,6 +157,7 @@
           <label class="search-field">
             <span>Search workspaces, tabs, commands, and output</span>
             <input
+              #searchInput
               [(ngModel)]="util.searchQuery"
               (ngModelChange)="palette.query = util.searchQuery"
               type="search"

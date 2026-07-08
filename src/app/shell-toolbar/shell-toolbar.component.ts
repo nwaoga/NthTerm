@@ -1,7 +1,6 @@
-import { Component, EventEmitter, HostListener, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, HostListener, Output, inject } from '@angular/core';
 
-import { SHELL_OPTIONS, UtilityPanelId } from '../models';
-import { CommandPaletteService } from '../command-palette/command-palette.service';
+import { SHELL_OPTIONS } from '../models';
 import { AppPreferencesService, DefaultShellPreference } from '../preferences/app-preferences.service';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 import { MAX_TABS_PER_WORKSPACE, MAX_TERMINALS_PER_TAB } from '../workspace/workspace-snapshot';
@@ -14,17 +13,12 @@ export class ShellToolbarComponent {
   @Output() readonly createTabRequested = new EventEmitter<void>();
   @Output() readonly createTerminalRequested = new EventEmitter<DefaultShellPreference>();
   @Output() readonly layoutModeChange = new EventEmitter<'grid-2' | 'grid-2x2'>();
-  @Output() readonly globalSearchRequested = new EventEmitter<void>();
   @Output() readonly commandPaletteRequested = new EventEmitter<void>();
-  @Output() readonly utilityPanelOpen = new EventEmitter<UtilityPanelId>();
-  @Output() readonly viewMenuToggle = new EventEmitter<MouseEvent>();
-
-  @Input({ required: true }) viewMenuOpen = false;
+  @Output() readonly settingsRequested = new EventEmitter<void>();
 
   protected shellMenuOpen = false;
   protected readonly shellOptions = SHELL_OPTIONS;
   protected readonly ws = inject(WorkspaceRuntimeService);
-  protected readonly palette = inject(CommandPaletteService);
   protected readonly preferences = inject(AppPreferencesService);
   protected readonly isWindows = this.detectWindows();
 
@@ -76,20 +70,12 @@ export class ShellToolbarComponent {
     this.layoutModeChange.emit(mode);
   }
 
-  protected openGlobalSearch(): void {
-    this.globalSearchRequested.emit();
-  }
-
   protected openCommandPalette(): void {
     this.commandPaletteRequested.emit();
   }
 
-  protected openUtilityPanel(tab: UtilityPanelId): void {
-    this.utilityPanelOpen.emit(tab);
-  }
-
-  protected toggleViewMenu(event: MouseEvent): void {
-    this.viewMenuToggle.emit(event);
+  protected openSettings(): void {
+    this.settingsRequested.emit();
   }
 
   private detectWindows(): boolean {

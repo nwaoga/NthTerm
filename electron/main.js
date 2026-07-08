@@ -9,6 +9,8 @@ const {
   TerminalSpawnCoordinator,
   createWindowsSpawnOptions,
 } = require('./terminal-spawn-coordinator');
+const { buildTerminalSpawnEnv } = require('./terminal-spawn-env');
+const { getWindowsPowerShell } = require('./resolve-shell');
 
 const spawnCoordinator = new TerminalSpawnCoordinator({
   spawnFn: (file, args, options) => pty.spawn(file, args, options),
@@ -17,6 +19,32 @@ const spawnCoordinator = new TerminalSpawnCoordinator({
 const terminals = new Map();
 const workspaceStore = new WorkspaceStore();
 let isQuitting = false;
+let mainWindow = null;
+
+const DEFAULT_TITLE_BAR_THEME = {
+  windowBackground: '#090d16',
+  color: '#151726',
+  symbolColor: '#dbe7f5',
+  height: 66,
+};
+
+function applyTitleBarTheme(window, theme = DEFAULT_TITLE_BAR_THEME) {
+  if (!window || window.isDestroyed()) {
+    return;
+  }
+
+  if (theme.windowBackground) {
+    window.setBackgroundColor(theme.windowBackground);
+  }
+
+  if (process.platform === 'win32' && typeof window.setTitleBarOverlay === 'function') {
+    window.setTitleBarOverlay({
+      color: theme.color,
+      symbolColor: theme.symbolColor,
+      height: theme.height,
+    });
+  }
+}
 
 function parseDetectedPort(data) {
   const patterns = [
@@ -37,10 +65,7 @@ function parseDetectedPort(data) {
 
 function getShell() {
   if (process.platform === 'win32') {
-    return {
-      file: 'powershell.exe',
-      args: ['-NoLogo'],
-    };
+    return getWindowsPowerShell();
   }
 
   if (process.platform === 'darwin') {
@@ -63,7 +88,7 @@ function resolveShell(preference) {
   }
 
   if (normalized === 'powershell' || normalized === 'powershell.exe') {
-    return { file: 'powershell.exe', args: ['-NoLogo'] };
+    return getWindowsPowerShell();
   }
 
   if (normalized === 'cmd' || normalized === 'cmd.exe') {
@@ -117,12 +142,12 @@ function createWindow() {
     height: 920,
     minWidth: 960,
     minHeight: 640,
-    backgroundColor: '#05080c',
+    backgroundColor: DEFAULT_TITLE_BAR_THEME.windowBackground,
     titleBarStyle: 'hidden',
     titleBarOverlay: {
-      color: '#0f1624',
-      symbolColor: '#dbe7f5',
-      height: 40,
+      color: DEFAULT_TITLE_BAR_THEME.color,
+      symbolColor: DEFAULT_TITLE_BAR_THEME.symbolColor,
+      height: DEFAULT_TITLE_BAR_THEME.height,
     },
     autoHideMenuBar: true,
     webPreferences: {
@@ -131,6 +156,9 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
+
+  mainWindow = window;
+  applyTitleBarTheme(window, DEFAULT_TITLE_BAR_THEME);
 
   const rendererUrl = process.env.NTH_TERM_RENDERER_URL;
 
@@ -149,10 +177,9 @@ function registerTerminalHandlers() {
     const id = crypto.randomUUID();
     const cwd = workspaceStore.resolveLaunchDirectory(options.cwd);
     const startedAt = new Date().toISOString();
-    const env = {
-      ...process.env,
-      ...(options.workspaceName ? { NTH_TERM_WORKSPACE: options.workspaceName } : {}),
-    };
+    const env = buildTerminalSpawnEnv(process.env, {
+      workspaceName: options.workspaceName,
+    });
     const spawnOptions = createWindowsSpawnOptions({
       name: 'xterm-256color',
       cols: 120,
@@ -315,6 +342,10 @@ function registerAppHandlers() {
   ipcMain.handle('app:quit-ready', () => {
     isQuitting = true;
     app.quit();
+  });
+
+  ipcMain.handle('app:apply-title-bar-theme', (_event, theme) => {
+    applyTitleBarTheme(mainWindow, theme);
   });
 }
 

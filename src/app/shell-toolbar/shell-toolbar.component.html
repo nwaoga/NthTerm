@@ -17,112 +17,102 @@
     </div>
   </div>
 
-  <div class="toolbar-centerband">
-    <div class="desktop-workspace-context" aria-label="Active workspace context">
-      <span class="workspace-context-icon" aria-hidden="true">
-        <svg viewBox="0 0 20 20" fill="none">
-          <path
-            d="M6.7 15.4h6.1a3.2 3.2 0 0 0 .5-6.4 4.4 4.4 0 0 0-8.4 1.2 2.7 2.7 0 0 0 1.8 5.2Z"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </span>
-      <div class="workspace-context-copy">
-        <span class="workspace-context-label">Active Workspace</span>
-        <strong class="workspace-context-name">{{ ws.selectedWorkspace }}</strong>
-      </div>
-      <span class="workspace-context-badge">Sidebar</span>
-    </div>
-    <div class="toolbar-center-meta">
-      <span class="toolbar-meta-pill">{{ getLayoutLabel() }}</span>
-      <span class="toolbar-center-summary">{{ getWorkspaceSummary() }}</span>
-    </div>
-  </div>
-
-  <div class="toolbar-actions">
-    <div class="toolbar-action-group toolbar-action-group-primary">
-      <button type="button" class="toolbar-pill toolbar-pill-primary" (click)="createTab()" [disabled]="!canAddTab()">
-        <span class="toolbar-icon toolbar-icon-leading" aria-hidden="true">
+  <div class="toolbar-main">
+    <div class="toolbar-centerband">
+      <div class="desktop-workspace-context" aria-label="Active workspace context">
+        <span class="workspace-context-icon" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="none">
-            <path d="M10 4.2v11.6M4.2 10h11.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            <path
+              d="M6.7 15.4h6.1a3.2 3.2 0 0 0 .5-6.4 4.4 4.4 0 0 0-8.4 1.2 2.7 2.7 0 0 0 1.8 5.2Z"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </span>
-        <span>New Tab</span>
-      </button>
-      <div class="split-action" (click)="$event.stopPropagation()">
-        <button
-          type="button"
-          class="toolbar-pill toolbar-pill-primary split-action-main"
-          (click)="createTerminal()"
-          [disabled]="!canAddTerminal()"
-        >
+        <div class="workspace-context-copy">
+          <span class="workspace-context-label">Active Workspace</span>
+          <strong class="workspace-context-name">{{ ws.selectedWorkspace }}</strong>
+        </div>
+        <span class="workspace-context-badge">Sidebar</span>
+      </div>
+      <div class="toolbar-center-meta">
+        <span class="toolbar-meta-pill">{{ getLayoutLabel() }}</span>
+        <span class="toolbar-center-summary">{{ getWorkspaceSummary() }}</span>
+      </div>
+    </div>
+
+    <div class="toolbar-actions">
+      <div class="toolbar-action-group toolbar-action-group-primary">
+        <button type="button" class="toolbar-pill toolbar-pill-primary" (click)="createTab()" [disabled]="!canAddTab()">
           <span class="toolbar-icon toolbar-icon-leading" aria-hidden="true">
             <svg viewBox="0 0 20 20" fill="none">
-              <path d="M5.2 6.2h9.6v7.6H5.2z" stroke="currentColor" stroke-width="1.4" />
-              <path d="M7.6 9.2h4.8M7.6 11.2h3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+              <path d="M10 4.2v11.6M4.2 10h11.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
             </svg>
           </span>
-          <span>Add Terminal</span>
+          <span>New Tab</span>
         </button>
-        <button
-          type="button"
-          class="toolbar-pill toolbar-pill-primary split-action-menu"
-          aria-label="Choose shell for new terminal"
-          (click)="toggleShellMenu($event)"
-          [disabled]="!canAddTerminal()"
-        >
-          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-        @if (shellMenuOpen) {
-          <div class="view-menu-dropdown shell-menu-dropdown" role="menu">
-            @for (option of shellOptions; track option.value) {
-              <button
-                type="button"
-                class="view-menu-item"
-                role="menuitem"
-                (click)="createTerminal(option.value)"
-              >
-                {{ option.label }}
-              </button>
-            }
-          </div>
-        }
+        <div class="split-action" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="toolbar-pill toolbar-pill-primary split-action-main"
+            (click)="createTerminal()"
+            [disabled]="!canAddTerminal()"
+          >
+            <span class="toolbar-icon toolbar-icon-leading" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M5.2 6.2h9.6v7.6H5.2z" stroke="currentColor" stroke-width="1.4" />
+                <path d="M7.6 9.2h4.8M7.6 11.2h3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+              </svg>
+            </span>
+            <span>Add Terminal</span>
+          </button>
+          <button
+            type="button"
+            class="toolbar-pill toolbar-pill-primary split-action-menu"
+            aria-label="Choose shell for new terminal"
+            (click)="toggleShellMenu($event)"
+            [disabled]="!canAddTerminal()"
+          >
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          @if (shellMenuOpen) {
+            <div class="view-menu-dropdown shell-menu-dropdown" role="menu">
+              @for (option of shellOptions; track option.value) {
+                <button
+                  type="button"
+                  class="view-menu-item"
+                  role="menuitem"
+                  (click)="createTerminal(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+        <div class="layout-switch" aria-label="Layout mode">
+          <button
+            type="button"
+            class="toolbar-pill toolbar-pill-segment"
+            [class.active]="ws.layoutMode === 'grid-2'"
+            (click)="setLayoutMode('grid-2')"
+          >
+            2-Up
+          </button>
+          <button
+            type="button"
+            class="toolbar-pill toolbar-pill-segment"
+            [class.active]="ws.layoutMode === 'grid-2x2'"
+            (click)="setLayoutMode('grid-2x2')"
+          >
+            2x2
+          </button>
+        </div>
       </div>
-      <div class="layout-switch" aria-label="Layout mode">
-        <button
-          type="button"
-          class="toolbar-pill toolbar-pill-segment"
-          [class.active]="ws.layoutMode === 'grid-2'"
-          (click)="setLayoutMode('grid-2')"
-        >
-          2-Up
-        </button>
-        <button
-          type="button"
-          class="toolbar-pill toolbar-pill-segment"
-          [class.active]="ws.layoutMode === 'grid-2x2'"
-          (click)="setLayoutMode('grid-2x2')"
-        >
-          2x2
-        </button>
-      </div>
-    </div>
-    <div class="toolbar-action-group toolbar-action-group-secondary">
-      <button type="button" class="toolbar-pill muted toolbar-search toolbar-pill-ghost" (click)="openGlobalSearch()">
-        <span class="toolbar-icon" aria-hidden="true">
-          <svg viewBox="0 0 20 20" fill="none">
-            <circle cx="8.7" cy="8.7" r="4.7" stroke="currentColor" stroke-width="1.6" />
-            <path d="m12.3 12.3 3.6 3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-          </svg>
-        </span>
-        <span>Search</span>
-        <kbd>Ctrl+Shift+F</kbd>
-      </button>
       <button type="button" class="toolbar-pill muted toolbar-command toolbar-pill-ghost" (click)="openCommandPalette()">
         <span class="toolbar-icon" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="none">
@@ -133,27 +123,22 @@
         <span>Command Palette</span>
         <kbd>Ctrl+Shift+P</kbd>
       </button>
-    </div>
-    <div class="toolbar-action-group toolbar-action-group-utility">
-      <div class="view-menu" (click)="$event.stopPropagation()">
-        <button type="button" class="toolbar-icon-button toolbar-settings-button" aria-label="View options" (click)="toggleViewMenu($event)">
+      <div class="toolbar-action-group toolbar-action-group-utility">
+        <button type="button" class="toolbar-icon-button toolbar-settings-button" aria-label="Settings" (click)="openSettings()">
           <span class="toolbar-icon" aria-hidden="true">
             <svg viewBox="0 0 20 20" fill="none">
-              <path d="M10 4.3v2.1M10 13.6v2.1M15.7 10h-2.1M6.4 10H4.3M13.9 6.1l-1.5 1.5M7.6 12.4l-1.5 1.5M13.9 13.9l-1.5-1.5M7.6 7.6 6.1 6.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
-              <circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.4" />
+              <path
+                d="M10 3.6 10.9 6.2l2.6 1-1.6 2.2 1.6 2.2-2.6 1L10 14.2l-.9-2.6-2.6-1 1.6-2.2-1.6-2.2 2.6-1L10 3.6Z"
+                stroke="currentColor"
+                stroke-width="1.35"
+                stroke-linejoin="round"
+              />
+              <circle cx="10" cy="9.1" r="2.1" stroke="currentColor" stroke-width="1.35" />
             </svg>
           </span>
         </button>
-        @if (viewMenuOpen) {
-          <div class="view-menu-dropdown" role="menu">
-            <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('output')">Output</button>
-            <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('problems')">Problems</button>
-            <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('search')">Search</button>
-            <button type="button" class="view-menu-item" role="menuitem" (click)="openUtilityPanel('command-history')">Command History</button>
-          </div>
-        }
+        <button type="button" class="toolbar-avatar" aria-label="Profile">BN</button>
       </div>
-      <button type="button" class="toolbar-avatar" aria-label="Profile">BN</button>
     </div>
   </div>
 </header>

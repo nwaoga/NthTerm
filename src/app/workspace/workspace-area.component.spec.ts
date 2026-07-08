@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
+import { AppPreferencesService } from '../preferences/app-preferences.service';
 import { InspectorPresenterService } from '../inspector/inspector-presenter.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
 import { TerminalHostCoordinatorService } from '../terminal/terminal-host-coordinator.service';
@@ -73,6 +74,10 @@ describe('WorkspaceAreaComponent', () => {
     getTerminalPreviewText: () => '$ npm run api',
     getTerminalTone: () => 'violet',
     focusedPaneId: 'terminal-1',
+    usesDefaultTerminalTheme: () => true,
+    updateFocusedTerminalShell: () => undefined,
+    updateFocusedTerminalThemeColors: () => undefined,
+    resetFocusedTerminalTheme: () => undefined,
   };
 
   const terminalService = {
@@ -92,6 +97,7 @@ describe('WorkspaceAreaComponent', () => {
     killTerminal: jasmine.createSpy('killTerminal'),
     reattachTerminalSession: jasmine.createSpy('reattachTerminalSession'),
     focusTerminal: jasmine.createSpy('focusTerminal'),
+    applyTerminalTheme: jasmine.createSpy('applyTerminalTheme'),
     syncTerminalSize: () => undefined,
   };
 
@@ -130,7 +136,6 @@ describe('WorkspaceAreaComponent', () => {
             { label: 'Directory', value: 'C:/repo/apps/api' },
             { label: 'Shell', value: 'PowerShell' },
             { label: 'Workspace', value: 'Cloud POS' },
-            { label: 'Template', value: 'api' },
             { label: 'Layout', value: 'grid-2' },
             { label: 'Focused Terminal', value: 'terminal-1' },
             { label: 'Startup Command', value: 'npm run api' },
@@ -166,6 +171,16 @@ describe('WorkspaceAreaComponent', () => {
         { provide: InspectorPresenterService, useValue: inspectorPresenter },
         { provide: SystemMonitorService, useValue: systemMonitorService },
         { provide: TerminalHostCoordinatorService, useValue: hostCoordinator },
+        {
+          provide: AppPreferencesService,
+          useValue: {
+            readDefaultTerminalTheme: () => ({
+              foreground: '#d8e1e8',
+              background: '#0d1320',
+              cursor: '#7dd3fc',
+            }),
+          },
+        },
       ],
     }).compileComponents();
   });
@@ -203,6 +218,17 @@ describe('WorkspaceAreaComponent', () => {
 
     expect(fixture.nativeElement.querySelector('.workspace-empty-state')).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Add a shell to this tab');
+  });
+
+  it('labels terminal color controls separately from workspace chrome', () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+
+    expect(text).toContain('Terminal appearance');
+    expect(text).toContain('Settings');
+    expect(text).toContain('Colors');
   });
 
   it('switches to the live session inspector view', () => {

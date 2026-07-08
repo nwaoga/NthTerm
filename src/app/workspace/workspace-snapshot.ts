@@ -1,4 +1,4 @@
-import { LayoutMode, PaneSessionSnapshot, RuntimeTab, RuntimeTerminal } from '../models';
+import { LayoutMode, PaneSessionSnapshot, RuntimeTab, RuntimeTerminal, TerminalColorTheme } from '../models';
 import { SavedWorkspace } from '../workspace-bridge.service';
 
 export const MAX_TABS_PER_WORKSPACE = 5;
@@ -11,6 +11,7 @@ export interface SavedTerminalSnapshot {
   startupCommand?: string;
   status: string;
   session?: PaneSessionSnapshot | null;
+  theme?: TerminalColorTheme | null;
 }
 
 export interface SavedTabSnapshot {
@@ -160,6 +161,7 @@ export function mapRuntimeTerminal(terminal: SavedTerminalSnapshot): RuntimeTerm
     startupCommand: terminal.startupCommand || '',
     status: terminal.status || 'idle',
     session: terminal.session || null,
+    theme: terminal.theme ?? null,
   };
 }
 
@@ -180,7 +182,7 @@ export function createEmptyTabSnapshot(title: string, cwd: string, accent = 'vio
 export function createTerminalDraft(
   tab: RuntimeTab,
   workspaceCwd: string,
-  options?: { shell?: string }
+  options?: { shell?: string; theme?: TerminalColorTheme | null }
 ): RuntimeTerminal {
   const nextIndex = tab.terminals.length + 1;
   return {
@@ -190,6 +192,7 @@ export function createTerminalDraft(
     startupCommand: '',
     status: 'idle',
     session: null,
+    theme: options?.theme ?? null,
   };
 }
 

@@ -1,0 +1,140 @@
+@if (open) {
+  <div class="settings-modal-backdrop" (click)="close()">
+    <div
+      class="settings-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="settings-modal-header">
+        <div>
+          <p class="settings-modal-eyebrow">NthTerm</p>
+          <h2 class="settings-modal-title" id="settings-modal-title">Settings</h2>
+        </div>
+        <button type="button" class="settings-modal-close" aria-label="Close settings" (click)="close()">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </button>
+      </header>
+
+      <div class="settings-modal-body">
+        <label class="preference-toggle">
+          <input
+            type="checkbox"
+            [checked]="utilityPanelVisible"
+            (change)="setUtilityPanelPreference($any($event.target).checked)"
+          />
+          <span>Show bottom panel</span>
+        </label>
+
+        <section class="preference-section" aria-labelledby="settings-workspace-appearance">
+          <div class="preference-section-heading">
+            <p class="preference-section-title" id="settings-workspace-appearance">Workspace appearance</p>
+            <p class="preference-section-copy">Sidebars, toolbar, tabs, and panels around the terminal.</p>
+          </div>
+          <label class="preference-field">
+            <span class="preference-label">System theme</span>
+            <select
+              class="preference-select"
+              [ngModel]="systemTheme"
+              (ngModelChange)="setSystemTheme($event)"
+            >
+              @for (theme of systemThemes; track theme.id) {
+                <option [value]="theme.id">{{ theme.label }}</option>
+              }
+            </select>
+          </label>
+        </section>
+
+        <section class="preference-section" aria-labelledby="settings-terminal-appearance">
+          <div class="preference-section-heading">
+            <p class="preference-section-title" id="settings-terminal-appearance">Terminal appearance</p>
+            <p class="preference-section-copy">Text and background inside the terminal. Does not change the app chrome.</p>
+          </div>
+          <label class="preference-field">
+            <span class="preference-label">Default shell for new terminals</span>
+            <select
+              class="preference-select"
+              [ngModel]="defaultShell"
+              (ngModelChange)="setDefaultShell($event)"
+            >
+              @for (option of shellOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+          <label class="preference-field">
+            <span class="preference-label">Syntax color palette</span>
+            <select
+              class="preference-select"
+              [ngModel]="terminalAnsiPalette"
+              (ngModelChange)="setTerminalAnsiPalette($event)"
+            >
+              @for (option of terminalAnsiPaletteOptions; track option.id) {
+                <option [value]="option.id">{{ option.label }}</option>
+              }
+            </select>
+            <p class="preference-hint">Colors for git, npm, PowerShell, and other ANSI output. Auto picks VS Code Dark or Light based on your background.</p>
+          </label>
+          <div class="preference-field">
+            <span class="preference-label">Default terminal colors</span>
+            <div class="theme-color-row">
+              <label class="theme-color-field">
+                <span class="preference-label">Text</span>
+                <input
+                  class="theme-color-input"
+                  type="color"
+                  [ngModel]="defaultTerminalForeground"
+                  (ngModelChange)="setDefaultTerminalForeground($event)"
+                />
+              </label>
+              <label class="theme-color-field">
+                <span class="preference-label">Background</span>
+                <input
+                  class="theme-color-input"
+                  type="color"
+                  [ngModel]="defaultTerminalBackground"
+                  (ngModelChange)="setDefaultTerminalBackground($event)"
+                />
+              </label>
+            </div>
+            <p class="preference-hint">Used for new terminals and any terminal still on the app default. Override per terminal in the inspector.</p>
+          </div>
+        </section>
+
+        <section class="preference-section" aria-labelledby="settings-new-workspaces">
+          <div class="preference-section-heading">
+            <p class="preference-section-title" id="settings-new-workspaces">New workspaces</p>
+          </div>
+          <label class="preference-field">
+            <span class="preference-label">Start in</span>
+            <select
+              class="preference-select"
+              [ngModel]="newSessionStartMode"
+              (ngModelChange)="setNewSessionStartMode($event)"
+            >
+              @for (option of newSessionStartOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+          @if (newSessionStartMode === 'custom') {
+            <label class="preference-field">
+              <span class="preference-label">Custom path</span>
+              <input
+                class="preference-input"
+                type="text"
+                [ngModel]="newSessionCustomPath"
+                placeholder="C:\Projects\NthTerm"
+                (ngModelChange)="setNewSessionCustomPath($event)"
+              />
+            </label>
+          }
+          <p class="preference-hint">{{ getNewSessionStartHint() }}</p>
+        </section>
+      </div>
+    </div>
+  </div>
+}

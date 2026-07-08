@@ -61,10 +61,6 @@ export class InspectorPresenterService {
         value: this.workspace.getFocusedTerminal()?.startupCommand?.trim() || 'None',
       },
       { label: 'Workspace', value: this.workspace.workspaceName || 'n/a' },
-      {
-        label: 'Template',
-        value: this.workspace.activeWorkspace?.templateId || 'custom',
-      },
       { label: 'Layout', value: this.workspace.layoutMode },
       { label: 'Focused Terminal', value: this.workspace.focusedPaneId || 'n/a' },
       {

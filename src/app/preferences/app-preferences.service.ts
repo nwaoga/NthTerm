@@ -1,10 +1,23 @@
 import { Injectable } from '@angular/core';
 
+import {
+  DEFAULT_TERMINAL_ANSI_PALETTE,
+  DEFAULT_TERMINAL_THEME,
+  SystemThemeId,
+  TerminalAnsiPaletteId,
+  TerminalColorTheme,
+} from '../models/terminal-theme.models';
+import { isTerminalAnsiPaletteId } from '../terminal/terminal-ansi-palettes';
+import { normalizeTerminalTheme } from '../terminal/terminal-theme.util';
+
 const BOTTOM_PANEL_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.visible';
 const BOTTOM_PANEL_HEIGHT_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.height';
 const NEW_SESSION_START_MODE_PREFERENCE_KEY = 'nthterm.preferences.newSession.startMode';
 const NEW_SESSION_CUSTOM_PATH_PREFERENCE_KEY = 'nthterm.preferences.newSession.customPath';
 const DEFAULT_SHELL_PREFERENCE_KEY = 'nthterm.preferences.defaultShell';
+const DEFAULT_TERMINAL_THEME_PREFERENCE_KEY = 'nthterm.preferences.defaultTerminalTheme';
+const TERMINAL_ANSI_PALETTE_PREFERENCE_KEY = 'nthterm.preferences.terminalAnsiPalette';
+const SYSTEM_THEME_PREFERENCE_KEY = 'nthterm.preferences.systemTheme';
 
 export type DefaultShellPreference = '' | 'powershell' | 'cmd' | 'bash' | 'zsh';
 const DEFAULT_BOTTOM_PANEL_HEIGHT = 280;
@@ -108,6 +121,81 @@ export class AppPreferencesService {
     } catch {
       // Preference persistence is best-effort only.
     }
+  }
+
+  readDefaultTerminalTheme(): TerminalColorTheme {
+    try {
+      const stored = localStorage.getItem(DEFAULT_TERMINAL_THEME_PREFERENCE_KEY);
+      if (!stored) {
+        return { ...DEFAULT_TERMINAL_THEME };
+      }
+
+      return normalizeTerminalTheme(JSON.parse(stored) as Partial<TerminalColorTheme>);
+    } catch {
+      return { ...DEFAULT_TERMINAL_THEME };
+    }
+  }
+
+  writeDefaultTerminalTheme(theme: TerminalColorTheme): void {
+    try {
+      localStorage.setItem(
+        DEFAULT_TERMINAL_THEME_PREFERENCE_KEY,
+        JSON.stringify(normalizeTerminalTheme(theme))
+      );
+    } catch {
+      // Preference persistence is best-effort only.
+    }
+  }
+
+  readTerminalAnsiPalette(): TerminalAnsiPaletteId {
+    try {
+      const stored = localStorage.getItem(TERMINAL_ANSI_PALETTE_PREFERENCE_KEY);
+      return isTerminalAnsiPaletteId(stored) ? stored : DEFAULT_TERMINAL_ANSI_PALETTE;
+    } catch {
+      return DEFAULT_TERMINAL_ANSI_PALETTE;
+    }
+  }
+
+  writeTerminalAnsiPalette(paletteId: TerminalAnsiPaletteId): void {
+    try {
+      localStorage.setItem(TERMINAL_ANSI_PALETTE_PREFERENCE_KEY, paletteId);
+    } catch {
+      // Preference persistence is best-effort only.
+    }
+  }
+
+  readSystemTheme(): SystemThemeId {
+    try {
+      const stored = localStorage.getItem(SYSTEM_THEME_PREFERENCE_KEY);
+      const migrated = this.migrateSystemTheme(stored);
+      return this.isSystemTheme(migrated) ? migrated : 'midnight';
+    } catch {
+      return 'midnight';
+    }
+  }
+
+  writeSystemTheme(theme: SystemThemeId): void {
+    try {
+      localStorage.setItem(SYSTEM_THEME_PREFERENCE_KEY, theme);
+    } catch {
+      // Preference persistence is best-effort only.
+    }
+  }
+
+  private isSystemTheme(value: string | null): value is SystemThemeId {
+    return value === 'midnight' || value === 'coffee' || value === 'white';
+  }
+
+  private migrateSystemTheme(value: string | null): string | null {
+    if (value === 'slate') {
+      return 'white';
+    }
+
+    if (value === 'ember') {
+      return 'coffee';
+    }
+
+    return value;
   }
 
   private isDefaultShell(value: string | null): value is DefaultShellPreference {

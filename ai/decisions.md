@@ -136,3 +136,11 @@
 - Default shell preference is stored in `localStorage` via `AppPreferencesService` and surfaced in left-rail Preferences; toolbar **Add Terminal**, workspace empty state, and terminal draft creation all honor it unless the user picks a specific shell.
 - Workspace tabs now use a single-line connected strip (terminal icon, title, close) with the active tab fused to the workspace stage body instead of the earlier two-line pill tabs.
 - Inspector tab context includes a shell dropdown on the focused terminal with explicit restart guidance because shell changes apply to the saved draft until the PTY is relaunched.
+
+## 2026-07-08
+- Phase 7 (#129) separates **system theme** (app chrome via `data-shell-theme`) from **terminal theme** (xterm foreground/background per terminal or app default).
+- Settings moved to a toolbar gear modal; left rail keeps workspaces and tools only. Templates rail section removed.
+- Toolbar search button and dock shortcut removed; global search remains via `Ctrl+Shift+F` and the bottom dock Search tab. Command palette stays on `Ctrl+Shift+P`.
+- Terminal ANSI palettes are preset-based (VS Code Dark+/Light+, Dracula, Monokai, One Dark, Solarized Dark, Nord) with Auto matching background luminance.
+- Electron spawn env forces tool colors via `FORCE_COLOR`, `COLORTERM`, and Git `color.status.*` slots; Windows defaults to PowerShell 7 when `pwsh.exe` is installed.
+- Bottom dock resize uses flex height chains so Application Output and System Monitor stay bottom-aligned while dragging.

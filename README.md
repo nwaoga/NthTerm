@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **Phase 5 in progress** — production readiness after verified desktop packaging.
+Current milestone: **Phase 7 complete** — shell polish and terminal theming. Phase 5 Task 4 (#122) Windows PTY stability still in progress.
 
 Working today:
 
@@ -40,7 +40,10 @@ Working today:
 - bottom utility panels: output, problems, search, and command history (visible by default, toggle in Appearance)
 - resizable workspace dock with persisted height
 - system monitor (CPU, memory, disk, network) and session environment variables
-- command palette and global workspace search
+- command palette and global workspace search (`Ctrl+Shift+P` / `Ctrl+Shift+F`)
+- system themes for app chrome (Midnight, Coffee, White) separate from terminal colors
+- settings modal for shell defaults, system theme, terminal colors, and ANSI syntax palette
+- rich terminal ANSI output with VS Code–style color presets
 - last workspace auto-restores on launch, with invalid directory fallback
 - per-tab shell preference and startup commands persisted in SQLite
 - session history and recovery metadata persisted per workspace, including latest exit reason/code and recent session events
@@ -55,9 +58,9 @@ Keyboard shortcuts:
 
 Next up:
 
-- Phase 5 Task 4 / ADO #122: Windows PTY stability
-- Phase 5 Task 5 / ADO #123: release branding and signing readiness
-- Phase 5 Task 6 / ADO #124: installer and upgrade validation
+- Phase 5 Task 4 / ADO [#122](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/122): Windows PTY stability
+- Phase 5 Task 5 / ADO [#123](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/123): release branding and signing readiness
+- Phase 5 Task 6 / ADO [#124](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/124): installer and upgrade validation
 
 ## Design alignment checklist
 

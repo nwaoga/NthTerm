@@ -14,13 +14,16 @@ import { CommandPaletteComponent } from './command-palette/command-palette.compo
 import { CommandPaletteService } from './command-palette/command-palette.service';
 import { LeftRailComponent } from './left-rail/left-rail.component';
 import { InspectorPresenterService } from './inspector/inspector-presenter.service';
-import { LayoutMode, WorkspaceListItem, TemplateListItem, UtilityPanelId, WORKSPACE_TEMPLATES } from './models';
+import { LayoutMode, WorkspaceListItem, UtilityPanelId } from './models';
 import {
   AppPreferencesService,
   DefaultShellPreference,
   NewSessionStartMode,
 } from './preferences/app-preferences.service';
+import { ShellThemeService } from './preferences/shell-theme.service';
+import { SystemThemeId, TerminalAnsiPaletteId } from './models/terminal-theme.models';
 import { ReferenceReviewContentService } from './reference/reference-review-content.service';
+import { SettingsModalComponent } from './settings/settings-modal.component';
 import { ShellToolbarComponent } from './shell-toolbar/shell-toolbar.component';
 import { StatusBarComponent } from './status-bar/status-bar.component';
 import { SystemMonitorService } from './system/system-monitor.service';
@@ -40,21 +43,26 @@ import { WorkspaceRuntimeService } from './workspace/workspace-runtime.service';
     BottomDockComponent,
     StatusBarComponent,
     CommandPaletteComponent,
+    SettingsModalComponent,
   ],
   templateUrl: './app.component.html',
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild(CommandPaletteComponent) private commandPalette?: CommandPaletteComponent;
+  @ViewChild('bottomDock') private bottomDock?: BottomDockComponent;
 
   protected utilityPanelVisible = true;
   protected utilityPanelHeight = 280;
-  protected viewMenuOpen = false;
-  protected preferencesOpen = false;
+  protected settingsOpen = false;
   protected dockResizeActive = false;
   protected newSessionStartMode: NewSessionStartMode = 'focused-tab';
   protected newSessionCustomPath = '';
   protected homeDirectory = '';
   protected defaultShell: DefaultShellPreference = '';
+  protected systemTheme: SystemThemeId = 'midnight';
+  protected defaultTerminalForeground = '#d8e1e8';
+  protected defaultTerminalBackground = '#0d1320';
+  protected terminalAnsiPalette: TerminalAnsiPaletteId = 'auto';
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -65,6 +73,7 @@ export class AppComponent implements AfterViewInit {
   private readonly system = inject(SystemMonitorService);
   private readonly referenceReview = inject(ReferenceReviewContentService);
   private readonly preferences = inject(AppPreferencesService);
+  private readonly shellTheme = inject(ShellThemeService);
   private readonly workspaceBridge = inject(WorkspaceBridgeService);
   private readonly appBridge = inject(AppBridgeService);
   private readonly hostCoordinator = inject(TerminalHostCoordinatorService);
@@ -86,14 +95,14 @@ export class AppComponent implements AfterViewInit {
       },
       setLayoutMode: (mode) => this.onLayoutModeChange(mode),
       openCommandPalette: () => this.openCommandPalette(),
+      openGlobalSearch: () => this.openGlobalSearch(),
       selectWorkspace: (id) => this.onWorkspaceSelected(id),
       selectTab: async (id) => {
         const tab = await this.ws.selectTab(id);
         if (tab) await this.hostCoordinator.syncAndRestore();
       },
-      createWorkspaceFromTemplate: async (templateId) => {
-        const template = WORKSPACE_TEMPLATES.find((item) => item.templateId === templateId);
-        if (template) await this.onTemplateSelected(template);
+      createWorkspace: async () => {
+        await this.onNewSessionRequested();
       },
       rerunCommand: (cmd) => this.terminal.rerunCommand(cmd),
       focusPane: async (id) => {
@@ -110,6 +119,12 @@ export class AppComponent implements AfterViewInit {
     this.newSessionStartMode = this.preferences.readNewSessionStartMode();
     this.newSessionCustomPath = this.preferences.readNewSessionCustomPath();
     this.defaultShell = this.preferences.readDefaultShell();
+    this.systemTheme = this.preferences.readSystemTheme();
+    const defaultTerminalTheme = this.preferences.readDefaultTerminalTheme();
+    this.defaultTerminalForeground = defaultTerminalTheme.foreground;
+    this.defaultTerminalBackground = defaultTerminalTheme.background;
+    this.terminalAnsiPalette = this.preferences.readTerminalAnsiPalette();
+    this.shellTheme.apply(this.systemTheme);
     if (!window.nthTermDesktop?.workspace) {
       this.loadPreviewState();
       this.changeDetectorRef.detectChanges();
@@ -141,14 +156,17 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
-  protected togglePreferences(): void {
-    this.preferencesOpen = !this.preferencesOpen;
+  protected openSettings(): void {
+    this.settingsOpen = true;
+  }
+
+  protected closeSettings(): void {
+    this.settingsOpen = false;
   }
 
   protected setUtilityPanelPreference(visible: boolean): void {
     this.utilityPanelVisible = visible;
     this.preferences.writeBottomPanelVisible(visible);
-    this.viewMenuOpen = false;
     setTimeout(() => this.terminal.syncTerminalSize(), 0);
   }
 
@@ -167,38 +185,64 @@ export class AppComponent implements AfterViewInit {
     this.preferences.writeDefaultShell(shell);
   }
 
+  protected setSystemTheme(theme: SystemThemeId): void {
+    this.systemTheme = theme;
+    this.preferences.writeSystemTheme(theme);
+    this.shellTheme.apply(theme);
+  }
+
+  protected setDefaultTerminalForeground(value: string): void {
+    this.defaultTerminalForeground = value;
+    this.preferences.writeDefaultTerminalTheme({
+      foreground: value,
+      background: this.defaultTerminalBackground,
+    });
+    this.terminal.refreshAllTerminalThemes();
+  }
+
+  protected setDefaultTerminalBackground(value: string): void {
+    this.defaultTerminalBackground = value;
+    this.preferences.writeDefaultTerminalTheme({
+      foreground: this.defaultTerminalForeground,
+      background: value,
+    });
+    this.terminal.refreshAllTerminalThemes();
+  }
+
+  protected setTerminalAnsiPalette(paletteId: TerminalAnsiPaletteId): void {
+    this.terminalAnsiPalette = paletteId;
+    this.preferences.writeTerminalAnsiPalette(paletteId);
+    this.terminal.refreshAllTerminalThemes();
+  }
+
   protected openUtilityPanel(tab: UtilityPanelId): void {
     this.util.activeTab = tab;
     this.utilityPanelVisible = true;
     this.preferences.writeBottomPanelVisible(true);
-    this.viewMenuOpen = false;
     setTimeout(() => this.terminal.syncTerminalSize(), 0);
   }
 
-  protected openCommandPalette(focusSearch = false): void {
-    this.commandPalette?.open(focusSearch);
+  protected openCommandPalette(): void {
+    this.commandPalette?.open(false);
   }
 
   protected openGlobalSearch(): void {
+    if (this.palette.open) {
+      this.palette.close();
+    }
+
     this.openUtilityPanel('search');
-    this.palette.query = this.util.searchQuery;
-    this.openCommandPalette(true);
+    this.changeDetectorRef.detectChanges();
+    setTimeout(() => {
+      this.bottomDock?.focusSearchInput();
+      this.terminal.syncTerminalSize();
+    }, 0);
   }
 
   protected startUtilityPanelResize(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.dockResizeActive = true;
-  }
-
-  protected toggleViewMenu(event: MouseEvent): void {
-    event.stopPropagation();
-    this.viewMenuOpen = !this.viewMenuOpen;
-  }
-
-  @HostListener('document:click')
-  protected closeViewMenu(): void {
-    this.viewMenuOpen = false;
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -217,8 +261,10 @@ export class AppComponent implements AfterViewInit {
       return;
     }
 
-    const viewportHeight = window.innerHeight;
-    const nextHeight = viewportHeight - event.clientY - 32;
+    const statusBarHeight =
+      document.querySelector<HTMLElement>('.status-bar')?.getBoundingClientRect().height ?? 36;
+    const handleHeight = 10;
+    const nextHeight = window.innerHeight - event.clientY - statusBarHeight - handleHeight;
     this.utilityPanelHeight = this.preferences.clampBottomPanelHeight(nextHeight);
     this.terminal.syncTerminalSize();
   }
@@ -241,23 +287,9 @@ export class AppComponent implements AfterViewInit {
     this.util.appendOutput(`Switched to workspace "${workspace.name}"`, 'info');
   }
 
-  protected async onTemplateSelected(template: TemplateListItem): Promise<void> {
-    const created = await this.ws.createWorkspaceFromTemplate(template, {
-      cwd:
-        template.templateId === 'empty-workspace'
-          ? this.resolveNewSessionDirectory(template.cwd)
-          : template.cwd,
-    });
-    await this.hostCoordinator.syncAndRestore();
-    this.util.appendOutput(`Created workspace "${created.name}" from template`, 'info');
-  }
-
   protected async onNewSessionRequested(): Promise<void> {
-    const template =
-      WORKSPACE_TEMPLATES.find((item) => item.templateId === 'empty-workspace') ||
-      WORKSPACE_TEMPLATES[0];
-    const created = await this.ws.createWorkspaceFromTemplate(template, {
-      cwd: this.resolveNewSessionDirectory(template.cwd),
+    const created = await this.ws.createWorkspace({
+      cwd: this.resolveNewSessionDirectory('.'),
       name: this.ws.buildWorkspaceName('New Workspace'),
     });
     await this.hostCoordinator.syncAndRestore();

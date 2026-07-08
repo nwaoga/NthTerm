@@ -1,32 +1,17 @@
 <main class="app-shell">
   <app-shell-toolbar
     class="app-shell-toolbar-host"
-    [viewMenuOpen]="viewMenuOpen"
     (createTabRequested)="onCreateTab()"
     (createTerminalRequested)="onCreateTerminal($event)"
     (layoutModeChange)="onLayoutModeChange($event)"
-    (globalSearchRequested)="openGlobalSearch()"
     (commandPaletteRequested)="openCommandPalette()"
-    (utilityPanelOpen)="openUtilityPanel($event)"
-    (viewMenuToggle)="toggleViewMenu($event)"
+    (settingsRequested)="openSettings()"
   />
 
   <app-left-rail
     class="app-left-rail-host"
-    [preferencesOpen]="preferencesOpen"
-    [utilityPanelVisible]="utilityPanelVisible"
-    [newSessionStartMode]="newSessionStartMode"
-    [newSessionCustomPath]="newSessionCustomPath"
-    [homeDirectory]="homeDirectory"
-    [defaultShell]="defaultShell"
-    (preferencesToggle)="togglePreferences()"
-    (utilityPanelPreferenceChange)="setUtilityPanelPreference($event)"
     (newSessionRequested)="onNewSessionRequested()"
-    (newSessionStartModeChange)="setNewSessionStartMode($event)"
-    (newSessionCustomPathChange)="setNewSessionCustomPath($event)"
-    (defaultShellChange)="setDefaultShell($event)"
     (workspaceSelected)="onWorkspaceSelected($event)"
-    (templateSelected)="onTemplateSelected($event)"
     (workspaceRenameCommitted)="onWorkspaceRenameCommitted($event)"
     (workspaceDeleteRequested)="onWorkspaceDeleteRequested($event)"
   />
@@ -47,11 +32,33 @@
         aria-label="Resize workspace dock"
         (mousedown)="startUtilityPanelResize($event)"
       ></div>
-      <app-bottom-dock (utilityTabChange)="onUtilityTabChange($event)" />
+      <app-bottom-dock #bottomDock (utilityTabChange)="onUtilityTabChange($event)" />
     }
 
     <app-status-bar />
   </section>
 
   <app-command-palette />
+
+  <app-settings-modal
+    [open]="settingsOpen"
+    [utilityPanelVisible]="utilityPanelVisible"
+    [newSessionStartMode]="newSessionStartMode"
+    [newSessionCustomPath]="newSessionCustomPath"
+    [homeDirectory]="homeDirectory"
+    [defaultShell]="defaultShell"
+    [systemTheme]="systemTheme"
+    [defaultTerminalForeground]="defaultTerminalForeground"
+    [defaultTerminalBackground]="defaultTerminalBackground"
+    [terminalAnsiPalette]="terminalAnsiPalette"
+    (closed)="closeSettings()"
+    (utilityPanelPreferenceChange)="setUtilityPanelPreference($event)"
+    (newSessionStartModeChange)="setNewSessionStartMode($event)"
+    (newSessionCustomPathChange)="setNewSessionCustomPath($event)"
+    (defaultShellChange)="setDefaultShell($event)"
+    (systemThemeChange)="setSystemTheme($event)"
+    (defaultTerminalForegroundChange)="setDefaultTerminalForeground($event)"
+    (defaultTerminalBackgroundChange)="setDefaultTerminalBackground($event)"
+    (terminalAnsiPaletteChange)="setTerminalAnsiPalette($event)"
+  />
 </main>

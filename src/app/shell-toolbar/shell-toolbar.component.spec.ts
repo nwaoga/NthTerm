@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { CommandPaletteService } from '../command-palette/command-palette.service';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 import { ShellToolbarComponent } from './shell-toolbar.component';
 
@@ -25,10 +24,6 @@ describe('ShellToolbarComponent', () => {
             ],
           },
         },
-        {
-          provide: CommandPaletteService,
-          useValue: {},
-        },
       ],
     }).compileComponents();
   });
@@ -51,34 +46,29 @@ describe('ShellToolbarComponent', () => {
     expect(layoutSpy).toHaveBeenCalledWith('grid-2');
   });
 
-  it('emits search, command palette, utility panel, and menu toggle actions', () => {
+  it('emits command palette and settings actions', () => {
     const fixture = TestBed.createComponent(ShellToolbarComponent);
     const component = fixture.componentInstance;
-    const searchSpy = jasmine.createSpy('globalSearchRequested');
     const paletteSpy = jasmine.createSpy('commandPaletteRequested');
-    const utilitySpy = jasmine.createSpy('utilityPanelOpen');
-    const toggleSpy = jasmine.createSpy('viewMenuToggle');
+    const settingsSpy = jasmine.createSpy('settingsRequested');
 
-    component.globalSearchRequested.subscribe(searchSpy);
     component.commandPaletteRequested.subscribe(paletteSpy);
-    component.utilityPanelOpen.subscribe(utilitySpy);
-    component.viewMenuToggle.subscribe(toggleSpy);
-
-    component.viewMenuOpen = true;
+    component.settingsRequested.subscribe(settingsSpy);
     fixture.detectChanges();
 
-    fixture.debugElement.query(By.css('.toolbar-search')).nativeElement.click();
     fixture.debugElement.query(By.css('.toolbar-command')).nativeElement.click();
     fixture.debugElement.query(By.css('.toolbar-settings-button')).nativeElement.click();
+
+    expect(paletteSpy).toHaveBeenCalled();
+    expect(settingsSpy).toHaveBeenCalled();
+  });
+
+  it('does not render search or view-menu controls', () => {
+    const fixture = TestBed.createComponent(ShellToolbarComponent);
     fixture.detectChanges();
 
-    const menuItems = fixture.debugElement.queryAll(By.css('.view-menu-item'));
-    menuItems[0].nativeElement.click();
-
-    expect(searchSpy).toHaveBeenCalled();
-    expect(paletteSpy).toHaveBeenCalled();
-    expect(toggleSpy).toHaveBeenCalled();
-    expect(utilitySpy).toHaveBeenCalledWith('output');
+    expect(fixture.debugElement.query(By.css('.toolbar-search'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('.toolbar-view-menu-button'))).toBeNull();
   });
 
   it('emits create-terminal with the default shell from the split action', () => {

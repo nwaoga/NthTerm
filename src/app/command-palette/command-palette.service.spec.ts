@@ -80,9 +80,10 @@ describe('CommandPaletteService', () => {
       setInspectorTab: () => undefined,
       setLayoutMode: async () => undefined,
       openCommandPalette: () => undefined,
+      openGlobalSearch: () => undefined,
       selectWorkspace: async () => undefined,
       selectTab: async () => undefined,
-      createWorkspaceFromTemplate: async () => undefined,
+      createWorkspace: async () => undefined,
       rerunCommand: async () => undefined,
       focusPane: async () => undefined,
       appendOutput: () => undefined,
@@ -98,5 +99,39 @@ describe('CommandPaletteService', () => {
     });
 
     expect(save).toHaveBeenCalled();
+  });
+
+  it('routes the open-search action through openGlobalSearch', async () => {
+    const openGlobalSearch = jasmine.createSpy('openGlobalSearch');
+    const dispatcher: PaletteActionDispatcher = {
+      saveWorkspace: async () => undefined,
+      restoreWorkspace: async () => undefined,
+      createTab: async () => undefined,
+      relaunchTerminal: async () => undefined,
+      interruptTerminal: async () => undefined,
+      killTerminal: async () => undefined,
+      openUtilityPanel: () => undefined,
+      setInspectorTab: () => undefined,
+      setLayoutMode: async () => undefined,
+      openCommandPalette: () => undefined,
+      openGlobalSearch,
+      selectWorkspace: async () => undefined,
+      selectTab: async () => undefined,
+      createWorkspace: async () => undefined,
+      rerunCommand: async () => undefined,
+      focusPane: async () => undefined,
+      appendOutput: () => undefined,
+    };
+
+    service.setDispatcher(dispatcher);
+    await service.executeEntry({
+      id: 'open-search',
+      kind: 'action',
+      group: 'View',
+      label: 'Show Search Panel',
+      detail: '',
+    });
+
+    expect(openGlobalSearch).toHaveBeenCalled();
   });
 });

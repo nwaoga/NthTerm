@@ -43,4 +43,34 @@ describe('AppPreferencesService', () => {
     service.writeDefaultShell('zsh');
     expect(service.readDefaultShell()).toBe('zsh');
   });
+
+  it('persists default terminal colors and system theme separately', () => {
+    service.writeDefaultTerminalTheme({
+      foreground: '#abcdef',
+      background: '#112233',
+    });
+    service.writeSystemTheme('white');
+
+    expect(service.readDefaultTerminalTheme()).toEqual({
+      foreground: '#abcdef',
+      background: '#112233',
+      cursor: '#abcdef',
+    });
+    expect(service.readSystemTheme()).toBe('white');
+  });
+
+  it('persists the terminal ansi palette preference', () => {
+    expect(service.readTerminalAnsiPalette()).toBe('auto');
+
+    service.writeTerminalAnsiPalette('dracula');
+    expect(service.readTerminalAnsiPalette()).toBe('dracula');
+  });
+
+  it('migrates legacy system theme ids to the new palette', () => {
+    localStorage.setItem('nthterm.preferences.systemTheme', 'slate');
+    expect(service.readSystemTheme()).toBe('white');
+
+    localStorage.setItem('nthterm.preferences.systemTheme', 'ember');
+    expect(service.readSystemTheme()).toBe('coffee');
+  });
 });

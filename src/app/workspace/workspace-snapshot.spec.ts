@@ -4,6 +4,7 @@ import {
   MAX_TABS_PER_WORKSPACE,
   MAX_TERMINALS_PER_TAB,
   createEmptyTabSnapshot,
+  mapRuntimeTerminal,
   normalizeWorkspaceSnapshot,
 } from './workspace-snapshot';
 
@@ -61,5 +62,38 @@ describe('workspace-snapshot', () => {
     expect(MAX_TABS_PER_WORKSPACE).toBe(5);
     expect(MAX_TERMINALS_PER_TAB).toBe(4);
     expect(createEmptyTabSnapshot('Main', 'C:\\').terminals).toEqual([]);
+  });
+
+  it('round-trips terminal color themes in snapshots', () => {
+    const normalized = normalizeWorkspaceSnapshot(
+      {
+        tabs: [
+          {
+            id: 'tab-1',
+            title: 'API',
+            cwd: 'C:\\api',
+            accent: 'violet',
+            terminals: [
+              {
+                id: 'terminal-1',
+                cwd: 'C:\\api',
+                status: 'idle',
+                theme: { foreground: '#eeeeee', background: '#101010' },
+              } as any,
+            ],
+          },
+        ],
+      } as any,
+      'C:\\fallback'
+    );
+
+    expect(normalized.tabs[0].terminals?.[0].theme).toEqual({
+      foreground: '#eeeeee',
+      background: '#101010',
+    });
+    expect(mapRuntimeTerminal(normalized.tabs[0].terminals![0]).theme).toEqual({
+      foreground: '#eeeeee',
+      background: '#101010',
+    });
   });
 });

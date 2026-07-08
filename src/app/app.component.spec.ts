@@ -194,11 +194,15 @@ describe('AppComponent', () => {
     document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
     fixture.detectChanges();
 
-    expect((fixture.componentInstance as any).utilityPanelHeight).toBe(368);
-    expect(preferences.writeBottomPanelHeight).toHaveBeenCalledWith(368);
+    const statusBar: HTMLElement | null = fixture.nativeElement.querySelector('.status-bar');
+    const statusBarHeight = statusBar?.getBoundingClientRect().height ?? 36;
+    const expectedHeight = 900 - 500 - statusBarHeight - 10;
+
+    expect((fixture.componentInstance as any).utilityPanelHeight).toBe(expectedHeight);
+    expect(preferences.writeBottomPanelHeight).toHaveBeenCalledWith(expectedHeight);
 
     const workspaceShell: HTMLElement | null = fixture.nativeElement.querySelector('.workspace-shell');
-    expect(workspaceShell?.style.getPropertyValue('--dock-height')).toBe('368px');
+    expect(workspaceShell?.style.getPropertyValue('--dock-height')).toBe(`${expectedHeight}px`);
   });
 
   it('creates new workspaces from the configured custom directory', async () => {
@@ -216,7 +220,7 @@ describe('AppComponent', () => {
       jasmine.objectContaining({
         cwd: 'D:\\Workspaces\\NthTerm',
         name: 'New Workspace',
-        templateId: 'empty-workspace',
+        templateId: '',
       })
     );
   });

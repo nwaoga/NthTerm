@@ -8,6 +8,8 @@ import { TerminalInfo } from '../terminal-bridge.service';
 import { TerminalBridgeService } from '../terminal-bridge.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
 import { UtilityPanelService } from '../utility-panel/utility-panel.service';
+import { AppPreferencesService } from '../preferences/app-preferences.service';
+import { resolveTerminalTheme, toXtermTheme } from './terminal-theme.util';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 
 interface TerminalState {
@@ -47,6 +49,7 @@ export class TerminalSessionService {
   private readonly changeDetectorRef = inject(ChangeDetectorRef, { optional: true });
   private readonly terminalBridge = inject(TerminalBridgeService);
   private readonly workspace = inject(WorkspaceRuntimeService);
+  private readonly preferences = inject(AppPreferencesService);
   private readonly utility = inject(UtilityPanelService);
   private readonly systemMonitor = inject(SystemMonitorService);
 
@@ -89,6 +92,30 @@ export class TerminalSessionService {
     }
 
     this.attachStateToHost(state, terminalId, host);
+    this.applyTerminalTheme(terminalId, runtimeTerminal);
+  }
+
+  applyTerminalTheme(terminalId: string, runtimeTerminal: RuntimeTerminal): void {
+    const state = this.terminalSessions.get(terminalId);
+    if (!state?.terminal) {
+      return;
+    }
+
+    const theme = resolveTerminalTheme(
+      runtimeTerminal.theme,
+      this.preferences.readDefaultTerminalTheme()
+    );
+    state.terminal.options.theme = toXtermTheme(theme, this.preferences.readTerminalAnsiPalette());
+    this.styleTerminalHost(terminalId, theme);
+  }
+
+  refreshAllTerminalThemes(): void {
+    for (const terminalId of this.terminalSessions.keys()) {
+      const runtimeTerminal = this.workspace.getTerminalById(terminalId);
+      if (runtimeTerminal) {
+        this.applyTerminalTheme(terminalId, runtimeTerminal);
+      }
+    }
   }
 
   focusPaneTerminal(terminalId = this.workspace.focusedPaneId): void {
@@ -259,8 +286,9 @@ export class TerminalSessionService {
     }
 
     const state = this.terminalSessions.get(terminalId) || this.createTerminalState(terminalId, tab.id);
-    await this.ensureTerminalSurface(state);
+    await this.ensureTerminalSurface(state, runtimeTerminal);
     this.attachStateToHost(state, terminalId, host);
+    this.applyTerminalTheme(terminalId, runtimeTerminal);
 
     if (state.sessionId) {
       this.workspace.updateTerminalStatus(terminalId, state.info?.status || 'running');
@@ -274,7 +302,10 @@ export class TerminalSessionService {
     await this.startTerminalSession(state, runtimeTerminal, tab);
   }
 
-  private async ensureTerminalSurface(state: TerminalState): Promise<void> {
+  private async ensureTerminalSurface(
+    state: TerminalState,
+    runtimeTerminal: RuntimeTerminal
+  ): Promise<void> {
     if (state.terminal && state.fitAddon && state.container) {
       return;
     }
@@ -282,20 +313,20 @@ export class TerminalSessionService {
     state.resizeObserver?.disconnect();
     state.terminal?.dispose();
 
+    const theme = resolveTerminalTheme(
+      runtimeTerminal.theme,
+      this.preferences.readDefaultTerminalTheme()
+    );
     const fitAddon = new FitAddon();
     const container = document.createElement('div');
     container.style.width = '100%';
     container.style.height = '100%';
     const terminal = new Terminal({
       cursorBlink: true,
+      drawBoldTextInBrightColors: true,
       fontFamily: 'Cascadia Code, Consolas, monospace',
       fontSize: 14,
-      theme: {
-        background: '#0d1320',
-        foreground: '#d8e1e8',
-        cursor: '#7dd3fc',
-        selectionBackground: '#1f3b53',
-      },
+      theme: toXtermTheme(theme, this.preferences.readTerminalAnsiPalette()),
     });
 
     terminal.loadAddon(fitAddon);
@@ -596,6 +627,16 @@ export class TerminalSessionService {
     }
 
     this.syncTerminalSize();
+  }
+
+  private styleTerminalHost(terminalId: string, theme: { foreground: string; background: string }): void {
+    const host = this.terminalHosts.get(terminalId);
+    if (!host) {
+      return;
+    }
+
+    host.style.setProperty('--terminal-surface-bg', theme.background);
+    host.style.setProperty('--terminal-surface-fg', theme.foreground);
   }
 
   private attachStateToHost(state: TerminalState, terminalId: string, host: HTMLElement): void {
