@@ -18,7 +18,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ## Current State (2026-07-12)
 
-**Phase:** 5 Task 5 shipped (release branding + signing readiness docs). Phase 7 shell polish remains complete. Phase 5 Task 4 (#122) Windows PTY stability is verified locally.
+**Phase:** 5 Task 6 shipped (installer + upgrade validation). Phase 5 packaging track complete for unsigned Windows. Phase 7 shell polish remains complete.
 
 **Working today:**
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
@@ -34,8 +34,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Frameless desktop window with per-theme Windows title bar overlay
 - Electron Builder packaging configuration for local unpacked builds and Windows release artifacts
 - Release branding assets (app icon + NSIS installer chrome) with documented unsigned-vs-signed signing path
+- Unsigned NSIS install/reinstall validated on Windows with AppData persistence preserved
 
-**Last shipped:** Phase 5 Task 5 release branding and signing readiness.
+**Last shipped:** Phase 5 Task 6 installer and upgrade validation.
 
 **Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline; Phase 5 should preserve it while adding production readiness).
 
@@ -162,7 +163,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ### Phase 5 Task 6 — Installer and upgrade validation
 
-**Status:** Backlog.
+**Status:** Done.
 
 **ADO:** [#124](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/124)
 
@@ -172,7 +173,12 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 - Test upgrade/reinstall over an existing install and confirm AppData user data is preserved.
 - Document installer/runtime constraints in `decisions.md`.
 
-**Out of scope:** signed installer trust prompts beyond documenting SmartScreen behavior, auto-update delivery, macOS/Linux installer validation.
+**Verified locally (2026-07-12):**
+- Silent install of `release/NthTerm-0.0.0-win-x64.exe` to `%LOCALAPPDATA%\Programs\NthTerm`
+- Installed `NthTerm.exe` stayed alive; ConPTY/shell children observed
+- `%APPDATA%\NthTerm` marker + `nthterm.sqlite` survived silent reinstall
+- Post-upgrade launch stayed healthy
+- Repeat script: `scripts/validate-windows-installer.ps1`
 
 **Out of scope:** signed installer trust prompts beyond documenting SmartScreen behavior, auto-update delivery, macOS/Linux installer validation.
 
@@ -333,10 +339,9 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. **Task 6 / #124** installer validation.
-2. Optional follow-ups: inspector hide toggle, per-workspace shell profiles, WSL distro picker.
-3. Keep packaged runtime smoke coverage in mind before changing `asar`, native module, or persistence paths.
-4. Signed release workflow remains deferred until an Authenticode certificate is available.
+1. Optional follow-ups: inspector hide toggle, per-workspace shell profiles, WSL distro picker.
+2. Keep packaged runtime smoke / installer validation in mind before changing `asar`, native module, or persistence paths.
+3. Signed release workflow remains deferred until an Authenticode certificate is available.
 
 ---
 

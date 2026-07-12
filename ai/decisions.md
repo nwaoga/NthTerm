@@ -155,3 +155,8 @@
 - Branding regeneration lives in `scripts/generate-branding-assets.py` (Pillow optional for regen only); normal CI/package flows use the committed binaries.
 - Signing remains intentionally disabled: `"publish": null`, no certificate fields in `package.json`, and GitHub Actions continues to upload `nthterm-windows-unsigned` without secrets. Future signed releases should inject `CSC_LINK` / `CSC_KEY_PASSWORD` (or Windows-specific equivalents) in a protected job rather than changing the default unsigned PR path.
 - Runtime window icon resolution prefers `build/icon.ico` (also packaged into the asar via `files`) so packaged and local desktop launches share the same brand mark.
+- Phase 5 Task 6 (#124) validated the unsigned NSIS installer on Windows: silent `/S` install to `%LOCALAPPDATA%\Programs\NthTerm`, healthy first launch from the installed location, and successful silent reinstall/upgrade.
+- Installed-app launch kept the process alive and spawned ConPTY-related children (`conhost.exe` + shell). Workspace DB remains at `%APPDATA%\NthTerm\nthterm.sqlite`.
+- Reinstall preserved AppData user data: a marker file under `%APPDATA%\NthTerm` survived unchanged, and `nthterm.sqlite` remained present after upgrade (hash may change on normal app writes, but the installer does not wipe Roaming user data).
+- Unsigned installer SmartScreen prompts remain expected until Authenticode signing is enabled; local validation used `Unblock-File` on the built artifact when needed.
+- Repeatable local check: `powershell -File scripts/validate-windows-installer.ps1` (expects `release/NthTerm-*-win-x64.exe` from `npm run release:win`).

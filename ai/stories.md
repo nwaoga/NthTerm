@@ -1,9 +1,13 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Phase 5 / Task 6 / #124: Validate installer and upgrade behavior on Windows
 
 ## Done
+- [x] Phase 5 / Task 6 / #124: Validate installer and upgrade behavior on Windows
+  - [x] Silent-install unsigned NSIS artifact from `npm run release:win`
+  - [x] Confirm installed app launch, AppData persistence, and PTY-related child processes
+  - [x] Reinstall over existing install and confirm AppData user data is preserved
+  - [x] Document installer/runtime constraints in `decisions.md`
 - [x] Phase 5 / Task 5 / #123: Add release branding and signing readiness
   - [x] Add application icon and NSIS installer branding assets under `build/`
   - [x] Wire icon/branding metadata into Electron Builder `package.json` config

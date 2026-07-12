@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **Phase 5 Task 5 complete** — release branding and signing readiness. Next is installer/upgrade validation (#124).
+Current milestone: **Phase 5 Task 6 complete** — unsigned Windows installer/upgrade validation. Phase 5 packaging track is done for the unsigned path.
 
 Working today:
 
@@ -50,6 +50,7 @@ Working today:
 - frameless desktop window with custom title bar drag regions and integrated window controls
 - verified production desktop packaging scripts for local unpacked builds and Windows installer/zip artifacts
 - Windows release branding assets (app icon + NSIS installer chrome) wired into Electron Builder; unsigned CI path remains default
+- Unsigned NSIS install/reinstall validated locally with AppData persistence preserved
 - Angular renderer split into feature components and services (`models/`, `workspace/`, `terminal/`, `utility-panel/`, `command-palette/`, etc.) per architecture code-style rules
 
 Keyboard shortcuts:
@@ -59,7 +60,8 @@ Keyboard shortcuts:
 
 Next up:
 
-- Phase 5 Task 6 / ADO [#124](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/124): installer and upgrade validation
+- Optional product follow-ups: inspector hide toggle, per-workspace shell profiles, WSL distro picker
+- Deferred: Authenticode-signed Windows releases once a certificate is available
 
 ## Design alignment checklist
 
@@ -162,6 +164,12 @@ python scripts/generate-branding-assets.py
 4. Keep the unsigned CI path available for PR validation; add a separate protected release workflow/job that injects signing secrets
 
 GitHub Actions runs the same build and test path on pull requests and pushes to `main`. The Windows release job uploads unsigned installer and zip artifacts from the workflow run.
+
+After `npm run release:win`, validate install/reinstall and AppData preservation locally:
+
+```powershell
+powershell -File scripts/validate-windows-installer.ps1
+```
 
 ## Notes
 

@@ -39,4 +39,15 @@ test('electron-builder config wires Windows branding without signing secrets', (
   assert.ok(build.files.includes('build/icon.ico'));
   assert.equal(Object.prototype.hasOwnProperty.call(build.win, 'certificateFile'), false);
   assert.equal(Object.prototype.hasOwnProperty.call(build.win, 'certificateSubjectName'), false);
+  assert.equal(build.nsis.perMachine, false);
+  assert.equal(build.nsis.oneClick, false);
+});
+
+test('Windows installer validation script is present for Task 6 regression', () => {
+  const scriptPath = path.join(root, 'scripts', 'validate-windows-installer.ps1');
+  assert.equal(fs.existsSync(scriptPath), true);
+  const contents = fs.readFileSync(scriptPath, 'utf8');
+  assert.match(contents, /\/S/);
+  assert.match(contents, /nthterm\.sqlite/);
+  assert.match(contents, /LOCALAPPDATA/);
 });
