@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **Phase 7 complete** — shell polish and terminal theming. Phase 5 Task 4 (#122) Windows PTY stability still in progress.
+Current milestone: **Phase 7 complete** — shell polish and terminal theming. Phase 5 Task 4 (#122) Windows PTY stability hardening landed; manual 2-up/2x2 load verification remains.
 
 Working today:
 
@@ -58,7 +58,7 @@ Keyboard shortcuts:
 
 Next up:
 
-- Phase 5 Task 4 / ADO [#122](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/122): Windows PTY stability
+- Phase 5 Task 4 / ADO [#122](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/122): verify Windows PTY stability under sustained 2-up/2x2 load
 - Phase 5 Task 5 / ADO [#123](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/123): release branding and signing readiness
 - Phase 5 Task 6 / ADO [#124](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/124): installer and upgrade validation
 

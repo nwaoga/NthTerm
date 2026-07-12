@@ -16,9 +16,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-07-08)
+## Current State (2026-07-12)
 
-**Phase:** 7 shipped (shell polish + terminal theming). Phase 5 Task 4 (#122) still in progress.
+**Phase:** 7 shipped (shell polish + terminal theming). Phase 5 Task 4 (#122) hardening is implemented; manual 2-up/2x2 Windows load verification remains.
 
 **Working today:**
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
@@ -34,7 +34,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Frameless desktop window with per-theme Windows title bar overlay
 - Electron Builder packaging configuration for local unpacked builds and Windows release artifacts
 
-**Last shipped:** Phase 7 shell polish and terminal theming (system themes, settings modal, ANSI palettes, toolbar/dock alignment, spawn-time color env).
+**Last shipped:** Phase 5 Task 4 Windows PTY stability hardening (`edcd7c8`), after Phase 7 shell polish and terminal theming.
 
 **Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline; Phase 5 should preserve it while adding production readiness).
 
@@ -118,7 +118,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ### Phase 5 Task 4 — Windows PTY stability
 
-**Status:** In progress.
+**Status:** Hardening implemented; load verification pending.
 
 **ADO:** [#122](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/122)
 
@@ -131,6 +131,9 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 **Implemented so far:**
 - Electron main now serializes PTY spawns through `electron/terminal-spawn-coordinator.js` with Windows spacing, retry on retryable spawn errors, and explicit ConPTY options.
 - Renderer restore calls are serialized through `TerminalHostCoordinatorService` to prevent overlapping multi-pane session bootstraps.
+- Retry classification now includes additional transient Windows PTY/load failures such as `EIO`, `EBUSY`, access-denied/permission races, and failed process launch messages.
+- PTY dispose/kill cooldown now runs even when cleanup throws, preserving spacing before the next spawn.
+- Regression coverage was added for the new retry classifications and dispose-failure cooldown path.
 
 **Out of scope:** macOS/Linux PTY work unless required by a shared fix.
 
@@ -321,7 +324,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. **Phase 5 Task 4 / #122** — Windows PTY stability under multi-pane load (verify AttachConsole mitigation in daily use).
+1. **Phase 5 Task 4 / #122** — manually verify reduced Windows PTY failures under sustained 2-up and 2x2 Electron load.
 2. **Task 5 / #123** branding/signing readiness or **Task 6 / #124** installer validation.
 3. Optional follow-ups: inspector hide toggle, per-workspace shell profiles, WSL distro picker.
 4. Keep packaged runtime smoke coverage in mind before changing `asar`, native module, or persistence paths.

@@ -7,6 +7,7 @@
   - [x] Add regression coverage for spawn queue and restore serialization
   - [x] Patch node-pty `conpty_console_list_agent` AttachConsole fallback on Windows
   - [x] Serialize PTY dispose/kill through the same main-process queue as spawn
+  - [x] Broaden retry coverage for transient Windows PTY/load failures and preserve cooldown after failed dispose
   - [ ] Verify reduced AttachConsole failures under 2-up and 2x2 load in Electron
 - [ ] Phase 5 / Task 5 / #123: Add release branding and signing readiness
 - [ ] Phase 5 / Task 6 / #124: Validate installer and upgrade behavior on Windows
