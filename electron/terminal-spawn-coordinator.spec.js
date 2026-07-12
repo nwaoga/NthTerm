@@ -11,6 +11,9 @@ const {
 test('isRetryableSpawnError matches Windows PTY spawn failures', () => {
   assert.equal(isRetryableSpawnError(new Error('AttachConsole failed')), true);
   assert.equal(isRetryableSpawnError(new Error('conpty init failed')), true);
+  assert.equal(isRetryableSpawnError(Object.assign(new Error('read failed'), { code: 'EIO' })), true);
+  assert.equal(isRetryableSpawnError(new Error('Access is denied')), true);
+  assert.equal(isRetryableSpawnError(new Error('cannot create process under load')), true);
   assert.equal(isRetryableSpawnError(new Error('permission denied')), false);
 });
 
@@ -64,6 +67,32 @@ test('enqueueOperation serializes dispose and spawn work', async () => {
     }),
     coordinator.enqueueSpawn('powershell.exe', [], {}),
   ]);
+
+  assert.deepEqual(events, ['dispose', `delay:${DEFAULT_WINDOWS_DISPOSE_DELAY_MS}`, 'spawn']);
+});
+
+test('enqueueDispose preserves Windows cooldown when dispose fails', async () => {
+  const events = [];
+  const coordinator = new TerminalSpawnCoordinator({
+    platform: 'win32',
+    spawnFn: async () => {
+      events.push('spawn');
+      return { pid: 1 };
+    },
+    delay: async (ms) => {
+      events.push(`delay:${ms}`);
+    },
+  });
+
+  await assert.rejects(
+    coordinator.enqueueDispose(async () => {
+      events.push('dispose');
+      throw new Error('kill failed');
+    }),
+    /kill failed/
+  );
+
+  await coordinator.enqueueSpawn('powershell.exe', [], {});
 
   assert.deepEqual(events, ['dispose', `delay:${DEFAULT_WINDOWS_DISPOSE_DELAY_MS}`, 'spawn']);
 });

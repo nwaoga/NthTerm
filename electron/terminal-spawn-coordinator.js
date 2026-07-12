@@ -4,8 +4,15 @@ const MAX_SPAWN_ATTEMPTS = 3;
 const RETRY_BASE_DELAY_MS = 200;
 
 function isRetryableSpawnError(error) {
-  const message = String(error?.message || error || '');
-  return /attachconsole|conpty|pseudo|pty|spawn/i.test(message);
+  const parts = [
+    error?.message,
+    error?.code,
+    error?.errno,
+    error?.cause?.message,
+    error,
+  ];
+  const message = parts.filter(Boolean).map(String).join(' ');
+  return /attachconsole|conpty|winpty|pseudo|pty|spawn|eio|ebusy|eacces|eperm|access is denied|operation not permitted|cannot create process|failed to launch/i.test(message);
 }
 
 class TerminalSpawnCoordinator {
@@ -33,8 +40,11 @@ class TerminalSpawnCoordinator {
 
   async enqueueDispose(disposeFn) {
     return this.enqueueOperation(async () => {
-      await disposeFn();
-      await this.waitForWindowsDisposeSpacing();
+      try {
+        await disposeFn();
+      } finally {
+        await this.waitForWindowsDisposeSpacing();
+      }
     });
   }
 
