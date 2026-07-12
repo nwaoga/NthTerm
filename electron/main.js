@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
+const fs = require('node:fs');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const pty = require('node-pty');
@@ -27,6 +28,21 @@ const DEFAULT_TITLE_BAR_THEME = {
   symbolColor: '#dbe7f5',
   height: 66,
 };
+
+function resolveAppIconPath() {
+  const candidates = [
+    path.join(__dirname, '..', 'build', 'icon.ico'),
+    path.join(__dirname, 'icon.ico'),
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+}
 
 function applyTitleBarTheme(window, theme = DEFAULT_TITLE_BAR_THEME) {
   if (!window || window.isDestroyed()) {
@@ -137,12 +153,14 @@ function disposeTerminalsForWebContents(webContentsId) {
 }
 
 function createWindow() {
+  const icon = resolveAppIconPath();
   const window = new BrowserWindow({
     width: 1440,
     height: 920,
     minWidth: 960,
     minHeight: 640,
     backgroundColor: DEFAULT_TITLE_BAR_THEME.windowBackground,
+    ...(icon ? { icon } : {}),
     titleBarStyle: 'hidden',
     titleBarOverlay: {
       color: DEFAULT_TITLE_BAR_THEME.color,

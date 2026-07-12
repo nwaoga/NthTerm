@@ -1,10 +1,15 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Phase 5 / Task 5 / #123: Add release branding and signing readiness
 - [ ] Phase 5 / Task 6 / #124: Validate installer and upgrade behavior on Windows
 
 ## Done
+- [x] Phase 5 / Task 5 / #123: Add release branding and signing readiness
+  - [x] Add application icon and NSIS installer branding assets under `build/`
+  - [x] Wire icon/branding metadata into Electron Builder `package.json` config
+  - [x] Document unsigned vs signed release paths and required certificate secrets
+  - [x] Keep GitHub Actions producing unsigned artifacts without signing secrets
+  - [x] Add regression coverage for branding asset presence and package wiring
 - [x] Phase 5 / Task 4 / #122: Improve Windows PTY stability under multi-pane load
   - [x] Serialize Windows PTY spawns in Electron main with spacing and retry
   - [x] Serialize overlapping renderer restore requests

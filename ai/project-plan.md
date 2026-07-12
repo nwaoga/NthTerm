@@ -18,7 +18,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ## Current State (2026-07-12)
 
-**Phase:** 7 shipped (shell polish + terminal theming). Phase 5 Task 4 (#122) Windows PTY stability is verified locally.
+**Phase:** 5 Task 5 shipped (release branding + signing readiness docs). Phase 7 shell polish remains complete. Phase 5 Task 4 (#122) Windows PTY stability is verified locally.
 
 **Working today:**
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
@@ -33,8 +33,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Bottom dock resize keeps output and system monitor panels aligned
 - Frameless desktop window with per-theme Windows title bar overlay
 - Electron Builder packaging configuration for local unpacked builds and Windows release artifacts
+- Release branding assets (app icon + NSIS installer chrome) with documented unsigned-vs-signed signing path
 
-**Last shipped:** Phase 5 Task 4 Windows PTY stability verification, after hardening commit `edcd7c8`.
+**Last shipped:** Phase 5 Task 5 release branding and signing readiness.
 
 **Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline; Phase 5 should preserve it while adding production readiness).
 
@@ -141,7 +142,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ### Phase 5 Task 5 — Release branding and signing readiness
 
-**Status:** Backlog.
+**Status:** Done.
 
 **ADO:** [#123](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/123)
 
@@ -150,6 +151,12 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 - Wire icon/branding metadata into `package.json` / electron-builder config.
 - Document unsigned vs signed release paths and required certificate/secrets for future signing.
 - Keep GitHub Actions producing unsigned artifacts without requiring secrets in the first slice.
+
+**Implemented:**
+- Committed `build/` branding assets (icon PNG/ICO, NSIS installer icons, header/sidebar BMPs) and `public/favicon.ico`.
+- Electron Builder `win.icon` + `nsis.*` branding fields wired; runtime window icon resolves `build/icon.ico`.
+- README documents unsigned default vs future `CSC_LINK` / `CSC_KEY_PASSWORD` signed path.
+- Regression specs assert branding assets exist and package config stays unsigned-by-default.
 
 **Out of scope:** purchasing certificates, auto-update channels, macOS notarization, Linux packaging.
 
@@ -326,10 +333,10 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. **Task 5 / #123** branding/signing readiness.
-2. **Task 6 / #124** installer validation.
-3. Optional follow-ups: inspector hide toggle, per-workspace shell profiles, WSL distro picker.
-4. Keep packaged runtime smoke coverage in mind before changing `asar`, native module, or persistence paths.
+1. **Task 6 / #124** installer validation.
+2. Optional follow-ups: inspector hide toggle, per-workspace shell profiles, WSL distro picker.
+3. Keep packaged runtime smoke coverage in mind before changing `asar`, native module, or persistence paths.
+4. Signed release workflow remains deferred until an Authenticode certificate is available.
 
 ---
 

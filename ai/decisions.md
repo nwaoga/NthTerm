@@ -151,3 +151,7 @@
 - Dispose/kill operations now preserve the Windows cooldown delay even when cleanup throws, so the next spawn is still spaced away from racey ConPTY teardown.
 - `npm run build` and `npm run test:ci` passed after the change.
 - The #122 verification pass spawned and disposed 40 PTYs through the Electron-main coordinator path across repeated 2-up, 2x2, and rapid-restart cycles with no failures. A production Electron smoke launch also stayed alive during the verification window; Chromium cache warnings from the hidden launch were non-blocking and unrelated to PTY startup.
+- Phase 5 Task 5 (#123) adds committed Electron Builder branding assets under `build/` (app icon, NSIS installer/uninstaller icons, header/sidebar bitmaps) plus a renderer `public/favicon.ico`.
+- Branding regeneration lives in `scripts/generate-branding-assets.py` (Pillow optional for regen only); normal CI/package flows use the committed binaries.
+- Signing remains intentionally disabled: `"publish": null`, no certificate fields in `package.json`, and GitHub Actions continues to upload `nthterm-windows-unsigned` without secrets. Future signed releases should inject `CSC_LINK` / `CSC_KEY_PASSWORD` (or Windows-specific equivalents) in a protected job rather than changing the default unsigned PR path.
+- Runtime window icon resolution prefers `build/icon.ico` (also packaged into the asar via `files`) so packaged and local desktop launches share the same brand mark.

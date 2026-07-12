@@ -17,7 +17,7 @@
     "release:win": "npm run build && electron-builder --win",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:electron": "node --test electron/terminal-spawn-coordinator.spec.js electron/terminal-spawn-env.spec.js electron/resolve-shell.spec.js electron/patch-node-pty-windows.spec.js",
+    "test:electron": "node --test electron/terminal-spawn-coordinator.spec.js electron/terminal-spawn-env.spec.js electron/resolve-shell.spec.js electron/patch-node-pty-windows.spec.js electron/branding-assets.spec.js",
     "test:ci": "npm run test:electron && ng test --watch=false --browsers=ChromeHeadless",
     "postinstall": "node electron/patch-node-pty-windows.js"
   },
@@ -29,11 +29,13 @@
     "asar": true,
     "npmRebuild": false,
     "directories": {
+      "buildResources": "build",
       "output": "release"
     },
     "files": [
       "dist/nthterm/browser/**/*",
       "electron/**/*",
+      "build/icon.ico",
       "package.json"
     ],
     "asarUnpack": [
@@ -43,6 +45,7 @@
       "main": "electron/main.js"
     },
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -62,7 +65,12 @@
     "nsis": {
       "oneClick": false,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/installerIcon.ico",
+      "uninstallerIcon": "build/uninstallerIcon.ico",
+      "installerHeader": "build/installerHeader.bmp",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/uninstallerSidebar.bmp"
     },
     "publish": null
   },

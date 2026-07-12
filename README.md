@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **Phase 7 complete** — shell polish and terminal theming. Phase 5 Task 4 (#122) Windows PTY stability verified locally.
+Current milestone: **Phase 5 Task 5 complete** — release branding and signing readiness. Next is installer/upgrade validation (#124).
 
 Working today:
 
@@ -49,6 +49,7 @@ Working today:
 - session history and recovery metadata persisted per workspace, including latest exit reason/code and recent session events
 - frameless desktop window with custom title bar drag regions and integrated window controls
 - verified production desktop packaging scripts for local unpacked builds and Windows installer/zip artifacts
+- Windows release branding assets (app icon + NSIS installer chrome) wired into Electron Builder; unsigned CI path remains default
 - Angular renderer split into feature components and services (`models/`, `workspace/`, `terminal/`, `utility-panel/`, `command-palette/`, etc.) per architecture code-style rules
 
 Keyboard shortcuts:
@@ -58,7 +59,6 @@ Keyboard shortcuts:
 
 Next up:
 
-- Phase 5 Task 5 / ADO [#123](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/123): release branding and signing readiness
 - Phase 5 Task 6 / ADO [#124](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/124): installer and upgrade validation
 
 ## Design alignment checklist
@@ -125,6 +125,41 @@ npm run release:win
 ```
 
 Generated desktop artifacts are written under `release/` and are intentionally ignored by git.
+
+### Release branding
+
+Windows packaging uses assets under `build/`:
+
+- `icon.ico` / `icon.png` — application icon
+- `installerIcon.ico` / `uninstallerIcon.ico` — NSIS installer icons
+- `installerHeader.bmp` / `installerSidebar.bmp` / `uninstallerSidebar.bmp` — assisted installer chrome
+
+Regenerate them with:
+
+```bash
+python scripts/generate-branding-assets.py
+```
+
+(`Pillow` is required for regeneration only; committed assets are used by normal builds.)
+
+### Unsigned vs signed releases
+
+**Unsigned (current default):**
+
+- Local: `npm run package` or `npm run release:win`
+- CI: GitHub Actions Windows job uploads `nthterm-windows-unsigned` without any certificate secrets
+- Electron Builder is configured with `"publish": null` and no `certificateFile` / `certificateSubjectName`
+- Windows SmartScreen may warn on first launch of unsigned installers; that is expected until signing is enabled
+
+**Signed (future readiness — not enabled yet):**
+
+1. Obtain an Authenticode code-signing certificate (`.pfx` / hardware token)
+2. Store the certificate outside the repo (never commit it)
+3. Provide secrets to Electron Builder at release time, for example:
+   - `CSC_LINK` — path or base64 of the `.pfx`
+   - `CSC_KEY_PASSWORD` — certificate password
+   - optional: `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD` for Windows-only signing
+4. Keep the unsigned CI path available for PR validation; add a separate protected release workflow/job that injects signing secrets
 
 GitHub Actions runs the same build and test path on pull requests and pushes to `main`. The Windows release job uploads unsigned installer and zip artifacts from the workflow run.
 

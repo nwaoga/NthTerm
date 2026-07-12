@@ -56,6 +56,7 @@ jobs:
         run: npm ci
 
       - name: Build unsigned Windows artifacts
+        # Intentionally unsigned: no CSC_LINK / certificate secrets required.
         run: npm run release:win
 
       - name: Upload Windows artifacts
