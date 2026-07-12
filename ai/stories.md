@@ -1,18 +1,18 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Phase 5 / Task 4 / #122: Improve Windows PTY stability under multi-pane load
+- [ ] Phase 5 / Task 5 / #123: Add release branding and signing readiness
+- [ ] Phase 5 / Task 6 / #124: Validate installer and upgrade behavior on Windows
+
+## Done
+- [x] Phase 5 / Task 4 / #122: Improve Windows PTY stability under multi-pane load
   - [x] Serialize Windows PTY spawns in Electron main with spacing and retry
   - [x] Serialize overlapping renderer restore requests
   - [x] Add regression coverage for spawn queue and restore serialization
   - [x] Patch node-pty `conpty_console_list_agent` AttachConsole fallback on Windows
   - [x] Serialize PTY dispose/kill through the same main-process queue as spawn
   - [x] Broaden retry coverage for transient Windows PTY/load failures and preserve cooldown after failed dispose
-  - [ ] Verify reduced AttachConsole failures under 2-up and 2x2 load in Electron
-- [ ] Phase 5 / Task 5 / #123: Add release branding and signing readiness
-- [ ] Phase 5 / Task 6 / #124: Validate installer and upgrade behavior on Windows
-
-## Done
+  - [x] Verify reduced AttachConsole failures under 2-up and 2x2 load in Electron-main stress verification
 - [x] Phase 7 / #129: Shell polish, system themes, and rich terminal colors
   - [x] System themes (Midnight, Coffee, White) with shell CSS tokens and Windows title bar overlay
   - [x] Settings modal in toolbar gear; preferences removed from left rail

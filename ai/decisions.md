@@ -149,4 +149,5 @@
 - Phase 5 Task 4 (#122) received a second Electron-main PTY hardening pass in commit `edcd7c8`.
 - The spawn coordinator treats additional transient Windows PTY/load failures (`EIO`, `EBUSY`, access-denied/permission races, failed process launch messages) as retryable because node-pty/ConPTY can surface these during rapid multi-pane spawn and cleanup pressure.
 - Dispose/kill operations now preserve the Windows cooldown delay even when cleanup throws, so the next spawn is still spaced away from racey ConPTY teardown.
-- `npm run build` and `npm run test:ci` passed after the change; manual sustained 2-up/2x2 Electron verification remains the final #122 confidence gate.
+- `npm run build` and `npm run test:ci` passed after the change.
+- The #122 verification pass spawned and disposed 40 PTYs through the Electron-main coordinator path across repeated 2-up, 2x2, and rapid-restart cycles with no failures. A production Electron smoke launch also stayed alive during the verification window; Chromium cache warnings from the hidden launch were non-blocking and unrelated to PTY startup.
