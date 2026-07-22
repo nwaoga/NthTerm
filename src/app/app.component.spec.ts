@@ -6,6 +6,7 @@ import { AppPreferencesService } from './preferences/app-preferences.service';
 import { SystemBridgeService } from './system-bridge.service';
 import { TerminalBridgeService } from './terminal-bridge.service';
 import { WorkspaceBridgeService } from './workspace-bridge.service';
+import { resolveHostPlatform } from './platform/host-platform';
 
 describe('AppComponent', () => {
   const originalInnerWidth = window.innerWidth;
@@ -184,6 +185,13 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('exposes the host platform for platform-specific shell styling', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.getAttribute('data-host-platform')).toBe(resolveHostPlatform());
   });
 
   it('persists the resized dock height when dragging the resize handle', async () => {

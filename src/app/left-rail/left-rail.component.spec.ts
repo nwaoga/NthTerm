@@ -78,6 +78,7 @@ describe('LeftRailComponent', () => {
     fixture.detectChanges();
 
     const createButton = fixture.debugElement.query(By.css('.rail-create-button'));
+    expect(createButton.nativeElement.querySelector('.rail-create-label')?.textContent?.trim()).toBe('New Workspace');
     createButton.nativeElement.click();
 
     expect(newSessionSpy).toHaveBeenCalled();

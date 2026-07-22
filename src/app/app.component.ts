@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
+  HostBinding,
   HostListener,
   ViewChild,
   inject,
@@ -21,6 +22,7 @@ import {
   NewSessionStartMode,
 } from './preferences/app-preferences.service';
 import { ShellThemeService } from './preferences/shell-theme.service';
+import { resolveHostPlatform } from './platform/host-platform';
 import { SystemThemeId, TerminalAnsiPaletteId } from './models/terminal-theme.models';
 import { ReferenceReviewContentService } from './reference/reference-review-content.service';
 import { SettingsModalComponent } from './settings/settings-modal.component';
@@ -53,6 +55,9 @@ const COMPACT_INSPECTOR_MAX_WIDTH = 1100;
   templateUrl: './app.component.html',
 })
 export class AppComponent implements AfterViewInit {
+  @HostBinding('attr.data-host-platform')
+  protected readonly hostPlatform = resolveHostPlatform();
+
   @ViewChild(CommandPaletteComponent) private commandPalette?: CommandPaletteComponent;
   @ViewChild('bottomDock') private bottomDock?: BottomDockComponent;
 

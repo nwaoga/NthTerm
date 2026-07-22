@@ -41,6 +41,7 @@ app-root {
 
 :root[data-shell-theme='midnight'] {
   color-scheme: dark;
+  --shell-window-bg: #101522;
   --scrollbar-thumb: rgba(126, 102, 201, 0.56);
   --scrollbar-thumb-hover: rgba(170, 131, 255, 0.78);
   --scrollbar-thumb-gradient: linear-gradient(180deg, rgba(186, 132, 255, 0.9), rgba(90, 126, 255, 0.68));
@@ -209,6 +210,7 @@ app-root {
 
 :root[data-shell-theme='coffee'] {
   color-scheme: light;
+  --shell-window-bg: #ece3d8;
   --scrollbar-thumb: rgba(160, 120, 80, 0.42);
   --scrollbar-thumb-hover: rgba(184, 116, 63, 0.62);
   --scrollbar-thumb-gradient: linear-gradient(180deg, rgba(196, 143, 94, 0.72), rgba(168, 112, 62, 0.58));
@@ -359,6 +361,7 @@ app-root {
 
 :root[data-shell-theme='white'] {
   color-scheme: light;
+  --shell-window-bg: #f4f7fb;
   --scrollbar-thumb: rgba(148, 163, 184, 0.45);
   --scrollbar-thumb-hover: rgba(100, 116, 139, 0.65);
   --scrollbar-thumb-gradient: linear-gradient(180deg, rgba(148, 163, 184, 0.55), rgba(100, 116, 139, 0.42));
@@ -522,6 +525,43 @@ input {
   background: var(--shell-bg-base);
 }
 
+/* macOS applies Electron's under-window vibrancy behind the web contents. A
+   solid canvas and lower-blur controls preserve the intended depth without
+   washing out the whole shell. */
+app-root[data-host-platform='darwin'] {
+  --shell-font-ui: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --shell-font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  --shell-glass-blur: 18px;
+  --shell-glass-saturate: 1.14;
+}
+
+app-root[data-host-platform='darwin'] .app-shell {
+  background: var(--shell-window-bg);
+}
+
+:root[data-shell-theme='midnight'] app-root[data-host-platform='darwin'] {
+  --shell-bg-workspace: rgba(12, 17, 29, 0.74);
+  --shell-bg-panel: rgba(12, 16, 28, 0.78);
+  --shell-bg-elevated: rgba(16, 22, 37, 0.82);
+  --shell-bg-inset: rgba(10, 13, 24, 0.8);
+  --shell-rail-bg: rgba(15, 19, 33, 0.88);
+  --shell-control-bg: rgba(18, 22, 36, 0.7);
+  --shell-inspector-card-bg: rgba(16, 22, 37, 0.74);
+  --shell-dock-bg: linear-gradient(180deg, rgba(12, 16, 28, 0.82), rgba(9, 13, 22, 0.8));
+}
+
+app-root[data-host-platform='darwin'] .shell-toolbar {
+  box-shadow: var(--shell-toolbar-edge-shadow), 0 1px 12px rgba(4, 7, 14, 0.12);
+}
+
+app-root[data-host-platform='darwin'] .desktop-workspace-context,
+app-root[data-host-platform='darwin'] .inspector-card,
+app-root[data-host-platform='darwin'] .bottom-dock,
+app-root[data-host-platform='darwin'] .status-bar {
+  backdrop-filter: blur(12px) saturate(1.08);
+  -webkit-backdrop-filter: blur(12px) saturate(1.08);
+}
+
 .app-shell-toolbar-host {
   grid-column: 1 / -1;
   grid-row: 1;
@@ -588,10 +628,8 @@ input {
 }
 
 .rail-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  gap: 8px;
 }
 
 .rail-section-spacer {
@@ -610,7 +648,10 @@ input {
 .rail-create-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
+  width: 100%;
+  min-height: 34px;
   padding: 7px 10px;
   border: 1px solid var(--shell-create-button-border);
   border-radius: 10px;
@@ -619,6 +660,7 @@ input {
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+  white-space: nowrap;
   cursor: pointer;
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
@@ -3171,7 +3213,9 @@ app-terminal-overview {
 .monitor-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  min-height: 0;
 }
 
 .monitor-panel .utility-panel-header {
@@ -3520,7 +3564,7 @@ app-terminal-overview {
 .dock-content-split .monitor-grid {
   flex: 1 1 auto;
   min-height: 0;
-  align-content: start;
+  height: 100%;
 }
 
 .monitor-panel {
@@ -3532,10 +3576,10 @@ app-terminal-overview {
 .metric-ring {
   position: relative;
   display: flex;
-  min-height: 92px;
+  min-height: 0;
   align-items: center;
-  gap: 14px;
-  padding: 13px 14px;
+  gap: 10px;
+  padding: 9px 10px;
   border: 1px solid var(--shell-border-subtle);
   border-radius: 14px;
   background: var(--shell-surface-tile-bg);
@@ -3546,8 +3590,8 @@ app-terminal-overview {
 .metric-ring-chart {
   position: relative;
   flex: 0 0 auto;
-  width: 54px;
-  height: 54px;
+  width: 42px;
+  height: 42px;
   border-radius: 999px;
   background:
     conic-gradient(
@@ -3559,7 +3603,7 @@ app-terminal-overview {
 .metric-ring-chart::after {
   content: '';
   position: absolute;
-  inset: 7px;
+  inset: 6px;
   border-radius: 999px;
   background: var(--shell-metric-ring-center);
   box-shadow: var(--shell-shadow-inset);
@@ -3570,7 +3614,7 @@ app-terminal-overview {
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .metric-ring.metric-cpu {
@@ -3591,14 +3635,55 @@ app-terminal-overview {
 
 .metric-ring span {
   color: var(--shell-text-muted);
-  font-size: 0.82rem;
+  font-size: 0.74rem;
 }
 
 .metric-ring strong {
   color: var(--shell-text-strong);
-  font-size: 0.98rem;
-  line-height: 1.35;
+  font-size: 0.86rem;
+  line-height: 1.2;
   word-break: break-word;
+}
+
+/* A short dock cannot accommodate two full metric rows. Keep every reading
+   visible by switching to a compact single-row monitor before cards collide. */
+@media (max-height: 800px) {
+  .monitor-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .metric-ring {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 8px;
+  }
+
+  .metric-ring-chart {
+    width: 32px;
+    height: 32px;
+  }
+
+  .metric-ring-chart::after {
+    inset: 5px;
+  }
+
+  .metric-ring-copy {
+    width: 100%;
+    gap: 1px;
+  }
+
+  .metric-ring span {
+    font-size: 0.64rem;
+  }
+
+  .metric-ring strong {
+    font-size: 0.74rem;
+    line-height: 1.15;
+  }
 }
 
 .inspector {
