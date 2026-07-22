@@ -107,10 +107,14 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ## Next Release Gate
 
-1. Azure DevOps follow-up is synced to #122 (terminal stability), #113 (inspector usability), and #106 (command history); keep those records aligned if final verification changes the evidence.
-2. Run `npm run rc:verify` again after the post-verification source changes so the installer/upgrade evidence matches the final candidate, not the earlier RC1 build.
-3. Review the complete working tree, commit intentionally, push, and create the RC tag only after the refreshed verification passes.
-4. Keep Authenticode signing deferred until a real certificate is available.
+Recommended order for the next session:
+
+1. [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) — Run `npm run rc:verify` so Windows installer/upgrade evidence matches the current candidate (stacked layout, glass chrome, macOS packaging, shell CI fixes), then tag only if green.
+2. [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — On macOS, run `npm run release:mac` and smoke-test the unsigned dmg/zip (Gatekeeper warnings expected).
+3. [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) — Polish stacked focus/overview day-to-day UX from Mac/Windows feedback.
+4. Keep Authenticode signing / Apple notarization deferred until certificates are available.
+
+Closed this session: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137).
 
 ## Historical Delivery Tracks
 

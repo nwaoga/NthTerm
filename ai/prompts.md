@@ -13,14 +13,15 @@
 - Prefer small incremental stories and commits.
 
 ## Current Prompt Focus
-- RC1 final publication gate: ADO follow-up is synced; rerun `npm run rc:verify`, then review/commit/push/tag intentionally.
-- Preserve the compact inspector hierarchy (Workspace | Terminal) and automatic terminal arrangements after the tabs removal.
+- Next session: ADO #138 (`npm run rc:verify` + RC tag), #139 (macOS `release:mac` smoke), then #140 (stacked layout polish).
+- Preserve the compact inspector hierarchy (Workspace | Terminal) and stacked focus/overview layout.
 - Renderer refactor is complete; keep new code in feature folders/services and do not grow god files.
 
 ## Handoff Summary
 - Product name: NthTerm
 - Themes: Midnight, Coffee, and White app chrome, with separate terminal color themes and ANSI palettes
-- Current milestone: `0.1.0-rc.1` post-verification polish complete; final RC verification/publication remains
-- Renderer: feature-oriented Angular shell with workspace-owned stable terminals, compact inspector projections, and utility command history attributed by terminal ID
-- Electron: frameless window, queued Windows PTY lifecycle, stable-terminal start deduplication, WSL-aware shell resolution, and SQLite persistence
-- Latest source verification: 29 Electron checks and 119 Angular specs; build passes with the accepted xterm bundle-budget warning
+- Current milestone: `0.1.0-rc.1` post-verification polish complete; stacked/glass/macOS batch shipped; final RC verification/publication remains (#138)
+- Renderer: feature-oriented Angular shell with workspace-owned stable terminals, stacked focus/overview, compact inspector projections, and utility command history attributed by terminal ID
+- Electron: frameless window with Windows acrylic / macOS vibrancy chrome, queued Windows PTY lifecycle, stable-terminal start deduplication, platform-aware shells, and SQLite persistence
+- Latest source verification: Electron checks + 139 Angular specs; build passes with the accepted xterm bundle-budget warning
+- Stopped for the night with docs/ADO backlog updated for #138–#140

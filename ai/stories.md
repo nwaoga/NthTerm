@@ -1,8 +1,15 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] RC1 final publication gate
+- [ ] [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) Re-run RC verification and tag the release candidate
+  - [ ] Run `npm run rc:verify` after the stacked/glass/macOS source batch
+  - [ ] Review changelog/version, then tag only when verification is green
+  - [ ] Keep Authenticode signing deferred
+- [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac`
+- [ ] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
+- [ ] RC1 final publication gate (covered by #138)
   - [x] Sync post-verification notes to Azure DevOps #122, #113, and #106
+  - [x] Sync post-RC1 stacked/glass/macOS closeout to #135–#137
   - [ ] Re-run `npm run rc:verify` after the final source changes
   - [ ] Review, commit, push, and tag the verified candidate
 
