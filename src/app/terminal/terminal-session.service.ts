@@ -3,7 +3,7 @@ import { ChangeDetectorRef } from '@angular/core';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 
-import { RuntimeSessionInfo, RuntimeTab, RuntimeTerminal } from '../models';
+import { RuntimeSessionInfo, RuntimeTerminal } from '../models';
 import { TerminalInfo } from '../terminal-bridge.service';
 import { TerminalBridgeService } from '../terminal-bridge.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
@@ -14,7 +14,6 @@ import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service'
 
 interface TerminalState {
   terminalId: string;
-  tabId: string;
   attachedHostId?: string;
   terminal?: Terminal;
   fitAddon?: FitAddon;
@@ -22,16 +21,21 @@ interface TerminalState {
   host?: HTMLElement;
   container?: HTMLDivElement;
   sessionId?: string;
+  startPromise?: Promise<void>;
   info: RuntimeSessionInfo | null;
   inputBuffer: string;
+  interactive?: boolean;
+  lastCols?: number;
+  lastRows?: number;
 }
 
 export function sanitizeTerminalInput(data: string): string {
   return data
     .replace(/\u0000/g, '')
-    .replace(/\u001b\[(?:I|O)/g, '')
     .replace(/\u001b\[200~/g, '')
-    .replace(/\u001b\[201~/g, '');
+    .replace(/\u001b\[201~/g, '')
+    .replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '')
+    .replace(/\u001bO./g, '');
 }
 
 @Injectable({ providedIn: 'root' })
@@ -43,7 +47,8 @@ export class TerminalSessionService {
   private removeInfoListener?: () => void;
   private resizeDebounceId?: ReturnType<typeof setTimeout>;
   private previewSessionInfo: RuntimeSessionInfo | null = null;
-  private parkingHost?: HTMLDivElement;
+  private interactiveTerminalId = '';
+  private previewVersion = 0;
 
   private readonly ngZone = inject(NgZone);
   private readonly changeDetectorRef = inject(ChangeDetectorRef, { optional: true });
@@ -77,17 +82,50 @@ export class TerminalSessionService {
     this.terminalHosts = hosts;
   }
 
+  setInteractiveTerminalId(terminalId: string): void {
+    this.interactiveTerminalId = terminalId || '';
+  }
+
+  getInteractiveTerminalId(): string {
+    return this.interactiveTerminalId;
+  }
+
+  /** Bumps when terminal output changes so overview cards can refresh. */
+  getPreviewVersion(): number {
+    return this.previewVersion;
+  }
+
+  getBufferPreview(terminalId: string, maxLines = 8): string {
+    const state = this.terminalSessions.get(terminalId);
+    const terminal = state?.terminal;
+    if (!terminal) {
+      return '';
+    }
+
+    const buffer = terminal.buffer.active;
+    const lines: string[] = [];
+    const end = buffer.baseY + buffer.cursorY;
+    const start = Math.max(0, end - maxLines + 1);
+    for (let y = start; y <= end; y += 1) {
+      const line = buffer.getLine(y)?.translateToString(true)?.trimEnd() ?? '';
+      if (line.trim()) {
+        lines.push(line);
+      }
+    }
+
+    return lines.slice(-maxLines).join('\n');
+  }
+
   reattachPaneSession(terminalId: string): void {
     this.reattachTerminalSession(terminalId);
   }
 
   reattachTerminalSession(terminalId: string): void {
     const runtimeTerminal = this.workspace.getTerminalById(terminalId);
-    const tab = this.workspace.getActiveTab();
     const host = this.terminalHosts.get(terminalId);
     const state = this.terminalSessions.get(terminalId);
 
-    if (!runtimeTerminal || !tab || !host || !state?.container) {
+    if (!runtimeTerminal || !host || !state?.container) {
       return;
     }
 
@@ -147,28 +185,20 @@ export class TerminalSessionService {
     }
 
     this.registerTerminalListeners();
-    const activeTab = this.workspace.getActiveTab();
-    const activeTerminalIds = new Set(activeTab?.terminals.map((terminal) => terminal.id) || []);
-    const visibleTerminalIds = new Set<string>();
+    const workspaceTerminalIds = new Set(this.workspace.terminals.map((terminal) => terminal.id));
 
-    for (const terminal of this.workspace.getActiveTabTerminals()) {
+    for (const terminal of this.workspace.terminals) {
       const host = this.terminalHosts.get(terminal.id);
       if (!host) {
         continue;
       }
 
-      visibleTerminalIds.add(terminal.id);
-      await this.ensureTerminalSession(terminal.id, terminal, activeTab!);
+      await this.ensureTerminalSession(terminal.id, terminal);
     }
 
     for (const terminalId of Array.from(this.terminalSessions.keys())) {
-      if (!activeTerminalIds.has(terminalId)) {
+      if (!workspaceTerminalIds.has(terminalId)) {
         await this.disposeTerminalSession(terminalId);
-        continue;
-      }
-
-      if (!visibleTerminalIds.has(terminalId)) {
-        this.parkTerminalSession(terminalId);
       }
     }
 
@@ -178,15 +208,14 @@ export class TerminalSessionService {
 
   async relaunchTerminal(): Promise<void> {
     const terminalId = this.workspace.focusedPaneId;
-    const focusedTab = this.workspace.getActiveTab();
     const runtimeTerminal = this.workspace.getFocusedTerminal();
-    if (!focusedTab || !runtimeTerminal) {
+    if (!runtimeTerminal) {
       return;
     }
 
     this.workspace.updateTerminalStatus(terminalId, 'restarting');
     await this.disposeTerminalSession(terminalId);
-    await this.ensureTerminalSession(terminalId, runtimeTerminal, focusedTab);
+    await this.ensureTerminalSession(terminalId, runtimeTerminal);
     await this.refreshFocusedTerminalContext();
   }
 
@@ -208,27 +237,24 @@ export class TerminalSessionService {
       return;
     }
 
-    const focusedTab = this.workspace.getActiveTab();
     const sessionInfo = state.info;
     await this.disposeTerminalSession(terminalId);
     void this.systemMonitor.refreshSessionEnvironment(undefined);
     this.workspace.status = 'Terminal session killed.';
     this.utility.appendOutput(this.workspace.status, 'warn');
 
-    if (focusedTab) {
-      this.workspace.updateTerminalStatus(terminalId, 'stopped');
-      this.workspace.recordSessionEvent(focusedTab, terminalId, {
-        status: 'killed',
-        reason: 'Killed from inspector',
-        startedAt: sessionInfo?.startedAt || null,
-        lastActiveAt: sessionInfo?.lastActiveAt || null,
-        endedAt: new Date().toISOString(),
-        exitCode: sessionInfo?.exitCode ?? null,
-        detectedPort: sessionInfo?.detectedPort ?? null,
-      });
-      this.workspace.updateTerminalSessionSnapshot(terminalId, null);
-      await this.workspace.persistWorkspaceState();
-    }
+    this.workspace.updateTerminalStatus(terminalId, 'stopped');
+    this.workspace.recordSessionEvent(terminalId, {
+      status: 'killed',
+      reason: 'Killed from inspector',
+      startedAt: sessionInfo?.startedAt || null,
+      lastActiveAt: sessionInfo?.lastActiveAt || null,
+      endedAt: new Date().toISOString(),
+      exitCode: sessionInfo?.exitCode ?? null,
+      detectedPort: sessionInfo?.detectedPort ?? null,
+    });
+    this.workspace.updateTerminalSessionSnapshot(terminalId, null);
+    await this.workspace.persistWorkspaceState();
   }
 
   async rerunCommand(command: string): Promise<void> {
@@ -245,17 +271,20 @@ export class TerminalSessionService {
     this.ngZone.runOutsideAngular(() => {
       requestAnimationFrame(() => {
         for (const state of this.terminalSessions.values()) {
-          if (!state.host || !state.attachedHostId) {
+          if (!state.host || !state.attachedHostId || !this.isInteractiveHost(state)) {
             continue;
           }
 
           state.fitAddon?.fit();
           if (state.terminal && state.sessionId) {
-            void this.terminalBridge.resizeSession(
-              state.sessionId,
-              state.terminal.cols,
-              state.terminal.rows
-            );
+            const cols = state.terminal.cols;
+            const rows = state.terminal.rows;
+            if (cols === state.lastCols && rows === state.lastRows) {
+              continue;
+            }
+            state.lastCols = cols;
+            state.lastRows = rows;
+            void this.terminalBridge.resizeSession(state.sessionId, cols, rows);
           }
         }
       });
@@ -277,15 +306,14 @@ export class TerminalSessionService {
 
   private async ensureTerminalSession(
     terminalId: string,
-    runtimeTerminal: RuntimeTerminal,
-    tab: RuntimeTab
+    runtimeTerminal: RuntimeTerminal
   ): Promise<void> {
     const host = this.terminalHosts.get(terminalId);
     if (!host) {
       return;
     }
 
-    const state = this.terminalSessions.get(terminalId) || this.createTerminalState(terminalId, tab.id);
+    const state = this.terminalSessions.get(terminalId) || this.createTerminalState(terminalId);
     await this.ensureTerminalSurface(state, runtimeTerminal);
     this.attachStateToHost(state, terminalId, host);
     this.applyTerminalTheme(terminalId, runtimeTerminal);
@@ -299,7 +327,18 @@ export class TerminalSessionService {
       return;
     }
 
-    await this.startTerminalSession(state, runtimeTerminal, tab);
+    if (!state.startPromise) {
+      state.startPromise = this.startTerminalSession(state, runtimeTerminal);
+    }
+
+    const startPromise = state.startPromise;
+    try {
+      await startPromise;
+    } finally {
+      if (state.startPromise === startPromise) {
+        state.startPromise = undefined;
+      }
+    }
   }
 
   private async ensureTerminalSurface(
@@ -353,10 +392,10 @@ export class TerminalSessionService {
 
   private async startTerminalSession(
     state: TerminalState,
-    runtimeTerminal: RuntimeTerminal,
-    tab: RuntimeTab
+    runtimeTerminal: RuntimeTerminal
   ): Promise<void> {
-    const targetDirectory = runtimeTerminal.cwd?.trim() || tab.cwd?.trim() || this.workspace.workingDirectory.trim();
+    const targetDirectory =
+      runtimeTerminal.cwd?.trim() || this.workspace.workingDirectory.trim();
     if (!targetDirectory || !state.terminal || !state.fitAddon) {
       this.workspace.status = 'Working directory is required.';
       this.utility.appendOutput(this.workspace.status, 'warn');
@@ -371,6 +410,7 @@ export class TerminalSessionService {
     state.terminal.reset();
 
     state.sessionId = await this.terminalBridge.createSession({
+      terminalId: state.terminalId,
       cwd: targetDirectory,
       workspaceName: this.workspace.workspaceName,
       shell: runtimeTerminal.shell || '',
@@ -383,7 +423,7 @@ export class TerminalSessionService {
         this.toTerminalSnapshot(state, targetDirectory)
       );
     }
-    this.workspace.recordSessionLaunch(tab, state.attachedHostId || this.workspace.focusedPaneId, {
+    this.workspace.recordSessionLaunch(state.attachedHostId || this.workspace.focusedPaneId, {
       shell: state.info?.shell || runtimeTerminal.shell || '',
       startedAt: state.info?.startedAt || null,
     });
@@ -445,10 +485,11 @@ export class TerminalSessionService {
       }
 
       this.ngZone.runOutsideAngular(() => state.terminal?.write(event.data));
+      this.previewVersion += 1;
       this.ngZone.run(() => {
-        const tab = this.workspace.getActiveTab();
-        const source = tab?.title || this.workspace.workspaceName || 'Terminal';
+        const source = this.workspace.workspaceName || 'Terminal';
         this.utility.scanOutputForProblems(event.data, source);
+        this.changeDetectorRef?.markForCheck();
       });
     });
 
@@ -458,7 +499,6 @@ export class TerminalSessionService {
         return;
       }
 
-      const tab = this.workspace.runtimeTabs.find((item) => item.id === state.tabId);
       const runtimeTerminal = this.workspace.getTerminalById(state.terminalId);
       const endedAt = new Date().toISOString();
       state.info = {
@@ -469,18 +509,16 @@ export class TerminalSessionService {
       };
       state.sessionId = undefined;
 
-      if (tab) {
-        this.workspace.updateTerminalStatus(state.terminalId, 'stopped');
-        this.workspace.recordSessionEvent(tab, state.attachedHostId || this.workspace.focusedPaneId, {
-          status: event.exitCode && event.exitCode !== 0 ? 'failed' : 'stopped',
-          reason: event.exitCode && event.exitCode !== 0 ? 'Process exited with error' : 'Process exited',
-          startedAt: state.info?.startedAt || null,
-          lastActiveAt: state.info?.lastActiveAt || null,
-          endedAt,
-          exitCode: event.exitCode ?? null,
-          detectedPort: state.info?.detectedPort ?? null,
-        });
-      }
+      this.workspace.updateTerminalStatus(state.terminalId, 'stopped');
+      this.workspace.recordSessionEvent(state.attachedHostId || this.workspace.focusedPaneId, {
+        status: event.exitCode && event.exitCode !== 0 ? 'failed' : 'stopped',
+        reason: event.exitCode && event.exitCode !== 0 ? 'Process exited with error' : 'Process exited',
+        startedAt: state.info?.startedAt || null,
+        lastActiveAt: state.info?.lastActiveAt || null,
+        endedAt,
+        exitCode: event.exitCode ?? null,
+        detectedPort: state.info?.detectedPort ?? null,
+      });
 
       if (state.attachedHostId) {
         this.workspace.updateTerminalSessionSnapshot(
@@ -501,6 +539,12 @@ export class TerminalSessionService {
     const state = this.terminalSessions.get(terminalId);
     if (!state) {
       return;
+    }
+
+    try {
+      await state.startPromise;
+    } catch {
+      // A failed start has no PTY to dispose; surface cleanup still needs to run.
     }
 
     state.resizeObserver?.disconnect();
@@ -542,16 +586,22 @@ export class TerminalSessionService {
       return;
     }
 
-    const tab = this.workspace.getActiveTab();
-    this.utility.trackCommand(command, tab?.title || this.workspace.workspaceName || 'Terminal');
+    const terminal = this.workspace.getTerminalById(state.terminalId);
+    const terminalIndex = terminal ? this.workspace.terminals.indexOf(terminal) : 0;
+    this.ngZone.run(() => {
+      this.utility.trackCommand(command, {
+        terminalId: state.terminalId,
+        tabTitle: this.workspace.workspaceName || 'Workspace',
+        terminalTitle: terminal
+          ? this.workspace.getTerminalDisplayTitle(terminal, Math.max(0, terminalIndex))
+          : 'Terminal',
+      });
+      this.changeDetectorRef?.markForCheck();
+    });
   }
 
   private getFocusedTerminalState(): TerminalState | undefined {
     return this.getTerminalState(this.workspace.focusedPaneId);
-  }
-
-  private getFocusedPaneState(): TerminalState | undefined {
-    return this.getFocusedTerminalState();
   }
 
   private findTerminalStateBySessionId(sessionId: string): TerminalState | undefined {
@@ -564,10 +614,9 @@ export class TerminalSessionService {
     return undefined;
   }
 
-  private createTerminalState(terminalId: string, tabId: string): TerminalState {
+  private createTerminalState(terminalId: string): TerminalState {
     const state: TerminalState = {
       terminalId,
-      tabId,
       info: null,
       inputBuffer: '',
     };
@@ -576,17 +625,15 @@ export class TerminalSessionService {
   }
 
   private async refreshFocusedTerminalContext(): Promise<void> {
-    const focusedTab = this.workspace.getActiveTab();
     const focusedState = this.getFocusedTerminalState();
     const focusedTerminal = this.workspace.getFocusedTerminal();
 
-    if (!focusedTab || !focusedState?.sessionId) {
+    if (!focusedState?.sessionId) {
       await this.systemMonitor.refreshSessionEnvironment(undefined);
       return;
     }
 
-    this.workspace.activeTabId = focusedTab.id;
-    this.workspace.workingDirectory = focusedTerminal?.cwd || focusedTab.cwd;
+    this.workspace.workingDirectory = focusedTerminal?.cwd || this.workspace.workingDirectory;
     await this.systemMonitor.refreshSessionEnvironment(focusedState.sessionId);
     this.syncTerminalSize();
     this.focusTerminal(this.workspace.focusedPaneId);
@@ -617,12 +664,8 @@ export class TerminalSessionService {
     return this.terminalSessions.get(terminalId);
   }
 
-  private getPaneState(terminalId: string): TerminalState | undefined {
-    return this.getTerminalState(terminalId);
-  }
-
   private reattachVisibleTerminalSessions(): void {
-    for (const terminal of this.workspace.getActiveTabTerminals()) {
+    for (const terminal of this.workspace.terminals) {
       this.reattachTerminalSession(terminal.id);
     }
 
@@ -650,46 +693,48 @@ export class TerminalSessionService {
 
     state.host = host;
     state.attachedHostId = terminalId;
+    state.interactive = this.isHostMarkedInteractive(host);
+
+    if (!this.isInteractiveHost(state)) {
+      return;
+    }
 
     this.ngZone.runOutsideAngular(() => {
       requestAnimationFrame(() => {
         state.fitAddon?.fit();
         if (state.terminal && state.sessionId) {
-          void this.terminalBridge.resizeSession(
-            state.sessionId,
-            state.terminal.cols,
-            state.terminal.rows
-          );
+          const cols = state.terminal.cols;
+          const rows = state.terminal.rows;
+          state.lastCols = cols;
+          state.lastRows = rows;
+          void this.terminalBridge.resizeSession(state.sessionId, cols, rows);
         }
       });
     });
   }
 
-  private parkTerminalSession(terminalId: string): void {
-    const state = this.terminalSessions.get(terminalId);
-    if (!state?.container) {
-      return;
+  private isInteractiveHost(state: TerminalState): boolean {
+    if (state.host?.dataset['terminalPark'] === 'true') {
+      return false;
     }
-
-    if (state.attachedHostId) {
-      this.workspace.updateTerminalSessionSnapshot(state.attachedHostId, null);
+    if (this.interactiveTerminalId) {
+      return state.attachedHostId === this.interactiveTerminalId;
     }
-    this.getParkingHost().appendChild(state.container);
-    state.host = undefined;
-    state.attachedHostId = undefined;
+    return state.interactive !== false;
   }
 
-  private getParkingHost(): HTMLDivElement {
-    if (this.parkingHost) {
-      return this.parkingHost;
+  private isHostMarkedInteractive(host?: HTMLElement | null): boolean {
+    if (!host) {
+      return false;
     }
-
-    const host = document.createElement('div');
-    host.setAttribute('aria-hidden', 'true');
-    host.style.display = 'none';
-    document.body.appendChild(host);
-    this.parkingHost = host;
-    return host;
+    if (host.dataset['terminalPark'] === 'true') {
+      return false;
+    }
+    if (host.dataset['terminalInteractive'] === 'true') {
+      return true;
+    }
+    // Legacy hosts without park/interactive markers remain resizable.
+    return !('terminalPark' in host.dataset) && !('terminalInteractive' in host.dataset);
   }
 
   private buildEmptyInfo(id: string): TerminalInfo {

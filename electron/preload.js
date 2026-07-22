@@ -1,11 +1,13 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('nthTermDesktop', {
+  platform: process.platform,
   terminal: {
     createTerminal: (options) => ipcRenderer.invoke('terminal:create', options),
     writeTerminal: (id, data) => ipcRenderer.invoke('terminal:write', id, data),
     resizeTerminal: (id, cols, rows) => ipcRenderer.invoke('terminal:resize', id, cols, rows),
     getTerminalInfo: (id) => ipcRenderer.invoke('terminal:get-info', id),
+    listWslDistros: () => ipcRenderer.invoke('terminal:list-wsl-distros'),
     interruptTerminal: (id) => ipcRenderer.invoke('terminal:interrupt', id),
     disposeTerminal: (id) => ipcRenderer.invoke('terminal:dispose', id),
     onTerminalData: (listener) => {

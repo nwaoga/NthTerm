@@ -21,6 +21,29 @@ describe('AppPreferencesService', () => {
     expect(service.readBottomPanelHeight()).toBe(280);
   });
 
+  it('keeps dock visibility and height preferences per workspace', () => {
+    service.writeWorkspaceBottomPanelVisible('workspace-1', false);
+    service.writeWorkspaceBottomPanelHeight('workspace-1', 360);
+    service.writeWorkspaceBottomPanelVisible('workspace-2', true);
+    service.writeWorkspaceBottomPanelHeight('workspace-2', 220);
+
+    expect(service.readWorkspaceBottomPanelVisible('workspace-1')).toBeFalse();
+    expect(service.readWorkspaceBottomPanelHeight('workspace-1')).toBe(360);
+    expect(service.readWorkspaceBottomPanelVisible('workspace-2')).toBeTrue();
+    expect(service.readWorkspaceBottomPanelHeight('workspace-2')).toBe(220);
+    expect(service.readWorkspaceBottomPanelHeight('missing', 300)).toBe(300);
+  });
+
+  it('persists the inspector panel visibility preference', () => {
+    expect(service.readInspectorPanelVisible()).toBeTrue();
+
+    service.writeInspectorPanelVisible(false);
+    expect(service.readInspectorPanelVisible()).toBeFalse();
+
+    service.writeInspectorPanelVisible(true);
+    expect(service.readInspectorPanelVisible()).toBeTrue();
+  });
+
   it('defaults new sessions to the focused terminal directory', () => {
     expect(service.readNewSessionStartMode()).toBe('focused-tab');
     expect(service.readNewSessionCustomPath()).toBe('');
@@ -42,6 +65,9 @@ describe('AppPreferencesService', () => {
 
     service.writeDefaultShell('zsh');
     expect(service.readDefaultShell()).toBe('zsh');
+
+    service.writeDefaultShell('wsl:Ubuntu');
+    expect(service.readDefaultShell()).toBe('wsl:Ubuntu');
   });
 
   it('persists default terminal colors and system theme separately', () => {

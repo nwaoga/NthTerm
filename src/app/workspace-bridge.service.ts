@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { PaneSessionSnapshot, RecoverySnapshot, SessionHistoryEntry } from './models';
+import { PaneSessionSnapshot, RecoverySnapshot, SessionHistoryEntry, TerminalColorTheme } from './models';
 
 export interface SavedWorkspace {
   id: string;
@@ -14,18 +14,32 @@ export interface SavedWorkspace {
   sessionSnapshot: {
     layout: {
       mode: string;
-      activeTabId: string;
+      /** @deprecated Migrated away; ignored on write. */
+      activeTabId?: string;
       focusedPaneId?: string;
       focusedTerminalId?: string;
       colSplit?: number;
       rowSplit?: number;
-      panes: Array<{
+      /** @deprecated Legacy pane list; migrate-on-read only. */
+      panes?: Array<{
         id: string;
         tabId: string | null;
         session?: PaneSessionSnapshot | null;
       }>;
     };
-    tabs: Array<{
+    /** Workspace-owned terminals (canonical post-tabs shape). */
+    terminals?: Array<{
+      id: string;
+      name?: string;
+      cwd: string;
+      shell?: string;
+      startupCommand?: string;
+      status: string;
+      session?: PaneSessionSnapshot | null;
+      theme?: TerminalColorTheme | null;
+    }>;
+    /** @deprecated Multi-tab snapshots; migrate-on-read keeps active tab only. */
+    tabs?: Array<{
       id: string;
       title: string;
       cwd: string;
@@ -39,11 +53,13 @@ export interface SavedWorkspace {
       focusedTerminalId?: string;
       terminals?: Array<{
         id: string;
+        name?: string;
         cwd: string;
         shell?: string;
         startupCommand?: string;
         status: string;
         session?: PaneSessionSnapshot | null;
+        theme?: TerminalColorTheme | null;
       }>;
     }>;
     history?: SessionHistoryEntry[];

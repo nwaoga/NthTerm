@@ -4,7 +4,7 @@ app-root {
   overflow: hidden;
   color: var(--shell-text);
   font-family: var(--shell-font-ui);
-  --titlebar-inset: var(--shell-titlebar-overlay-width, 152px);
+  --titlebar-inset: var(--shell-traffic-lights-inset, 72px);
 
   /* Radii */
   --shell-radius-sm: 8px;
@@ -30,6 +30,13 @@ app-root {
   --shell-font-size-body: 0.92rem;
   --shell-font-size-title: 1.02rem;
   --shell-letter-label: 0.12em;
+
+  /* Glass */
+  --shell-glass-blur: 34px;
+  --shell-glass-saturate: 1.45;
+  --shell-glass-filter: blur(var(--shell-glass-blur)) saturate(var(--shell-glass-saturate));
+  --shell-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --shell-glass-border: rgba(255, 255, 255, 0.28);
 }
 
 :root[data-shell-theme='midnight'] {
@@ -41,11 +48,11 @@ app-root {
   --scrollbar-corner: rgba(7, 11, 20, 0.4);
 
   /* Surface */
-  --shell-bg-base: #090d16;
-  --shell-bg-workspace: #0c111d;
-  --shell-bg-panel: rgba(12, 16, 28, 0.94);
-  --shell-bg-elevated: rgba(16, 22, 37, 0.98);
-  --shell-bg-inset: rgba(10, 13, 24, 0.92);
+  --shell-bg-base: rgba(9, 13, 22, 0.28);
+  --shell-bg-workspace: rgba(12, 17, 29, 0.16);
+  --shell-bg-panel: rgba(12, 16, 28, 0.34);
+  --shell-bg-elevated: rgba(16, 22, 37, 0.44);
+  --shell-bg-inset: rgba(10, 13, 24, 0.38);
 
   /* Text */
   --shell-text: #e6edf7;
@@ -74,106 +81,103 @@ app-root {
   --shell-shadow-stage: 0 14px 32px rgba(3, 6, 14, 0.28);
 
   /* Component surfaces */
-  --shell-rail-bg: linear-gradient(180deg, rgba(15, 19, 33, 0.98), rgba(10, 16, 27, 0.98));
+  --shell-rail-bg: rgba(15, 19, 33, 0.34);
   --shell-toolbar-bg:
-    radial-gradient(circle at 28% 0%, rgba(116, 62, 201, 0.2), transparent 34%),
-    radial-gradient(circle at 72% 0%, rgba(75, 111, 255, 0.11), transparent 26%),
-    linear-gradient(180deg, rgba(21, 17, 40, 0.985), rgba(17, 21, 35, 0.97));
-  --shell-control-bg: rgba(18, 22, 36, 0.82);
+    radial-gradient(circle at 28% 0%, rgba(116, 62, 201, 0.22), transparent 34%),
+    radial-gradient(circle at 72% 0%, rgba(75, 111, 255, 0.12), transparent 26%),
+    linear-gradient(180deg, rgba(21, 17, 40, 0.38), rgba(17, 21, 35, 0.28));
+  --shell-control-bg: rgba(18, 22, 36, 0.4);
   --shell-control-fg: #d7deeb;
   --shell-control-border: rgba(141, 154, 187, 0.14);
-  --shell-row-bg: rgba(17, 22, 36, 0.52);
+  --shell-row-bg: rgba(17, 22, 36, 0.48);
   --shell-row-border: rgba(141, 154, 187, 0.1);
-  --shell-row-active-bg: linear-gradient(180deg, rgba(61, 30, 93, 0.9), rgba(53, 27, 83, 0.88));
+  --shell-row-active-bg: linear-gradient(180deg, rgba(61, 30, 93, 0.82), rgba(53, 27, 83, 0.78));
   --shell-row-active-fg: #f7fbff;
   --shell-row-active-border: rgba(197, 139, 255, 0.48);
-  --shell-tab-bg: linear-gradient(180deg, rgba(26, 32, 50, 0.96), rgba(17, 22, 36, 0.94));
+  --shell-tab-bg: linear-gradient(180deg, rgba(26, 32, 50, 0.82), rgba(17, 22, 36, 0.76));
   --shell-tab-fg: #9aa8c0;
-  --shell-tab-active-bg: linear-gradient(180deg, rgba(36, 42, 64, 0.99), rgba(14, 20, 34, 0.99));
+  --shell-tab-active-bg: linear-gradient(180deg, rgba(36, 42, 64, 0.9), rgba(14, 20, 34, 0.88));
   --shell-tab-active-fg: #e8edf7;
   --shell-terminal-frame-bg:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 30%),
     linear-gradient(180deg, rgba(21, 27, 44, 0.985), rgba(10, 14, 24, 0.985));
-  --shell-terminal-header-bg: linear-gradient(180deg, rgba(29, 36, 55, 0.94), rgba(19, 24, 38, 0.92));
-  --shell-workspace-context-bg: linear-gradient(180deg, rgba(27, 23, 44, 0.72), rgba(22, 20, 38, 0.66));
+  --shell-terminal-header-bg: linear-gradient(180deg, rgba(29, 36, 55, 0.88), rgba(19, 24, 38, 0.84));
+  --shell-workspace-context-bg: linear-gradient(180deg, rgba(27, 23, 44, 0.48), rgba(22, 20, 38, 0.4));
   --shell-workspace-context-fg: #e7edf8;
-  --shell-layout-switch-bg: rgba(15, 18, 30, 0.78);
-  --shell-pill-primary-bg: linear-gradient(180deg, rgba(56, 40, 90, 0.98), rgba(35, 26, 60, 0.96));
+  --shell-pill-primary-bg: linear-gradient(180deg, rgba(56, 40, 90, 0.9), rgba(35, 26, 60, 0.86));
   --shell-pill-primary-fg: #ffffff;
-  --shell-pill-ghost-bg: rgba(15, 20, 32, 0.5);
-  --shell-pill-active-bg: rgba(41, 27, 64, 0.94);
+  --shell-pill-ghost-bg: rgba(15, 20, 32, 0.42);
+  --shell-pill-active-bg: rgba(41, 27, 64, 0.86);
   --shell-pill-active-fg: #ffffff;
-  --shell-pill-hover-bg: rgba(30, 34, 52, 0.92);
+  --shell-pill-hover-bg: rgba(30, 34, 52, 0.82);
   --shell-pill-hover-border: rgba(186, 152, 255, 0.24);
-  --shell-modal-bg: rgba(12, 16, 29, 0.98);
-  --shell-backdrop: rgba(4, 8, 16, 0.72);
-  --shell-input-bg: rgba(8, 11, 20, 0.92);
+  --shell-modal-bg: rgba(12, 16, 29, 0.44);
+  --shell-backdrop: rgba(4, 8, 16, 0.36);
+  --shell-input-bg: rgba(8, 11, 20, 0.82);
   --shell-input-fg: #eff3f9;
   --shell-brand-badge-bg: linear-gradient(180deg, rgba(184, 88, 255, 0.98), rgba(102, 85, 255, 0.94));
   --shell-muted-label: #7f8db0;
-  --shell-pane-pill-bg: rgba(13, 19, 31, 0.8);
+  --shell-pane-pill-bg: rgba(13, 19, 31, 0.72);
   --shell-pane-pill-fg: #d7deeb;
-  --shell-create-button-bg: linear-gradient(180deg, rgba(39, 29, 66, 0.92), rgba(28, 24, 50, 0.88));
+  --shell-create-button-bg: linear-gradient(180deg, rgba(39, 29, 66, 0.86), rgba(28, 24, 50, 0.8));
   --shell-create-button-border: rgba(168, 136, 255, 0.18);
   --shell-create-button-fg: #eef3fb;
-  --shell-row-hover-bg: rgba(23, 28, 44, 0.72);
-  --shell-preferences-bg: rgba(8, 12, 22, 0.72);
+  --shell-row-hover-bg: rgba(23, 28, 44, 0.66);
+  --shell-preferences-bg: rgba(8, 12, 22, 0.64);
   --shell-stage-bg:
-    radial-gradient(circle at top center, rgba(106, 72, 188, 0.18), transparent 34%),
-    linear-gradient(180deg, rgba(14, 20, 34, 0.985), rgba(9, 13, 22, 0.99));
-  --shell-inspector-card-bg:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.03), transparent 40%),
-    linear-gradient(180deg, rgba(16, 22, 37, 0.98), rgba(11, 16, 28, 0.98));
-  --shell-dock-bg: linear-gradient(180deg, rgba(12, 16, 28, 0.985), rgba(9, 13, 22, 0.99));
-  --shell-dock-tabs-bg: rgba(11, 15, 26, 0.98);
+    radial-gradient(circle at top center, rgba(106, 72, 188, 0.2), transparent 34%),
+    linear-gradient(180deg, rgba(14, 20, 34, 0.36), rgba(9, 13, 22, 0.28));
+  --shell-inspector-card-bg: rgba(16, 22, 37, 0.36);
+  --shell-dock-bg: linear-gradient(180deg, rgba(12, 16, 28, 0.36), rgba(9, 13, 22, 0.28));
+  --shell-dock-tabs-bg: rgba(11, 15, 26, 0.34);
   --shell-dock-tab-fg: #9aa8bf;
   --shell-dock-tab-active-fg: #ffffff;
-  --shell-chip-bg: rgba(18, 23, 37, 0.88);
+  --shell-chip-bg: rgba(18, 23, 37, 0.72);
   --shell-chip-fg: #eef3fb;
   --shell-status-fg: #c2ccdc;
-  --shell-surface-tile-bg: rgba(255, 255, 255, 0.03);
+  --shell-surface-tile-bg: rgba(255, 255, 255, 0.04);
   --shell-card-meta-fg: #8c9ab2;
   --shell-card-icon-fg: #b9c7de;
-  --shell-running-pill-bg: rgba(18, 58, 40, 0.82);
+  --shell-running-pill-bg: rgba(18, 58, 40, 0.72);
   --shell-running-pill-fg: #9ef0b8;
-  --shell-focused-pill-bg: rgba(63, 35, 102, 0.7);
-  --shell-inspector-status-bg: rgba(52, 33, 81, 0.92);
+  --shell-focused-pill-bg: rgba(63, 35, 102, 0.62);
+  --shell-inspector-status-bg: rgba(52, 33, 81, 0.82);
   --shell-inspector-status-fg: #f4ebff;
-  --shell-tab-add-bg: rgba(18, 22, 36, 0.55);
+  --shell-tab-add-bg: rgba(18, 22, 36, 0.48);
   --shell-tab-add-fg: #8f9db5;
-  --shell-terminal-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 10px 20px rgba(2, 6, 15, 0.12);
+  --shell-terminal-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 20px rgba(2, 6, 15, 0.12);
   --shell-terminal-card-focused-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 0 0 1px rgba(186, 112, 255, 0.14),
     0 16px 30px rgba(15, 10, 30, 0.22);
   --shell-tab-active-glow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 -8px 18px rgba(106, 72, 188, 0.08);
-  --shell-toolbar-chip-bg: rgba(16, 20, 31, 0.5);
+  --shell-toolbar-chip-bg: rgba(16, 20, 31, 0.42);
   --shell-toolbar-chip-fg: #c6d2e7;
   --shell-toolbar-summary-fg: #7f8daa;
   --shell-context-name-fg: #dbe5f5;
-  --shell-workspace-picker-bg: rgba(22, 26, 43, 0.86);
+  --shell-workspace-picker-bg: rgba(22, 26, 43, 0.72);
   --shell-workspace-picker-fg: #eef3fb;
-  --shell-card-action-bg: rgba(12, 17, 28, 0.88);
+  --shell-card-action-bg: rgba(12, 17, 28, 0.72);
   --shell-card-action-fg: #b8c4da;
-  --shell-history-bg: rgba(255, 255, 255, 0.03);
+  --shell-history-bg: rgba(255, 255, 255, 0.04);
   --shell-history-fg: #d8dfec;
   --shell-tab-icon-fg: #8f9db5;
   --shell-tab-icon-active-fg: #c889ff;
   --shell-tab-close-fg: #7f8da6;
   --shell-tab-close-hover-fg: #e8edf7;
   --shell-pane-summary-fg: #9ba8be;
-  --shell-inspector-active-bg: rgba(44, 31, 70, 0.94);
+  --shell-inspector-active-bg: rgba(44, 31, 70, 0.82);
   --shell-inspector-active-fg: #fff;
-  --shell-inspector-tab-bg: rgba(16, 21, 36, 0.88);
+  --shell-inspector-tab-bg: rgba(16, 21, 36, 0.7);
   --shell-dock-header-glow: radial-gradient(circle at top center, rgba(116, 62, 201, 0.14), transparent 42%);
   --shell-status-bar-glow: radial-gradient(circle at bottom center, rgba(116, 62, 201, 0.16), transparent 45%);
   --shell-dock-panel-bg:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.03), transparent 40%),
-    linear-gradient(180deg, rgba(16, 22, 37, 0.98), rgba(11, 16, 28, 0.98));
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.04), transparent 40%),
+    linear-gradient(180deg, rgba(16, 22, 37, 0.74), rgba(11, 16, 28, 0.7));
   --shell-output-text: #cce3d2;
-  --shell-metric-ring-center: rgba(10, 14, 24, 0.96);
+  --shell-metric-ring-center: rgba(10, 14, 24, 0.9);
   --shell-metric-ring-track: rgba(141, 154, 187, 0.14);
-  --shell-kbd-bg: rgba(0, 0, 0, 0.22);
+  --shell-kbd-bg: rgba(0, 0, 0, 0.2);
   --shell-kbd-fg: #aeb9cb;
   --shell-kbd-border: rgba(141, 154, 187, 0.22);
   --shell-toolbar-icon-fg: #d4ddef;
@@ -184,20 +188,23 @@ app-root {
   --shell-action-primary-bg: rgba(42, 115, 255, 0.8);
   --shell-action-danger-bg: rgba(164, 39, 54, 0.8);
   --shell-log-meta-fg: #98a5bc;
-  --shell-placeholder-bg: rgba(8, 12, 20, 0.72);
+  --shell-placeholder-bg: rgba(8, 12, 20, 0.64);
   --shell-placeholder-fg: #a8b2c5;
   --shell-placeholder-title-fg: #f2f6fb;
   --shell-placeholder-border: rgba(109, 126, 164, 0.2);
-  --shell-shell-picker-bg: rgba(18, 22, 36, 0.82);
+  --shell-shell-picker-bg: rgba(18, 22, 36, 0.72);
   --shell-shell-picker-fg: #b7c3d8;
   --shell-shell-picker-hover-fg: #e8edf7;
   --shell-shell-picker-hover-border: rgba(184, 125, 255, 0.42);
   --shell-toolbar-height: 66px;
   --shell-titlebar-overlay-width: 152px;
+  --shell-traffic-lights-inset: 72px;
   --shell-toolbar-edge-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.015);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.02);
   --shell-session-action-fg: rgba(184, 195, 216, 0.55);
+  --shell-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --shell-glass-border: rgba(255, 255, 255, 0.14);
 }
 
 :root[data-shell-theme='coffee'] {
@@ -208,11 +215,11 @@ app-root {
   --scrollbar-thumb-gradient-hover: linear-gradient(180deg, rgba(219, 176, 132, 0.82), rgba(184, 116, 63, 0.68));
   --scrollbar-corner: rgba(232, 224, 212, 0.6);
 
-  --shell-bg-base: #e8e0d4;
-  --shell-bg-workspace: #f3ede4;
-  --shell-bg-panel: rgba(255, 252, 247, 0.98);
-  --shell-bg-elevated: #fffdf9;
-  --shell-bg-inset: rgba(248, 242, 233, 0.96);
+  --shell-bg-base: rgba(232, 224, 212, 0.24);
+  --shell-bg-workspace: rgba(243, 237, 228, 0.12);
+  --shell-bg-panel: rgba(255, 252, 247, 0.32);
+  --shell-bg-elevated: rgba(255, 253, 249, 0.42);
+  --shell-bg-inset: rgba(248, 242, 233, 0.36);
   --shell-text: #3f372e;
   --shell-text-strong: #2a241d;
   --shell-text-muted: #7a6f63;
@@ -233,55 +240,54 @@ app-root {
   --shell-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.65);
   --shell-shadow-panel: 0 8px 20px rgba(80, 60, 40, 0.08);
   --shell-shadow-stage: 0 12px 28px rgba(80, 60, 40, 0.1);
-  --shell-rail-bg: linear-gradient(180deg, #f0e8dc, #e9e0d3);
-  --shell-toolbar-bg: linear-gradient(180deg, #faf6f0, #efe7db);
-  --shell-control-bg: rgba(255, 251, 246, 0.92);
+  --shell-rail-bg: rgba(255, 250, 244, 0.36);
+  --shell-toolbar-bg: linear-gradient(180deg, rgba(255, 252, 247, 0.38), rgba(245, 236, 224, 0.28));
+  --shell-control-bg: rgba(255, 251, 246, 0.4);
   --shell-control-fg: #4a4036;
   --shell-control-border: rgba(120, 96, 72, 0.22);
-  --shell-row-bg: rgba(255, 249, 242, 0.72);
+  --shell-row-bg: rgba(255, 249, 242, 0.62);
   --shell-row-border: rgba(120, 96, 72, 0.16);
   --shell-row-active-bg: linear-gradient(180deg, rgba(219, 176, 132, 0.52), rgba(196, 143, 94, 0.42));
   --shell-row-active-fg: #2a241d;
   --shell-row-active-border: rgba(184, 116, 63, 0.55);
-  --shell-tab-bg: linear-gradient(180deg, #faf4eb, #efe5d8);
+  --shell-tab-bg: linear-gradient(180deg, rgba(250, 244, 235, 0.82), rgba(239, 229, 216, 0.76));
   --shell-tab-fg: #7a6f63;
-  --shell-tab-active-bg: linear-gradient(180deg, #fffdf9, #f6ede2);
+  --shell-tab-active-bg: linear-gradient(180deg, rgba(255, 253, 249, 0.9), rgba(246, 237, 226, 0.86));
   --shell-tab-active-fg: #2a241d;
   --shell-terminal-frame-bg: linear-gradient(180deg, #faf6f0, #efe8dc);
-  --shell-terminal-header-bg: linear-gradient(180deg, #f5ede3, #ebe1d4);
-  --shell-workspace-context-bg: linear-gradient(180deg, rgba(255, 249, 242, 0.95), rgba(244, 235, 224, 0.9));
+  --shell-terminal-header-bg: linear-gradient(180deg, rgba(245, 237, 227, 0.88), rgba(235, 225, 212, 0.84));
+  --shell-workspace-context-bg: linear-gradient(180deg, rgba(255, 249, 242, 0.58), rgba(244, 235, 224, 0.48));
   --shell-workspace-context-fg: #3f372e;
-  --shell-layout-switch-bg: rgba(255, 251, 246, 0.9);
-  --shell-pill-primary-bg: linear-gradient(180deg, rgba(196, 143, 94, 0.95), rgba(168, 112, 62, 0.92));
+  --shell-pill-primary-bg: linear-gradient(180deg, rgba(196, 143, 94, 0.92), rgba(168, 112, 62, 0.88));
   --shell-pill-primary-fg: #fffdf9;
-  --shell-pill-ghost-bg: rgba(255, 249, 242, 0.72);
+  --shell-pill-ghost-bg: rgba(255, 249, 242, 0.48);
   --shell-pill-active-bg: rgba(219, 176, 132, 0.42);
   --shell-pill-active-fg: #2a241d;
-  --shell-pill-hover-bg: rgba(244, 232, 216, 0.95);
+  --shell-pill-hover-bg: rgba(244, 232, 216, 0.78);
   --shell-pill-hover-border: rgba(184, 116, 63, 0.28);
-  --shell-modal-bg: rgba(255, 252, 247, 0.98);
-  --shell-backdrop: rgba(58, 46, 34, 0.32);
-  --shell-input-bg: #fffdf9;
+  --shell-modal-bg: rgba(255, 252, 247, 0.44);
+  --shell-backdrop: rgba(58, 46, 34, 0.24);
+  --shell-input-bg: rgba(255, 253, 249, 0.9);
   --shell-input-fg: #2a241d;
   --shell-brand-badge-bg: linear-gradient(180deg, #c4956a, #a86f42);
   --shell-muted-label: #8a7768;
-  --shell-pane-pill-bg: rgba(255, 249, 242, 0.95);
+  --shell-pane-pill-bg: rgba(255, 249, 242, 0.82);
   --shell-pane-pill-fg: #4a4036;
-  --shell-create-button-bg: linear-gradient(180deg, #fff9f2, #f3e8da);
+  --shell-create-button-bg: linear-gradient(180deg, rgba(255, 249, 242, 0.88), rgba(243, 232, 218, 0.82));
   --shell-create-button-border: rgba(184, 116, 63, 0.28);
   --shell-create-button-fg: #2a241d;
-  --shell-row-hover-bg: rgba(244, 232, 216, 0.82);
-  --shell-preferences-bg: rgba(255, 252, 247, 0.92);
-  --shell-stage-bg: linear-gradient(180deg, #faf6f0, #efe8dc);
-  --shell-inspector-card-bg: linear-gradient(180deg, #fffdf9, #f7efe4);
-  --shell-dock-bg: linear-gradient(180deg, #faf6f0, #efe7db);
-  --shell-dock-tabs-bg: #f5ede3;
+  --shell-row-hover-bg: rgba(244, 232, 216, 0.72);
+  --shell-preferences-bg: rgba(255, 252, 247, 0.76);
+  --shell-stage-bg: linear-gradient(180deg, rgba(255, 252, 247, 0.34), rgba(242, 233, 220, 0.24));
+  --shell-inspector-card-bg: rgba(255, 253, 249, 0.36);
+  --shell-dock-bg: linear-gradient(180deg, rgba(255, 252, 247, 0.34), rgba(242, 232, 219, 0.24));
+  --shell-dock-tabs-bg: rgba(245, 237, 227, 0.32);
   --shell-dock-tab-fg: #7a6f63;
   --shell-dock-tab-active-fg: #2a241d;
-  --shell-chip-bg: rgba(255, 249, 242, 0.96);
+  --shell-chip-bg: rgba(255, 249, 242, 0.8);
   --shell-chip-fg: #4a4036;
   --shell-status-fg: #6b6156;
-  --shell-surface-tile-bg: rgba(255, 249, 242, 0.92);
+  --shell-surface-tile-bg: rgba(255, 249, 242, 0.78);
   --shell-card-meta-fg: #8a7768;
   --shell-card-icon-fg: #8a7768;
   --shell-running-pill-bg: rgba(39, 103, 73, 0.14);
@@ -289,7 +295,7 @@ app-root {
   --shell-focused-pill-bg: rgba(219, 176, 132, 0.35);
   --shell-inspector-status-bg: rgba(219, 176, 132, 0.42);
   --shell-inspector-status-fg: #2a241d;
-  --shell-tab-add-bg: rgba(255, 249, 242, 0.92);
+  --shell-tab-add-bg: rgba(255, 249, 242, 0.78);
   --shell-tab-add-fg: #7a6f63;
   --shell-terminal-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 8px 18px rgba(80, 60, 40, 0.08);
   --shell-terminal-card-focused-shadow:
@@ -297,15 +303,15 @@ app-root {
     0 0 0 1px rgba(184, 116, 63, 0.28),
     0 12px 24px rgba(80, 60, 40, 0.12);
   --shell-tab-active-glow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 -6px 16px rgba(184, 116, 63, 0.12);
-  --shell-toolbar-chip-bg: rgba(255, 249, 242, 0.92);
+  --shell-toolbar-chip-bg: rgba(255, 249, 242, 0.72);
   --shell-toolbar-chip-fg: #6b6156;
   --shell-toolbar-summary-fg: #8a7768;
   --shell-context-name-fg: #3f372e;
-  --shell-workspace-picker-bg: rgba(255, 251, 246, 0.96);
+  --shell-workspace-picker-bg: rgba(255, 251, 246, 0.8);
   --shell-workspace-picker-fg: #3f372e;
-  --shell-card-action-bg: rgba(255, 249, 242, 0.96);
+  --shell-card-action-bg: rgba(255, 249, 242, 0.8);
   --shell-card-action-fg: #5c4d3f;
-  --shell-history-bg: rgba(255, 249, 242, 0.92);
+  --shell-history-bg: rgba(255, 249, 242, 0.78);
   --shell-history-fg: #4a4036;
   --shell-tab-icon-fg: #8a7768;
   --shell-tab-icon-active-fg: #b8743f;
@@ -314,14 +320,14 @@ app-root {
   --shell-pane-summary-fg: #7a6f63;
   --shell-inspector-active-bg: rgba(219, 176, 132, 0.42);
   --shell-inspector-active-fg: #2a241d;
-  --shell-inspector-tab-bg: rgba(255, 249, 242, 0.96);
+  --shell-inspector-tab-bg: rgba(255, 249, 242, 0.78);
   --shell-dock-header-glow: none;
   --shell-status-bar-glow: none;
-  --shell-dock-panel-bg: linear-gradient(180deg, #fffdf9, #f7efe4);
+  --shell-dock-panel-bg: linear-gradient(180deg, rgba(255, 253, 249, 0.78), rgba(247, 239, 228, 0.72));
   --shell-output-text: #2f6040;
   --shell-metric-ring-center: #fff9f2;
   --shell-metric-ring-track: rgba(120, 96, 72, 0.18);
-  --shell-kbd-bg: rgba(255, 252, 247, 0.92);
+  --shell-kbd-bg: rgba(255, 252, 247, 0.8);
   --shell-kbd-fg: #6b6156;
   --shell-kbd-border: rgba(120, 96, 72, 0.22);
   --shell-toolbar-icon-fg: #6b6156;
@@ -332,20 +338,23 @@ app-root {
   --shell-action-primary-bg: rgba(37, 99, 235, 0.88);
   --shell-action-danger-bg: rgba(197, 48, 48, 0.88);
   --shell-log-meta-fg: #8a7768;
-  --shell-placeholder-bg: rgba(255, 249, 242, 0.92);
+  --shell-placeholder-bg: rgba(255, 249, 242, 0.78);
   --shell-placeholder-fg: #7a6f63;
   --shell-placeholder-title-fg: #2a241d;
   --shell-placeholder-border: rgba(120, 96, 72, 0.24);
-  --shell-shell-picker-bg: rgba(255, 249, 242, 0.96);
+  --shell-shell-picker-bg: rgba(255, 249, 242, 0.8);
   --shell-shell-picker-fg: #4a4036;
   --shell-shell-picker-hover-fg: #2a241d;
   --shell-shell-picker-hover-border: rgba(184, 116, 63, 0.42);
   --shell-toolbar-height: 66px;
   --shell-titlebar-overlay-width: 152px;
+  --shell-traffic-lights-inset: 72px;
   --shell-toolbar-edge-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
     inset 0 -1px 0 rgba(120, 96, 72, 0.08);
   --shell-session-action-fg: rgba(122, 111, 99, 0.72);
+  --shell-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  --shell-glass-border: rgba(255, 255, 255, 0.48);
 }
 
 :root[data-shell-theme='white'] {
@@ -356,11 +365,11 @@ app-root {
   --scrollbar-thumb-gradient-hover: linear-gradient(180deg, rgba(148, 163, 184, 0.72), rgba(71, 85, 105, 0.58));
   --scrollbar-corner: rgba(238, 241, 246, 0.8);
 
-  --shell-bg-base: #eef1f6;
-  --shell-bg-workspace: #ffffff;
-  --shell-bg-panel: rgba(255, 255, 255, 0.98);
-  --shell-bg-elevated: #ffffff;
-  --shell-bg-inset: rgba(246, 248, 252, 0.96);
+  --shell-bg-base: rgba(238, 241, 246, 0.24);
+  --shell-bg-workspace: rgba(255, 255, 255, 0.1);
+  --shell-bg-panel: rgba(255, 255, 255, 0.32);
+  --shell-bg-elevated: rgba(255, 255, 255, 0.42);
+  --shell-bg-inset: rgba(246, 248, 252, 0.36);
   --shell-text: #1f2937;
   --shell-text-strong: #111827;
   --shell-text-muted: #6b7280;
@@ -381,55 +390,54 @@ app-root {
   --shell-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   --shell-shadow-panel: 0 8px 20px rgba(15, 23, 42, 0.06);
   --shell-shadow-stage: 0 12px 28px rgba(15, 23, 42, 0.08);
-  --shell-rail-bg: linear-gradient(180deg, #f8fafc, #eef2f7);
-  --shell-toolbar-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
-  --shell-control-bg: rgba(255, 255, 255, 0.96);
+  --shell-rail-bg: rgba(255, 255, 255, 0.36);
+  --shell-toolbar-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(243, 246, 251, 0.28));
+  --shell-control-bg: rgba(255, 255, 255, 0.4);
   --shell-control-fg: #334155;
   --shell-control-border: rgba(148, 163, 184, 0.28);
-  --shell-row-bg: rgba(255, 255, 255, 0.82);
+  --shell-row-bg: rgba(255, 255, 255, 0.68);
   --shell-row-border: rgba(148, 163, 184, 0.22);
   --shell-row-active-bg: linear-gradient(180deg, rgba(191, 219, 254, 0.72), rgba(147, 197, 253, 0.52));
   --shell-row-active-fg: #0f172a;
   --shell-row-active-border: rgba(59, 130, 246, 0.45);
-  --shell-tab-bg: linear-gradient(180deg, #f8fafc, #eef2f7);
+  --shell-tab-bg: linear-gradient(180deg, rgba(248, 250, 252, 0.82), rgba(238, 242, 247, 0.76));
   --shell-tab-fg: #64748b;
-  --shell-tab-active-bg: linear-gradient(180deg, #ffffff, #f1f5f9);
+  --shell-tab-active-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.86));
   --shell-tab-active-fg: #0f172a;
   --shell-terminal-frame-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
-  --shell-terminal-header-bg: linear-gradient(180deg, #f8fafc, #eef2f7);
-  --shell-workspace-context-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.96));
+  --shell-terminal-header-bg: linear-gradient(180deg, rgba(248, 250, 252, 0.88), rgba(238, 242, 247, 0.84));
+  --shell-workspace-context-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(241, 245, 249, 0.48));
   --shell-workspace-context-fg: #1f2937;
-  --shell-layout-switch-bg: rgba(248, 250, 252, 0.96);
-  --shell-pill-primary-bg: linear-gradient(180deg, rgba(96, 165, 250, 0.96), rgba(37, 99, 235, 0.92));
+  --shell-pill-primary-bg: linear-gradient(180deg, rgba(96, 165, 250, 0.92), rgba(37, 99, 235, 0.88));
   --shell-pill-primary-fg: #ffffff;
-  --shell-pill-ghost-bg: rgba(248, 250, 252, 0.88);
+  --shell-pill-ghost-bg: rgba(248, 250, 252, 0.58);
   --shell-pill-active-bg: rgba(191, 219, 254, 0.72);
   --shell-pill-active-fg: #0f172a;
-  --shell-pill-hover-bg: rgba(241, 245, 249, 0.98);
+  --shell-pill-hover-bg: rgba(241, 245, 249, 0.78);
   --shell-pill-hover-border: rgba(59, 130, 246, 0.24);
-  --shell-modal-bg: rgba(255, 255, 255, 0.98);
-  --shell-backdrop: rgba(15, 23, 42, 0.28);
-  --shell-input-bg: #ffffff;
+  --shell-modal-bg: rgba(255, 255, 255, 0.44);
+  --shell-backdrop: rgba(15, 23, 42, 0.2);
+  --shell-input-bg: rgba(255, 255, 255, 0.92);
   --shell-input-fg: #111827;
   --shell-brand-badge-bg: linear-gradient(180deg, #60a5fa, #2563eb);
   --shell-muted-label: #64748b;
-  --shell-pane-pill-bg: rgba(248, 250, 252, 0.98);
+  --shell-pane-pill-bg: rgba(248, 250, 252, 0.82);
   --shell-pane-pill-fg: #334155;
-  --shell-create-button-bg: linear-gradient(180deg, #ffffff, #eef2f7);
+  --shell-create-button-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(238, 242, 247, 0.82));
   --shell-create-button-border: rgba(59, 130, 246, 0.24);
   --shell-create-button-fg: #0f172a;
-  --shell-row-hover-bg: rgba(241, 245, 249, 0.95);
-  --shell-preferences-bg: rgba(255, 255, 255, 0.96);
-  --shell-stage-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
-  --shell-inspector-card-bg: linear-gradient(180deg, #ffffff, #f8fafc);
-  --shell-dock-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
-  --shell-dock-tabs-bg: #f8fafc;
+  --shell-row-hover-bg: rgba(241, 245, 249, 0.82);
+  --shell-preferences-bg: rgba(255, 255, 255, 0.78);
+  --shell-stage-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(243, 246, 251, 0.24));
+  --shell-inspector-card-bg: rgba(255, 255, 255, 0.36);
+  --shell-dock-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(243, 246, 251, 0.24));
+  --shell-dock-tabs-bg: rgba(248, 250, 252, 0.32);
   --shell-dock-tab-fg: #64748b;
   --shell-dock-tab-active-fg: #0f172a;
-  --shell-chip-bg: rgba(248, 250, 252, 0.98);
+  --shell-chip-bg: rgba(248, 250, 252, 0.8);
   --shell-chip-fg: #334155;
   --shell-status-fg: #64748b;
-  --shell-surface-tile-bg: rgba(248, 250, 252, 0.98);
+  --shell-surface-tile-bg: rgba(248, 250, 252, 0.8);
   --shell-card-meta-fg: #64748b;
   --shell-card-icon-fg: #64748b;
   --shell-running-pill-bg: rgba(5, 150, 105, 0.12);
@@ -437,7 +445,7 @@ app-root {
   --shell-focused-pill-bg: rgba(191, 219, 254, 0.72);
   --shell-inspector-status-bg: rgba(191, 219, 254, 0.72);
   --shell-inspector-status-fg: #0f172a;
-  --shell-tab-add-bg: rgba(248, 250, 252, 0.98);
+  --shell-tab-add-bg: rgba(248, 250, 252, 0.78);
   --shell-tab-add-fg: #64748b;
   --shell-terminal-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 8px 18px rgba(15, 23, 42, 0.06);
   --shell-terminal-card-focused-shadow:
@@ -445,15 +453,15 @@ app-root {
     0 0 0 1px rgba(59, 130, 246, 0.28),
     0 12px 24px rgba(15, 23, 42, 0.08);
   --shell-tab-active-glow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 -6px 16px rgba(59, 130, 246, 0.1);
-  --shell-toolbar-chip-bg: rgba(248, 250, 252, 0.98);
+  --shell-toolbar-chip-bg: rgba(248, 250, 252, 0.78);
   --shell-toolbar-chip-fg: #475569;
   --shell-toolbar-summary-fg: #64748b;
   --shell-context-name-fg: #1f2937;
-  --shell-workspace-picker-bg: rgba(255, 255, 255, 0.98);
+  --shell-workspace-picker-bg: rgba(255, 255, 255, 0.8);
   --shell-workspace-picker-fg: #1f2937;
-  --shell-card-action-bg: rgba(248, 250, 252, 0.98);
+  --shell-card-action-bg: rgba(248, 250, 252, 0.8);
   --shell-card-action-fg: #475569;
-  --shell-history-bg: rgba(248, 250, 252, 0.98);
+  --shell-history-bg: rgba(248, 250, 252, 0.8);
   --shell-history-fg: #334155;
   --shell-tab-icon-fg: #64748b;
   --shell-tab-icon-active-fg: #3b82f6;
@@ -462,14 +470,14 @@ app-root {
   --shell-pane-summary-fg: #64748b;
   --shell-inspector-active-bg: rgba(191, 219, 254, 0.72);
   --shell-inspector-active-fg: #0f172a;
-  --shell-inspector-tab-bg: rgba(248, 250, 252, 0.98);
+  --shell-inspector-tab-bg: rgba(248, 250, 252, 0.78);
   --shell-dock-header-glow: none;
   --shell-status-bar-glow: none;
-  --shell-dock-panel-bg: linear-gradient(180deg, #ffffff, #f8fafc);
+  --shell-dock-panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(248, 250, 252, 0.72));
   --shell-output-text: #047857;
   --shell-metric-ring-center: #ffffff;
   --shell-metric-ring-track: rgba(148, 163, 184, 0.18);
-  --shell-kbd-bg: rgba(248, 250, 252, 0.98);
+  --shell-kbd-bg: rgba(248, 250, 252, 0.8);
   --shell-kbd-fg: #64748b;
   --shell-kbd-border: rgba(148, 163, 184, 0.28);
   --shell-toolbar-icon-fg: #64748b;
@@ -480,20 +488,23 @@ app-root {
   --shell-action-primary-bg: rgba(37, 99, 235, 0.88);
   --shell-action-danger-bg: rgba(220, 38, 38, 0.88);
   --shell-log-meta-fg: #64748b;
-  --shell-placeholder-bg: rgba(248, 250, 252, 0.98);
+  --shell-placeholder-bg: rgba(248, 250, 252, 0.8);
   --shell-placeholder-fg: #64748b;
   --shell-placeholder-title-fg: #0f172a;
   --shell-placeholder-border: rgba(148, 163, 184, 0.28);
-  --shell-shell-picker-bg: rgba(248, 250, 252, 0.98);
+  --shell-shell-picker-bg: rgba(248, 250, 252, 0.8);
   --shell-shell-picker-fg: #334155;
   --shell-shell-picker-hover-fg: #0f172a;
   --shell-shell-picker-hover-border: rgba(59, 130, 246, 0.34);
   --shell-toolbar-height: 66px;
   --shell-titlebar-overlay-width: 152px;
+  --shell-traffic-lights-inset: 72px;
   --shell-toolbar-edge-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
     inset 0 -1px 0 rgba(148, 163, 184, 0.12);
   --shell-session-action-fg: rgba(100, 116, 139, 0.72);
+  --shell-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --shell-glass-border: rgba(255, 255, 255, 0.55);
 }
 
 button,
@@ -507,6 +518,7 @@ input {
   grid-template-rows: auto minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
+  /* Flat base so the left rail glass reads one color top-to-bottom. */
   background: var(--shell-bg-base);
 }
 
@@ -529,8 +541,11 @@ input {
   gap: 18px;
   min-height: 0;
   padding: var(--shell-space-lg) var(--shell-space-md) var(--shell-space-lg);
-  border-right: 1px solid var(--shell-border-rail);
+  border-right: 1px solid var(--shell-glass-border, var(--shell-border-rail));
   background: var(--shell-rail-bg);
+  box-shadow: var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
   overflow: hidden auto;
   scrollbar-gutter: stable;
   -webkit-app-region: drag;
@@ -950,6 +965,7 @@ input {
 }
 
 .workspace-shell {
+  position: relative;
   grid-column: 2;
   grid-row: 2;
   display: grid;
@@ -959,11 +975,15 @@ input {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--shell-bg-workspace);
+  background:
+    radial-gradient(circle at 18% -8%, color-mix(in srgb, var(--shell-accent) 28%, transparent), transparent 44%),
+    radial-gradient(circle at 84% 8%, color-mix(in srgb, var(--shell-accent) 16%, transparent), transparent 40%),
+    radial-gradient(circle at 70% 0%, color-mix(in srgb, var(--shell-accent) 12%, transparent), transparent 46%),
+    var(--shell-bg-workspace);
 }
 
 .workspace-shell.utility-dock-visible {
-  grid-template-rows: minmax(0, 1fr) 10px minmax(160px, var(--dock-height, 280px)) auto;
+  grid-template-rows: minmax(0, 1fr) 10px minmax(160px, clamp(160px, var(--dock-height, 280px), 42vh)) auto;
 }
 
 .workspace-shell > app-workspace-area,
@@ -1023,14 +1043,33 @@ app-workspace-area .content-layout {
   flex-wrap: nowrap;
   min-height: var(--shell-toolbar-height);
   padding: 8px 18px 10px 18px;
-  border-bottom: 1px solid var(--shell-border-accent);
+  border-bottom: 1px solid var(--shell-glass-border, var(--shell-border-accent));
   background: var(--shell-toolbar-bg);
-  box-shadow: var(--shell-toolbar-edge-shadow);
+  box-shadow: var(--shell-toolbar-edge-shadow), var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
+  user-select: none;
   -webkit-app-region: drag;
+}
+
+.terminal-id-row {
+  margin-bottom: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.terminal-id-row strong {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.72rem;
 }
 
 .shell-toolbar.windows-titlebar {
   padding-right: calc(var(--shell-titlebar-overlay-width) + 18px);
+}
+
+.shell-toolbar.mac-titlebar {
+  padding-left: calc(var(--shell-traffic-lights-inset) + 10px);
 }
 
 .shell-toolbar-leading {
@@ -1041,6 +1080,10 @@ app-workspace-area .content-layout {
   min-width: 0;
   padding-left: 2px;
   -webkit-app-region: drag;
+}
+
+.shell-toolbar.mac-titlebar .shell-toolbar-leading {
+  padding-left: 0;
 }
 
 .traffic-lights {
@@ -1069,12 +1112,13 @@ app-workspace-area .content-layout {
   background: #28c840;
 }
 
-.shell-toolbar .toolbar-actions,
 .shell-toolbar button,
 .shell-toolbar input,
-.shell-toolbar .view-menu,
+.shell-toolbar select,
+.shell-toolbar textarea,
+.shell-toolbar [contenteditable='true'],
 .shell-toolbar .view-menu-dropdown,
-.shell-toolbar svg {
+.shell-toolbar [role='menu'] {
   -webkit-app-region: no-drag;
 }
 
@@ -1131,9 +1175,10 @@ app-workspace-area .content-layout {
   gap: 10px;
   width: 100%;
   min-width: 0;
-  padding: 6px 12px 7px;
+  min-height: 36px;
+  padding: 4px 10px 4px 12px;
   border: 1px solid var(--shell-border);
-  border-radius: 14px;
+  border-radius: 8px;
   background: var(--shell-workspace-context-bg);
   color: var(--shell-workspace-context-fg);
   font-weight: 500;
@@ -1141,7 +1186,10 @@ app-workspace-area .content-layout {
   white-space: nowrap;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 6px 14px rgba(0, 0, 0, 0.09);
+    0 6px 14px rgba(0, 0, 0, 0.09),
+    var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
 }
 
 .workspace-context-icon {
@@ -1184,17 +1232,18 @@ app-workspace-area .content-layout {
   justify-content: center;
   flex: 0 0 auto;
   margin-left: auto;
-  min-height: 20px;
+  min-height: 22px;
   padding: 0 8px;
   border: 1px solid var(--shell-border-subtle);
   border-radius: 999px;
   background: var(--shell-toolbar-chip-bg);
   color: var(--shell-toolbar-chip-fg);
-  font-size: 0.66rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  opacity: 0.82;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  opacity: 0.92;
+  white-space: nowrap;
 }
 
 .toolbar-main {
@@ -1206,45 +1255,20 @@ app-workspace-area .content-layout {
 
 .toolbar-centerband {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  align-items: center;
   flex: 0 1 auto;
-  max-width: 332px;
+  max-width: 360px;
   min-width: 0;
 }
 
 .toolbar-center-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding-left: 1px;
-}
-
-.toolbar-meta-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  min-height: 20px;
-  padding: 0 8px;
-  border: 1px solid var(--shell-border-subtle);
-  border-radius: 999px;
-  background: var(--shell-toolbar-chip-bg);
-  color: var(--shell-toolbar-chip-fg);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  display: none;
 }
 
 .toolbar-center-summary {
   min-width: 0;
   overflow: hidden;
-  color: var(--shell-toolbar-summary-fg);
-  font-size: 0.76rem;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .workspace-picker {
@@ -1270,14 +1294,12 @@ app-workspace-area .content-layout {
 
 .toolbar-actions {
   display: flex;
-  align-self: stretch;
   gap: 10px;
   align-items: center;
   justify-content: flex-start;
   flex: 1 1 auto;
   min-width: 0;
   flex-wrap: nowrap;
-  padding: 4px 0;
 }
 
 .toolbar-action-group {
@@ -1351,6 +1373,62 @@ app-workspace-area .content-layout {
   height: 15px;
 }
 
+.dock-restore-button,
+.dock-collapse-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--shell-border);
+  border-radius: 7px;
+  background: var(--shell-card-action-bg);
+  color: var(--shell-card-action-fg);
+}
+
+.dock-restore-button {
+  position: absolute;
+  z-index: 20;
+  right: 12px;
+  bottom: 42px;
+}
+
+.dock-restore-button svg,
+.dock-collapse-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.workspace-context-part {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.workspace-context-part:first-child {
+  flex: 1 1 auto;
+  min-width: 80px;
+}
+
+.workspace-context-tab {
+  flex: 1 1 auto;
+  min-width: 60px;
+}
+
+.workspace-context-chevron {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--shell-muted-label);
+}
+
+.toolbar-command .toolbar-icon {
+  color: var(--shell-text-strong);
+}
+
 .toolbar-icon-button,
 .toolbar-avatar {
   display: grid;
@@ -1389,7 +1467,9 @@ app-workspace-area .content-layout {
   border: 1px solid var(--shell-border-strong);
   border-radius: 12px;
   background: var(--shell-modal-bg);
-  box-shadow: var(--shell-shadow-stage);
+  box-shadow: var(--shell-shadow-stage), var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
 }
 
 .view-menu-item {
@@ -1420,16 +1500,6 @@ app-workspace-area .content-layout {
   height: 1px;
   margin: 4px 0;
   background: var(--shell-border-subtle);
-}
-
-.layout-switch {
-  display: inline-flex;
-  gap: 0;
-  flex-shrink: 0;
-  padding: 3px;
-  border: 1px solid var(--shell-control-border);
-  border-radius: 11px;
-  background: var(--shell-layout-switch-bg);
 }
 
 .toolbar-pill,
@@ -1501,12 +1571,6 @@ app-workspace-area .content-layout {
   background: var(--shell-pill-ghost-bg);
 }
 
-.toolbar-pill-segment {
-  min-width: 58px;
-  border-color: transparent;
-  background: transparent;
-}
-
 .toolbar-pill.active {
   border-color: var(--shell-accent-soft);
   background: var(--shell-pill-active-bg);
@@ -1539,6 +1603,7 @@ app-workspace-area .content-layout {
 }
 
 .workspace-stage {
+  position: relative;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -1640,14 +1705,63 @@ app-workspace-area .content-layout {
   width: 20px;
   height: 20px;
   flex: 0 0 auto;
+  padding: 0;
+  border: 0;
   border-radius: 6px;
+  background: transparent;
   color: var(--shell-tab-close-fg);
   line-height: 1;
+  cursor: pointer;
+}
+
+.workspace-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--shell-toolbar-chip-bg);
+  color: var(--shell-toolbar-chip-fg);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.workspace-tab-running {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--shell-success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--shell-success) 18%, transparent);
+}
+
+.workspace-tab-rename {
+  width: 100%;
+  min-width: 72px;
+  border: 1px solid var(--shell-accent-soft);
+  border-radius: 4px;
+  background: var(--shell-stage-bg);
+  color: var(--shell-text-strong);
+  font: inherit;
+  padding: 3px 5px;
+  outline: none;
+}
+
+.workspace-tab.dragging {
+  opacity: 0.48;
 }
 
 .workspace-tab-close:hover {
   color: var(--shell-tab-close-hover-fg);
   background: var(--shell-row-hover-bg);
+}
+
+.workspace-tab:focus-visible,
+.workspace-tab-close:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--shell-accent) 58%, transparent);
+  outline-offset: 2px;
 }
 
 .workspace-tab-close svg {
@@ -1656,6 +1770,7 @@ app-workspace-area .content-layout {
 }
 
 .workspace-stage-body {
+  position: relative;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -1663,12 +1778,487 @@ app-workspace-area .content-layout {
   height: 100%;
   margin: 0 12px 12px;
   padding: var(--shell-space-md);
-  border: 1px solid var(--shell-border-strong);
-  border-radius: 0 var(--shell-radius-stage) var(--shell-radius-stage) var(--shell-radius-stage);
+  border: 1px solid var(--shell-glass-border, var(--shell-border-strong));
+  border-radius: var(--shell-radius-stage);
   background: var(--shell-stage-bg);
   box-shadow:
     var(--shell-shadow-inset),
-    var(--shell-shadow-stage);
+    var(--shell-shadow-stage),
+    var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.terminal-session-park {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.terminal-park-host {
+  width: var(--park-width, 960px);
+  height: var(--park-height, 540px);
+}
+
+.workspace-stack-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  min-height: 40px;
+}
+
+.workspace-stack-header-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 160px;
+}
+
+.workspace-stack-terminal-name {
+  color: var(--shell-text-strong);
+  font-size: 0.95rem;
+}
+
+.workspace-stack-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.workspace-zoom-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--shell-text-muted);
+  font-size: 0.72rem;
+}
+
+.workspace-zoom-segment {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--shell-border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--shell-toolbar-chip-bg);
+}
+
+.workspace-zoom-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 5px 9px;
+  border: 0;
+  border-right: 1px solid var(--shell-border-subtle);
+  background: transparent;
+  color: var(--shell-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.workspace-zoom-button:last-child {
+  border-right: 0;
+}
+
+.workspace-zoom-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+.workspace-zoom-button.active {
+  background: color-mix(in srgb, var(--shell-accent) 22%, transparent);
+  color: var(--shell-text-strong);
+}
+
+.workspace-zoom-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--shell-accent) 58%, transparent);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.workspace-zoom-button:focus-visible,
+.terminal-nav-button:focus-visible,
+.terminal-stack-dot:focus-visible,
+.terminal-preview-card:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--shell-accent) 58%, transparent);
+  outline-offset: 2px;
+}
+
+.terminal-nav-button,
+.terminal-stack-dot {
+  border: 1px solid var(--shell-border-subtle);
+  border-radius: 8px;
+  background: var(--shell-toolbar-chip-bg);
+  color: var(--shell-text-strong);
+  cursor: pointer;
+}
+
+.terminal-navigation {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.terminal-nav-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.terminal-nav-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.terminal-nav-label {
+  color: var(--shell-text-muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.terminal-stack-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.terminal-stack-count {
+  margin-right: 4px;
+  color: var(--shell-text-muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.terminal-stack-dot {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.terminal-stack-dot.active {
+  border-color: var(--shell-accent-soft);
+  background: color-mix(in srgb, var(--shell-accent) 22%, transparent);
+  color: var(--shell-text-strong);
+}
+
+.workspace-stack-stage {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+}
+
+app-terminal-focus-view,
+app-terminal-overview {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.workspace-stack-stage-focus,
+.workspace-stack-stage-overview {
+  animation: workspace-stack-fade 200ms cubic-bezier(0.22, 0.8, 0.22, 1);
+}
+
+@keyframes workspace-stack-fade {
+  from {
+    opacity: 0.72;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-stack-stage-focus,
+  .workspace-stack-stage-overview {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  app-root {
+    --shell-glass-blur: 0px;
+    --shell-glass-saturate: 1;
+    --shell-glass-filter: none;
+    --shell-glass-highlight: none;
+  }
+
+  :root[data-shell-theme='midnight'] {
+    --shell-bg-panel: rgba(12, 16, 28, 0.96);
+    --shell-rail-bg: rgba(15, 19, 33, 0.98);
+    --shell-toolbar-bg:
+      radial-gradient(circle at 28% 0%, rgba(116, 62, 201, 0.2), transparent 34%),
+      radial-gradient(circle at 72% 0%, rgba(75, 111, 255, 0.11), transparent 26%),
+      linear-gradient(180deg, rgba(21, 17, 40, 0.985), rgba(17, 21, 35, 0.97));
+    --shell-stage-bg:
+      radial-gradient(circle at top center, rgba(106, 72, 188, 0.18), transparent 34%),
+      linear-gradient(180deg, rgba(14, 20, 34, 0.985), rgba(9, 13, 22, 0.99));
+    --shell-inspector-card-bg: rgba(16, 22, 37, 0.98);
+    --shell-dock-bg: linear-gradient(180deg, rgba(12, 16, 28, 0.985), rgba(9, 13, 22, 0.99));
+    --shell-modal-bg: rgba(12, 16, 29, 0.98);
+  }
+
+  :root[data-shell-theme='coffee'] {
+    --shell-bg-panel: rgba(255, 252, 247, 0.98);
+    --shell-rail-bg: #f0e8dc;
+    --shell-toolbar-bg: linear-gradient(180deg, #faf6f0, #efe7db);
+    --shell-stage-bg: linear-gradient(180deg, #faf6f0, #efe8dc);
+    --shell-inspector-card-bg: #fffdf9;
+    --shell-dock-bg: linear-gradient(180deg, #faf6f0, #efe7db);
+    --shell-modal-bg: rgba(255, 252, 247, 0.98);
+  }
+
+  :root[data-shell-theme='white'] {
+    --shell-bg-panel: rgba(255, 255, 255, 0.98);
+    --shell-rail-bg: #f8fafc;
+    --shell-toolbar-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
+    --shell-stage-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
+    --shell-inspector-card-bg: #ffffff;
+    --shell-dock-bg: linear-gradient(180deg, #ffffff, #f3f6fb);
+    --shell-modal-bg: rgba(255, 255, 255, 0.98);
+  }
+
+  .shell-toolbar,
+  .left-rail,
+  .workspace-stage-body,
+  .inspector-card,
+  .bottom-dock,
+  .status-bar,
+  .settings-modal,
+  .command-palette,
+  .view-menu-dropdown,
+  .context-menu,
+  .desktop-workspace-context {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.terminal-focus-view {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.terminal-stack-layers {
+  position: absolute;
+  inset: 10px 8px 4px;
+  pointer-events: none;
+}
+
+.terminal-stack-layer {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--shell-border-subtle);
+  border-radius: var(--shell-radius-stage);
+  background: color-mix(in srgb, var(--shell-stage-bg) 82%, #000);
+}
+
+.terminal-stack-layer-1 {
+  transform: translate(6px, 6px);
+  opacity: 0.45;
+}
+
+.terminal-stack-layer-2 {
+  transform: translate(12px, 12px);
+  opacity: 0.28;
+}
+
+.terminal-focus-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--shell-border-strong);
+  border-radius: var(--shell-radius-stage);
+  background: var(--shell-terminal-frame-bg);
+  box-shadow: var(--shell-terminal-card-focused-shadow);
+  overflow: hidden;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.terminal-focus-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--shell-border-subtle);
+  background: var(--shell-terminal-header-bg);
+}
+
+.terminal-focus-card-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.terminal-viewport-host {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.terminal-overview {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.terminal-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--overview-columns, 2), minmax(0, 1fr));
+  gap: 12px;
+  align-content: start;
+  width: 100%;
+  padding: 2px;
+}
+
+.terminal-preview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 168px;
+  padding: 12px;
+  border: 1px solid var(--shell-border-subtle);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--shell-stage-bg) 88%, #000);
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.terminal-preview-card.active {
+  border-color: var(--shell-accent-soft);
+  box-shadow: var(--shell-terminal-card-focused-shadow);
+}
+
+.terminal-preview-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.terminal-preview-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--shell-toolbar-chip-bg);
+  color: var(--shell-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.terminal-preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  color: var(--shell-text-muted);
+  font-size: 0.74rem;
+}
+
+.terminal-preview-buffer {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--terminal-surface-bg, #0d1320);
+  color: var(--terminal-surface-fg, #d8e1e8);
+  font-family: Cascadia Code, Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 1180px) {
+  .terminal-overview[data-terminal-count='7'] .terminal-overview-grid,
+  .terminal-overview[data-terminal-count='8'] .terminal-overview-grid,
+  .terminal-overview[data-terminal-count='9'] .terminal-overview-grid,
+  .terminal-overview[data-terminal-count='10'] .terminal-overview-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .terminal-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workspace-stack-header-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .terminal-overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .terminal-nav-label,
+  .workspace-zoom-label {
+    display: none;
+  }
 }
 
 .tab-add {
@@ -1707,12 +2297,19 @@ app-workspace-area .content-layout {
 }
 
 .workspace-empty-state {
+  position: relative;
   display: flex;
   flex: 1 1 auto;
   align-items: center;
   justify-content: center;
   min-height: 280px;
   padding: 24px;
+}
+
+.workspace-empty-inspector-restore {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .workspace-empty-state .empty-pane-card {
@@ -1771,6 +2368,11 @@ app-workspace-area .content-layout {
   grid-template-rows: minmax(0, 1fr);
 }
 
+.pane-grid[data-layout='grid-2'][data-terminal-count='3'],
+.pane-grid[data-layout='grid-2'][data-terminal-count='4'] {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
 .pane-grid[data-layout='grid-2x2'] {
   grid-template-columns: var(--pane-col-split, 50%) 10px minmax(0, 1fr);
   grid-template-rows: var(--pane-row-split, 50%) 10px minmax(0, 1fr);
@@ -1784,8 +2386,24 @@ app-workspace-area .content-layout {
   grid-area: 1 / 3;
 }
 
+.pane-grid[data-layout='grid-2'][data-terminal-count='3'] .pane-slot-3 {
+  grid-area: 2 / 1 / 3 / 4;
+}
+
+.pane-grid[data-layout='grid-2'][data-terminal-count='4'] .pane-slot-3 {
+  grid-area: 2 / 1;
+}
+
+.pane-grid[data-layout='grid-2'][data-terminal-count='4'] .pane-slot-4 {
+  grid-area: 2 / 3;
+}
+
 .pane-grid[data-layout='grid-2'] .pane-resize-col {
   grid-area: 1 / 2;
+}
+
+.pane-grid[data-layout='grid-2'][data-terminal-count='4'] .pane-resize-col {
+  grid-area: 1 / 2 / 3 / 3;
 }
 
 .pane-grid[data-layout='grid-2x2'] .pane-slot-1 {
@@ -1810,6 +2428,12 @@ app-workspace-area .content-layout {
 
 .pane-grid[data-layout='grid-2x2'] .pane-resize-row {
   grid-area: 2 / 1 / 3 / 4;
+}
+
+.pane-grid[data-terminal-count='1'][data-layout='grid-2'],
+.pane-grid[data-terminal-count='1'][data-layout='grid-2x2'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .pane-grid[data-layout='single'],
@@ -1871,6 +2495,59 @@ app-workspace-area .content-layout {
   background: transparent;
 }
 
+.workspace-hierarchy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  margin: 0 12px 6px;
+  overflow: hidden;
+  color: var(--shell-pane-summary-fg);
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.focused-terminal-context {
+  justify-content: space-between;
+}
+
+.focused-terminal-context > span {
+  justify-content: flex-end;
+  color: var(--shell-pane-summary-fg);
+}
+
+.workspace-hierarchy span,
+.workspace-hierarchy strong {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-hierarchy small {
+  color: var(--shell-muted-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workspace-hierarchy strong {
+  color: var(--shell-text-strong);
+  font-weight: 650;
+}
+
+.workspace-hierarchy-separator {
+  flex: 0 0 auto;
+  color: var(--shell-muted-label);
+}
+
+.content-layout.inspector-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .terminal-card {
   display: flex;
   flex-direction: column;
@@ -1924,8 +2601,140 @@ app-workspace-area .content-layout {
 }
 
 .terminal-card-header {
+  min-height: 48px;
   border-bottom: 1px solid var(--shell-border-subtle);
   background: var(--shell-terminal-header-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-card {
+    transition-duration: 0.01ms;
+  }
+}
+
+.terminal-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.terminal-card-identity strong {
+  flex: 0 0 auto;
+  color: var(--shell-text-strong);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.terminal-title-button {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: text;
+  text-align: left;
+}
+
+.terminal-title-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--shell-accent) 58%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.terminal-rename-input {
+  min-width: 120px;
+  max-width: 220px;
+  height: 28px;
+  padding: 2px 8px;
+  border: 1px solid var(--shell-accent-soft);
+  border-radius: 6px;
+  background: var(--shell-stage-bg);
+  color: var(--shell-text-strong);
+  font: inherit;
+  font-weight: 600;
+  outline: none;
+}
+
+.terminal-color-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.terminal-color-swatch {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--shell-border-subtle);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.terminal-color-swatch input[type='color'] {
+  width: 34px;
+  height: 34px;
+  margin: -6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.terminal-state-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--shell-muted-label);
+}
+
+.terminal-state-dot.running {
+  background: var(--shell-success);
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  width: 190px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  padding: 5px;
+  border: 1px solid var(--shell-border-strong);
+  border-radius: 8px;
+  background: var(--shell-bg-panel);
+  box-shadow: var(--shell-shadow-stage), var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
+  overflow-y: auto;
+}
+
+.context-menu button {
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--shell-text);
+  text-align: left;
+}
+
+.context-menu button:hover,
+.context-menu button:focus-visible {
+  background: var(--shell-row-hover-bg);
+  color: var(--shell-text-strong);
+  outline: none;
+}
+
+.context-menu button.danger {
+  color: var(--shell-danger);
 }
 
 .terminal-card-body {
@@ -2152,6 +2961,8 @@ app-workspace-area .content-layout {
   box-shadow:
     inset 0 0 0 1px rgba(132, 146, 178, 0.08),
     inset 0 14px 24px rgba(255, 255, 255, 0.01);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .terminal-host .xterm {
@@ -2160,13 +2971,13 @@ app-workspace-area .content-layout {
   height: 100%;
 }
 
-.terminal-host .xterm-screen,
-.terminal-host .xterm-viewport,
-.terminal-host .xterm-scroll-area {
-  height: 100% !important;
+.terminal-host .xterm,
+.terminal-host .xterm-viewport {
+  background-color: var(--terminal-surface-bg, #0d1320) !important;
 }
 
 .terminal-host .xterm-viewport {
+  overflow-x: hidden !important;
   overflow-y: auto !important;
 }
 
@@ -2219,8 +3030,11 @@ app-workspace-area .content-layout {
   height: 100%;
   min-height: 0;
   max-height: none;
-  border-top: 1px solid var(--shell-border);
+  border-top: 1px solid var(--shell-glass-border, var(--shell-border));
   background: var(--shell-dock-bg);
+  box-shadow: var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
   overflow: hidden;
 }
 
@@ -2790,11 +3604,11 @@ app-workspace-area .content-layout {
 .inspector {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
   min-height: 0;
-  margin: 10px 10px 10px 0;
-  padding: 10px 10px 10px 0;
+  margin: 10px 8px 10px 0;
+  padding: 8px 8px 8px 0;
   overflow: auto;
   scrollbar-gutter: stable;
 }
@@ -2804,14 +3618,55 @@ app-workspace-area .content-layout {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 2px 0;
+  padding: 2px 2px 4px;
+}
+
+.card-action-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.inspector-header-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.inspector-toggle-button,
+.inspector-restore-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--shell-border);
+  border-radius: 10px;
+  color: var(--shell-text-muted);
+  background: var(--shell-chip-bg);
+}
+
+.inspector-toggle-button:hover,
+.inspector-restore-button:hover {
+  border-color: var(--shell-accent-soft);
+  color: var(--shell-text-strong);
+}
+
+.inspector-toggle-button svg,
+.inspector-restore-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.inspector-restore-button {
+  flex: 0 0 auto;
 }
 
 .inspector-rail-subtitle {
-  margin: 6px 0 0;
+  margin: 3px 0 0;
   color: var(--shell-text-muted);
-  font-size: 0.82rem;
-  line-height: 1.45;
+  font-size: 0.76rem;
+  line-height: 1.35;
 }
 
 .inspector-mode-pill,
@@ -2836,14 +3691,21 @@ app-workspace-area .content-layout {
 .inspector-tabs {
   display: flex;
   flex-shrink: 0;
-  gap: 10px;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--shell-border-subtle);
+  border-radius: 8px;
+  background: var(--shell-inspector-tab-bg);
 }
 
 .inspector-tabs button {
   flex: 1;
-  min-height: 44px;
-  border-radius: 12px;
-  background: var(--shell-inspector-tab-bg);
+  min-height: 34px;
+  padding: 0 8px;
+  border-color: transparent;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 0.82rem;
 }
 
 .inspector-tabs button.active {
@@ -2854,29 +3716,29 @@ app-workspace-area .content-layout {
 
 .inspector-card {
   flex-shrink: 0;
-  padding: 15px;
-  border: 1px solid var(--shell-border);
-  border-radius: var(--shell-radius-xl);
+  padding: 12px;
+  border: 1px solid var(--shell-glass-border, var(--shell-border));
+  border-radius: 8px;
   background: var(--shell-inspector-card-bg);
-  box-shadow:
-    var(--shell-shadow-inset),
-    var(--shell-shadow-panel);
+  box-shadow: var(--shell-shadow-inset), var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
 }
 
 .inspector-card.compact {
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 10px;
 }
 
 .inspector-hero-card {
-  padding: 17px;
+  padding: 12px;
 }
 
 .inspector-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 0;
 }
 
 .inspector-hero-header {
@@ -2887,51 +3749,93 @@ app-workspace-area .content-layout {
 .inspector-hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
   min-width: 0;
   flex: 1 1 auto;
 }
 
 .inspector-hero-copy .card-title {
   margin-bottom: 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
 }
 
 .inspector-hero-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
   color: var(--shell-text-muted);
-  font-size: 0.84rem;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .inspector-status-pill {
+  min-height: 20px;
+  padding-inline: 8px;
   border-color: var(--shell-accent-soft);
   background: var(--shell-inspector-status-bg);
   color: var(--shell-inspector-status-fg);
 }
 
-.inspector-summary-grid {
+.inspector-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inspector-fact-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-top: 1px solid var(--shell-border-subtle);
+}
+
+.inspector-fact-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 11px;
+  grid-template-columns: minmax(76px, 0.7fr) minmax(0, 1.3fr);
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--shell-border-subtle);
+}
+
+.inspector-fact-row span {
+  color: var(--shell-text-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.inspector-fact-row strong {
+  min-width: 0;
+  color: var(--shell-text-strong);
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .inspector-summary-tile,
 .inspector-detail-row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: minmax(78px, 0.75fr) minmax(0, 1.25fr);
+  align-items: baseline;
+  gap: 12px;
   min-width: 0;
-  padding: 13px;
-  border: 1px solid var(--shell-border-subtle);
-  border-radius: 14px;
-  background: var(--shell-surface-tile-bg);
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--shell-border-subtle);
+  border-radius: 0;
+  background: transparent;
 }
 
 .inspector-summary-tile span,
 .inspector-detail-row span {
   color: var(--shell-text-label);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -2939,8 +3843,9 @@ app-workspace-area .content-layout {
 .inspector-summary-tile strong,
 .inspector-detail-row strong {
   color: var(--shell-text-strong);
-  font-size: var(--shell-font-size-body);
-  word-break: break-word;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .inspector-section-heading {
@@ -2955,16 +3860,21 @@ app-workspace-area .content-layout {
 }
 
 .inspector-detail-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
 .inspector-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   margin-top: 0;
+}
+
+.inspector-actions button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
 }
 
 .inspector-actions .primary {
@@ -2986,8 +3896,7 @@ app-workspace-area .content-layout {
   gap: 9px;
 }
 
-.history-entry,
-.history-list div {
+.history-entry {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -3001,17 +3910,56 @@ app-workspace-area .content-layout {
   font-size: 0.9rem;
 }
 
-.history-entry span,
-.history-list span {
+.history-entry span {
+  flex: 1 1 auto;
   min-width: 0;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-.history-entry strong,
-.history-list strong {
+.history-entry strong {
+  flex: 0 1 auto;
+  max-width: 48%;
   color: var(--shell-text-muted);
   font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.env-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--shell-border-subtle);
+  border-radius: 12px;
+  background: var(--shell-history-bg);
+  color: var(--shell-history-fg);
+  font-size: 0.9rem;
+}
+
+.env-entry span {
+  min-width: 0;
+  color: var(--shell-text-label);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.env-entry strong {
+  min-width: 0;
+  color: var(--shell-text-muted);
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .status-bar {
@@ -3023,6 +3971,9 @@ app-workspace-area .content-layout {
   padding: var(--shell-space-sm) var(--shell-space-lg);
   border-top: 1px solid var(--shell-border-subtle);
   background: var(--shell-status-bar-glow), var(--shell-bg-panel);
+  box-shadow: var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
   color: var(--shell-status-fg);
   font-size: 0.84rem;
   -webkit-app-region: drag;
@@ -3077,7 +4028,9 @@ app-workspace-area .content-layout {
   border: 1px solid var(--shell-border-strong);
   border-radius: 18px;
   background: var(--shell-modal-bg);
-  box-shadow: var(--shell-shadow-stage);
+  box-shadow: var(--shell-shadow-stage), var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
 }
 
 .command-palette-input {
@@ -3192,7 +4145,9 @@ app-workspace-area .content-layout {
   border: 1px solid var(--shell-border-strong);
   border-radius: 18px;
   background: var(--shell-modal-bg);
-  box-shadow: var(--shell-shadow-stage);
+  box-shadow: var(--shell-shadow-stage), var(--shell-glass-highlight);
+  backdrop-filter: var(--shell-glass-filter);
+  -webkit-backdrop-filter: var(--shell-glass-filter);
   overflow: hidden;
 }
 
@@ -3258,13 +4213,73 @@ app-workspace-area .content-layout {
   border-top: 0;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1180px) {
+  .shell-toolbar {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .desktop-brand-copy,
+  .workspace-context-badge,
+  .toolbar-command > span:not(.toolbar-icon),
+  .toolbar-command > kbd {
+    display: none;
+  }
+
+  .toolbar-main,
+  .toolbar-actions,
+  .toolbar-action-group {
+    gap: 6px;
+  }
+
+  .toolbar-centerband {
+    flex: 0 1 160px;
+    max-width: 160px;
+  }
+
+  .toolbar-action-group-primary {
+    padding-right: 8px;
+  }
+
+  .toolbar-action-group-primary > .toolbar-pill-primary {
+    min-width: 36px;
+    width: 36px;
+    padding-inline: 0;
+  }
+
+  .toolbar-action-group-primary > .toolbar-pill-primary > span:not(.toolbar-icon) {
+    display: none;
+  }
+
+  .toolbar-command {
+    width: 36px;
+    min-width: 36px;
+    padding-inline: 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .workspace-shell.utility-dock-visible {
+    grid-template-rows: minmax(0, 1fr) 10px minmax(140px, clamp(140px, var(--dock-height, 280px), 32vh)) auto;
+  }
+
   .content-layout {
+    position: relative;
     grid-template-columns: minmax(0, 1fr);
   }
 
   .inspector {
-    margin: 0 10px 10px;
+    position: absolute;
+    z-index: 30;
+    top: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: min(360px, calc(100% - 20px));
+    margin: 0;
+    border: 1px solid var(--shell-border-strong);
+    border-radius: var(--shell-radius-stage);
+    background: var(--shell-bg-panel);
+    box-shadow: var(--shell-shadow-stage);
   }
 
   .dock-content-split {
@@ -3272,16 +4287,25 @@ app-workspace-area .content-layout {
   }
 
   .dock-header {
-    flex-direction: column;
-    align-items: stretch;
+    align-items: center;
+    padding-block: var(--shell-space-sm);
   }
 
   .dock-status-strip {
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
 
-  .inspector-summary-grid {
-    grid-template-columns: 1fr;
+  .dock-subtitle,
+  .dock-status-inline {
+    display: none;
+  }
+
+  .terminal-card-header {
+    padding: 9px 11px;
+  }
+
+  .pane-header-topline {
+    margin-bottom: 4px;
   }
 }
 
@@ -3362,7 +4386,4 @@ app-workspace-area .content-layout {
     grid-template-columns: 1fr;
   }
 
-  .layout-switch {
-    width: 100%;
-  }
 }

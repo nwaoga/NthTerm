@@ -26,4 +26,14 @@ export interface CommandHistoryEntry {
   command: string;
   timestamp: string;
   tabTitle: string;
+  tabId?: string;
+  terminalId?: string;
+  terminalTitle?: string;
+}
+
+export interface CommandHistorySource {
+  tabId?: string;
+  terminalId: string;
+  tabTitle: string;
+  terminalTitle: string;
 }

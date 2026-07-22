@@ -1,70 +1,136 @@
 # NthTerm Architecture
 
-## High-Level Structure
-- repository root: source code plus local tooling notes
-- `ai/`: planning and continuity docs for Codex-driven work that can be shared across machines
+## System Shape
 
-## Runtime Responsibilities
-### Angular renderer
-- Render the application UI
-- Host xterm.js component(s)
-- Handle user interaction and workspace management views
-- Talk to Electron through a typed preload bridge
+NthTerm is a single-window Electron desktop application with an Angular renderer. The renderer owns workspace interaction and xterm surfaces; Electron main owns operating-system processes, persistence, metrics, and the application window.
 
-### Electron main process
-- Own PTY lifecycle and process management
-- Manage application windows
-- Broker IPC calls between renderer and backend services
-- Coordinate persistence services
+```text
+Angular components
+    -> Angular feature services
+    -> typed bridge services
+    -> preload/contextBridge
+    -> Electron IPC handlers
+    -> PTY, SQLite, system, and window services
+```
+
+The preload bridge is the trust boundary. Node APIs and `node-pty` are not exposed directly to Angular.
+
+## Ownership Model
+
+The user-facing hierarchy is:
+
+```text
+Workspace
+  -> Terminal
+      -> xterm surface + optional live PTY session
+```
+
+- A workspace owns terminals (up to ten), focused terminal, workspace defaults, recovery metadata, and dock preferences.
+- Need another named context? Open another workspace (workspaces map to tmux sessions; terminals map to panes).
+- A terminal has a stable persisted `terminalId`, optional user name, shell, cwd, startup command, theme, and latest session snapshot.
+- A live PTY has a separate Electron-generated session ID. Session IDs are runtime handles and are never the terminal's product identity.
+- Pane placement is presentation state. Moving, focusing, or zooming a terminal must not change its stable ID or create a second PTY.
+- Legacy multi-tab `sessionSnapshot` payloads migrate on read by promoting the active tab's terminals only.
+
+## Angular Renderer
+
+### Components
+
+`AppComponent` composes the shell and coordinates cross-feature application events. Feature components render the toolbar, workspace rail, terminal stage, inspector, utility dock, status bar, settings, and command palette.
+
+Components should emit user intent and render service projections. Workspace, terminal, persistence, history, and preference rules belong in services.
+
+### Workspace runtime
+
+`WorkspaceRuntimeService` is the renderer's source of truth for the selected workspace, workspace-owned terminals, focused terminal, names, shell resolution, session history, and persistence drafts.
+
+`workspace-snapshot.ts` normalizes legacy multi-tab and pane snapshots into the flat workspace-owned terminal model. Snapshot limit is ten terminals per workspace. Visual layout is a stacked focus/overview presentation (`WorkspaceLayoutService`) and is not a different persistence model: focus mode shows one interactive xterm; overview shows lightweight buffer previews. PTY processes stay alive across view changes; only the interactive host triggers FitAddon/PTY resize.
+
+### Terminal runtime
+
+`TerminalSessionService` keeps a state map keyed by stable `terminalId`. Each state may own:
+
+- one xterm instance and fit addon
+- one DOM container and current visible host
+- one Electron PTY session ID
+- one session metadata projection
+- one in-flight start promise
+- one command-input buffer
+
+Visible terminals attach to live hosts. Terminals removed from the workspace are disposed. `TerminalHostCoordinatorService` serializes host discovery and restore passes after Angular renders the latest layout.
+
+PTY creation is single-flight in both processes. The renderer coalesces overlapping starts per terminal; Electron uses `(webContentsId, terminalId)` to coalesce pending starts and reuse an existing running session. Disposal waits for an in-progress start so rapid close/switch operations cannot orphan a PTY.
+
+### Inspector and utility data
+
+`InspectorPresenterService` projects workspace and terminal data without owning runtime state. The inspector uses Workspace and Terminal modes with one compact identity/status overview, horizontal facts, mode-specific settings, and secondary recovery/history sections. Workspace facts are not repeated in a second context card.
+
+Command history records stable `terminalId` references plus fallback titles. Display labels are resolved from current workspace state, so renaming a terminal updates attribution without rewriting history. Terminal input tracking runs inside Angular when publishing UI state.
+
+### Local preferences
+
+`AppPreferencesService` owns machine-local chrome preferences such as system theme, terminal defaults, ANSI palette, inspector visibility, and dock visibility/height. Workspace-owned defaults, including the workspace shell profile, remain in the persisted workspace record.
+
+## Electron Main
+
+### PTY lifecycle
+
+Electron main is the only process allowed to spawn, write, resize, interrupt, or kill PTYs. Runtime sessions are stored by Electron session ID and scoped to their owning `webContents`.
+
+`TerminalSpawnCoordinator` serializes Windows spawn/dispose operations, applies a cooldown around ConPTY teardown, and retries known transient Windows failures. `TerminalStartRegistry` adds stable-terminal deduplication above that queue. All sessions owned by a renderer are disposed when its `webContents` is destroyed.
+
+Shell resolution supports the system default, PowerShell, Command Prompt, Bash, Zsh, and discovered WSL distributions encoded as `wsl:<distro>`. Spawn-time environment construction enables truecolor/tool color output and adds `NTH_TERM_WORKSPACE`.
 
 ### Persistence
-- SQLite stores workspace definitions, pane settings, startup commands, and session history
 
-## Design Constraints
-- Keep PTY/process logic out of Angular components
-- Use Electron main process for PTY management
-- Use Angular for rendering and interaction
-- Start with one clean dark theme
+`WorkspaceStore` uses `sql.js` and writes `%APPDATA%/NthTerm/nthterm.sqlite` on Windows. The schema has:
 
-## Code Styles
-- Do not put large features into one file.
-- Split code by responsibility: UI, IPC, PTY, persistence, models, and configuration.
-- Keep files small and focused; if a file is doing more than one job, split it.
-- Prefer feature folders with clear names over generic folders like `utils`.
-- Angular components should only handle view state and user events.
-- Business logic belongs in Angular services or Electron main-process services.
-- PTY lifecycle logic must live in dedicated Electron services, not IPC handlers.
-- IPC handlers should be thin: validate input, call a service, return a result.
-- Use typed request/response contracts for IPC.
-- Use interfaces/types for shared models such as `TerminalSession`, `Workspace`, `Pane`, and `StartupCommand`.
-- Avoid duplicate logic; extract reusable helpers only when reuse is real.
-- Prefer dependency injection where possible instead of importing everything directly.
-- Use clear naming over clever naming.
-- Keep functions short and single-purpose.
-- Add comments only where the reason is not obvious from the code.
-- Add tests for services, IPC contracts, and persistence logic.
+- `workspace_state`: workspace identity, cwd, shell profile, visual metadata, launch metadata, and JSON `session_snapshot`
+- `app_state`: active workspace and other application-level keys
 
-## Clean Code Rule
-No “god files”. If a file grows beyond roughly 200–300 lines or mixes unrelated responsibilities, Codex should stop and refactor before adding more features.
+The snapshot contains workspace-owned terminals, layout/focus state, session metadata, capped history, and recovery state. Legacy multi-tab payloads migrate on read. Saved runtime PIDs/session IDs are diagnostic snapshots; launch creates or reuses a valid live session rather than assuming a persisted process survived.
 
-## Renderer Layout (2026-06)
-Feature-oriented Angular structure under `src/app/`:
+Invalid saved directories fall back to the user home directory during launch normalization.
+
+### Other bridges
+
+- System IPC provides metrics and the focused session's environment projection.
+- App IPC applies title-bar theme updates and coordinates graceful quit persistence.
+- Workspace IPC provides CRUD, active-workspace selection, launch normalization, and directory defaults.
+
+## Source Layout
 
 | Area | Responsibility |
 |------|----------------|
-| `models/` | Shared UI contracts (`RuntimeTab`, `RuntimePane`, palette models, etc.) |
-| `workspace/` | `WorkspaceRuntimeService` — tabs, panes, workspace CRUD, persistence drafts |
-| `terminal/` | `TerminalSessionService`, `TerminalHostCoordinatorService` — xterm + PTY bridge |
-| `utility-panel/` | Output, problems, command history |
-| `command-palette/` | Palette/search orchestration |
-| `preferences/` | Local UI preferences (bottom panel visibility) |
-| `system/` | Metrics/env polling and formatting |
-| `inspector/` | Inspector view-model presenter |
-| Feature components | `left-rail`, `shell-toolbar`, `workspace-area`, `bottom-dock`, `status-bar`, `command-palette` |
-| `styles/shell.css` | Global shell CSS imported from `src/styles.css` |
-| `app.component.*` | Thin shell — composition and cross-feature orchestration only |
+| `src/app/models/` | Shared renderer contracts |
+| `src/app/workspace/` | Workspace runtime, snapshots, stage component, host/layout behavior |
+| `src/app/terminal/` | xterm surfaces, PTY-session coordination, themes |
+| `src/app/inspector/` | Inspector projections |
+| `src/app/utility-panel/` | Output, problems, search, command history |
+| `src/app/preferences/` | Machine-local UI preferences |
+| `src/app/system/` | Metrics/environment presentation |
+| `src/app/command-palette/` | Command and navigation dispatch |
+| `src/app/*-bridge.service.ts` | Typed preload wrappers |
+| `src/app/styles/shell.css` | Shared shell tokens and application layout |
+| `electron/main.js` | Window setup and thin IPC registration |
+| `electron/workspace-store.js` | SQLite workspace persistence |
+| `electron/terminal-*.js` | PTY spawn, environment, stability, and start coordination |
+| `electron/preload.js` | Context-isolated API exposure |
 
-Bridge services (`*-bridge.service.ts`) remain thin preload wrappers.
+## Engineering Rules
 
-## Phase 1 Target
-Single-window Electron app with one real interactive terminal rendered through Angular and backed by node-pty.
+- Keep process and PTY logic out of Angular.
+- Keep IPC handlers thin and validate at the boundary.
+- Use stable workspace/tab/terminal IDs for ownership and attribution.
+- Do not dispose a terminal merely because its tab is inactive or its DOM host changed.
+- Do not create more than one PTY for a stable terminal in one renderer.
+- Prefer feature services over expanding `AppComponent` or `WorkspaceAreaComponent` with business rules.
+- Keep theme tokens centralized and maintain usable light and dark themes.
+- Every behavior or rendering change requires focused tests.
+- Completion requires `npm run build` and `npm run test:ci`.
+
+## Current Constraints
+
+- Windows artifacts are unsigned until an Authenticode certificate is available.
+- The Angular bundle exceeds the original 500 kB warning budget, primarily because of xterm.js; this is an accepted RC1 warning, not a failed build.
+- Session restoration recreates process state from saved terminal configuration; it does not reconnect to arbitrary operating-system processes after an app restart.

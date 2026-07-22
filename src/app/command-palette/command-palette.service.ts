@@ -91,9 +91,6 @@ export class CommandPaletteService {
       case 'workspace':
         await dispatcher.selectWorkspace(entry.id);
         break;
-      case 'tab':
-        await dispatcher.selectTab(entry.id);
-        break;
       case 'command':
         await dispatcher.rerunCommand(entry.label);
         break;
@@ -126,10 +123,10 @@ export class CommandPaletteService {
 
   private getActionEntries(): PaletteEntry[] {
     return [
-      { id: 'save-workspace', kind: 'action', group: 'Workspace', label: 'Save Workspace', detail: 'Persist the current workspace layout and tabs' },
+      { id: 'save-workspace', kind: 'action', group: 'Workspace', label: 'Save Workspace', detail: 'Persist the current workspace layout and terminals' },
       { id: 'restore-workspace', kind: 'action', group: 'Workspace', label: 'Restore Workspace', detail: 'Reload the active workspace from SQLite' },
       { id: 'new-workspace', kind: 'action', group: 'Workspace', label: 'New Workspace', detail: 'Create a blank workspace' },
-      { id: 'new-tab', kind: 'action', group: 'Workspace', label: 'New Tab', detail: 'Create a terminal tab in the focused pane' },
+      { id: 'new-terminal', kind: 'action', group: 'Terminal', label: 'New Terminal', detail: 'Create a terminal in the active workspace' },
       { id: 'restart-terminal', kind: 'action', group: 'Terminal', label: 'Restart Terminal', detail: 'Restart the focused pane session' },
       { id: 'stop-terminal', kind: 'action', group: 'Terminal', label: 'Stop Terminal', detail: 'Send Ctrl+C to the active PTY' },
       { id: 'kill-terminal', kind: 'action', group: 'Terminal', label: 'Kill Terminal', detail: 'Dispose the active PTY session' },
@@ -137,10 +134,10 @@ export class CommandPaletteService {
       { id: 'open-problems', kind: 'action', group: 'View', label: 'Show Problems Panel', detail: 'Open detected terminal problems' },
       { id: 'open-search', kind: 'action', group: 'View', label: 'Show Search Panel', detail: 'Open global workspace search', shortcut: 'Ctrl+Shift+F' },
       { id: 'open-history', kind: 'action', group: 'View', label: 'Show Command History', detail: 'Open recent terminal commands' },
-      { id: 'inspector-tab', kind: 'action', group: 'View', label: 'Show Tab Inspector', detail: 'Focus tab metadata in the right rail' },
-      { id: 'inspector-session', kind: 'action', group: 'View', label: 'Show Session Inspector', detail: 'Focus live PTY metadata in the right rail' },
-      { id: 'layout-2', kind: 'action', group: 'Layout', label: 'Switch to 2-Up Layout', detail: 'Use a two-pane terminal grid' },
-      { id: 'layout-2x2', kind: 'action', group: 'Layout', label: 'Switch to 2x2 Layout', detail: 'Use a four-pane terminal grid' },
+      { id: 'inspector-workspace', kind: 'action', group: 'View', label: 'Show Workspace Inspector', detail: 'Focus workspace defaults and saved state in the right rail' },
+      { id: 'inspector-terminal', kind: 'action', group: 'View', label: 'Show Terminal Inspector', detail: 'Focus live PTY metadata and terminal settings in the right rail' },
+      { id: 'hide-inspector', kind: 'action', group: 'View', label: 'Hide Inspector', detail: 'Collapse the right inspector rail' },
+      { id: 'show-inspector', kind: 'action', group: 'View', label: 'Show Inspector', detail: 'Restore the right inspector rail' },
       { id: 'open-palette', kind: 'action', group: 'Navigation', label: 'Open Command Palette', detail: 'Show workspace commands and search', shortcut: 'Ctrl+Shift+P' },
     ];
   }
@@ -179,46 +176,34 @@ export class CommandPaletteService {
       groups.push({ label: 'Workspaces', items: workspaceMatches });
     }
 
-    const tabMatches = this.workspace.runtimeTabs
-      .filter((tab) => matches(tab.title) || matches(tab.cwd))
-      .map((tab) => ({
-        id: tab.id,
-        title: tab.title,
-        detail: `${tab.terminals.length} shell${tab.terminals.length === 1 ? '' : 's'} • ${tab.cwd}`,
-        kind: 'tab' as PaletteEntryKind,
+    const terminalMatches = this.workspace.terminals
+      .filter(
+        (terminal) =>
+          matches(terminal.id) ||
+          matches(terminal.name || '') ||
+          matches(terminal.cwd) ||
+          matches(terminal.status) ||
+          matches(this.workspace.getTerminalDisplayTitle(terminal, this.workspace.terminals.indexOf(terminal)))
+      )
+      .map((terminal) => ({
+        id: terminal.id,
+        title: this.workspace.getTerminalDisplayTitle(terminal, this.workspace.terminals.indexOf(terminal)),
+        detail: `${terminal.status} • ${terminal.cwd}`,
+        kind: 'pane' as PaletteEntryKind,
       }));
-
-    if (tabMatches.length) {
-      groups.push({ label: 'Tabs', items: tabMatches });
-    }
-
-    const terminalMatches = this.workspace.runtimeTabs.flatMap((tab) =>
-      tab.terminals
-        .filter(
-          (terminal) =>
-            matches(terminal.id) ||
-            matches(tab.title) ||
-            matches(terminal.cwd) ||
-            matches(terminal.status)
-        )
-        .map((terminal) => ({
-          id: terminal.id,
-          title: `${tab.title} • ${terminal.cwd}`,
-          detail: terminal.status,
-          kind: 'pane' as PaletteEntryKind,
-        }))
-    );
 
     if (terminalMatches.length) {
       groups.push({ label: 'Terminals', items: terminalMatches });
     }
 
     const commandMatches = this.utility.commandHistory
-      .filter((entry) => matches(entry.command) || matches(entry.tabTitle))
+      .filter((entry) =>
+        matches(entry.command) || matches(this.workspace.getCommandHistorySource(entry))
+      )
       .map((entry) => ({
         id: entry.id,
         title: entry.command,
-        detail: `${entry.tabTitle} • ${this.systemMonitor.formatClock(entry.timestamp)}`,
+        detail: `${this.workspace.getCommandHistorySource(entry)} • ${this.systemMonitor.formatClock(entry.timestamp)}`,
         kind: 'command' as PaletteEntryKind,
       }));
 
@@ -275,8 +260,8 @@ export class CommandPaletteService {
       case 'new-workspace':
         await dispatcher.createWorkspace();
         break;
-      case 'new-tab':
-        await dispatcher.createTab();
+      case 'new-terminal':
+        await dispatcher.createTerminal();
         break;
       case 'restart-terminal':
         await dispatcher.relaunchTerminal();
@@ -299,17 +284,19 @@ export class CommandPaletteService {
       case 'open-history':
         dispatcher.openUtilityPanel('command-history');
         break;
-      case 'inspector-tab':
-        dispatcher.setInspectorTab('tab');
+      case 'inspector-workspace':
+        dispatcher.setInspectorVisible(true);
+        dispatcher.setInspectorTab('workspace');
         break;
-      case 'inspector-session':
-        dispatcher.setInspectorTab('session');
+      case 'inspector-terminal':
+        dispatcher.setInspectorVisible(true);
+        dispatcher.setInspectorTab('terminal');
         break;
-      case 'layout-2':
-        await dispatcher.setLayoutMode('grid-2');
+      case 'hide-inspector':
+        dispatcher.setInspectorVisible(false);
         break;
-      case 'layout-2x2':
-        await dispatcher.setLayoutMode('grid-2x2');
+      case 'show-inspector':
+        dispatcher.setInspectorVisible(true);
         break;
       case 'open-palette':
         dispatcher.openCommandPalette();

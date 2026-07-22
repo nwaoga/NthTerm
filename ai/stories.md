@@ -1,8 +1,57 @@
 # NthTerm Stories
 
 ## Backlog
+- [ ] RC1 final publication gate
+  - [x] Sync post-verification notes to Azure DevOps #122, #113, and #106
+  - [ ] Re-run `npm run rc:verify` after the final source changes
+  - [ ] Review, commit, push, and tag the verified candidate
 
 ## Done
+- [x] RC1 post-verification: terminal identity, focus layout, history attribution, and inspector density
+  - [x] Keep every terminal visible in automatic two-pane/four-area arrangements and focused-terminal peer previews
+  - [x] Stacked focus/overview layout (≤10 terminals) with parked inactive PTYs and buffer-based overview cards
+  - [x] Park and reattach tab-owned xterm surfaces without disposing live PTYs
+  - [x] Persist terminal names and attribute command history through stable terminal IDs
+  - [x] Coalesce renderer and Electron terminal starts so one stable terminal owns at most one live PTY
+  - [x] Replace duplicate inspector cards and metric tiles with a compact identity/facts/settings hierarchy
+  - [x] Remove terminal scrollbar/seam artifacts and verify the live Electron layout
+  - [x] Add regression coverage and pass `npm run build` plus 29 Electron/120 Angular tests
+- [x] RC1 usability: clarify workspace, tab, and terminal ownership
+  - [x] Replace the active-workspace card with workspace-to-tab context
+  - [x] Start a resolved default terminal when creating a new tab
+  - [x] Use Start Terminal, Split Terminal, and Close Terminal language contextually
+  - [x] Hide layout choices until a tab contains multiple terminals
+  - [x] Name terminals by their actual shell and number only duplicate shell types
+  - [x] Add focused behavior and rendering regression coverage
+- [x] RC1 usability: adaptive compact-window layout and accessibility
+  - [x] Condense the toolbar before Electron reaches its minimum window width
+  - [x] Auto-collapse the inspector in compact windows and reopen it as an overlay without changing the wide-window preference
+  - [x] Cap dock height relative to the viewport and condense compact dock metadata
+  - [x] Make workspace tabs keyboard-operable with a semantic close button
+  - [x] Expose layout selection state and remove the inactive profile control
+  - [x] Add Angular and static regression coverage plus 1440px/1024px screenshot verification
+- [x] RC1 readiness: version, release notes, tag-triggered unsigned artifacts, and repeatable verification
+  - [x] Version package and lockfile as `0.1.0-rc.1`
+  - [x] Add changelog and reconcile README/plan with shipped shell-profile and WSL work
+  - [x] Add `npm run rc:verify` for build, tests, package, and installer upgrade/persistence validation
+  - [x] Run CI on `v*` tags as well as pull requests and `main`
+  - [x] Verify the versioned Windows installer/zip and upgrade persistence locally
+- [x] Optional follow-up: Add WSL distro picker support
+  - [x] Detect installed WSL distributions through Electron main
+  - [x] Add discovered WSL distros to Add Terminal, app default shell, and workspace shell profile choices
+  - [x] Launch WSL terminals via `wsl.exe -d <distro>`
+  - [x] Persist WSL shell IDs in workspace and terminal snapshots
+  - [x] Add Electron and Angular regression coverage for WSL discovery, shell resolution, and picker behavior
+- [x] Optional follow-up: Add per-workspace shell profiles
+  - [x] Persist workspace shell profile on the saved workspace `shell` field
+  - [x] Resolve new terminal shells from explicit choice, workspace profile, then app default
+  - [x] Add inspector control for the active workspace shell profile
+  - [x] Add regression coverage for profile persistence, resolution, toolbar defaults, and inspector updates
+- [x] Optional follow-up: Add a hide/show toggle for the right inspector rail
+  - [x] Persist inspector rail visibility as a local app preference
+  - [x] Add in-rail hide and stage restore controls
+  - [x] Add command palette actions to hide/show the inspector
+  - [x] Add regression coverage for preference persistence, UI events, app-shell state, and palette dispatch
 - [x] Phase 5 / Task 6 / #124: Validate installer and upgrade behavior on Windows
   - [x] Silent-install unsigned NSIS artifact from `npm run release:win`
   - [x] Confirm installed app launch, AppData persistence, and PTY-related child processes

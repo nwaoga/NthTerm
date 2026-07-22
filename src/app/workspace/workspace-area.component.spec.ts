@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
+import { InspectorMode } from '../models';
 import { AppPreferencesService } from '../preferences/app-preferences.service';
 import { InspectorPresenterService } from '../inspector/inspector-presenter.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
@@ -8,6 +9,7 @@ import { TerminalHostCoordinatorService } from '../terminal/terminal-host-coordi
 import { TerminalSessionService } from '../terminal/terminal-session.service';
 import { UtilityPanelService } from '../utility-panel/utility-panel.service';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
+import { WorkspaceLayoutService } from './workspace-layout.service';
 import { WorkspaceAreaComponent } from './workspace-area.component';
 
 describe('WorkspaceAreaComponent', () => {
@@ -20,55 +22,44 @@ describe('WorkspaceAreaComponent', () => {
     session: null,
   };
 
-  const runtimeTab = {
-    id: 'tab-1',
-    title: 'API',
-    cwd: 'C:/repo',
-    accent: 'violet',
-    layoutMode: 'grid-2' as const,
-    colSplit: 50,
-    rowSplit: 50,
-    focusedTerminalId: 'terminal-1',
-    terminals: [runtimeTerminal],
-  };
-
   const workspaceService = {
-    runtimeTabs: [runtimeTab],
+    selectedWorkspace: 'Cloud POS',
+    selectedWorkspaceId: 'workspace-1',
+    workspaceName: 'Cloud POS',
+    terminals: [runtimeTerminal],
     layoutMode: 'grid-2',
     paneResizeMode: null,
     paneColSplit: 50,
     paneRowSplit: 50,
     workingDirectory: 'C:/repo',
+    workspaceShellProfile: '',
     sessionHistory: [
       {
         id: 'history-1',
-        tabTitle: 'API',
+        terminalTitle: 'API',
         reason: 'Process exited',
         startedAt: '2026-07-01T08:00:00.000Z',
         endedAt: '2026-07-01T08:30:00.000Z',
         lastActiveAt: '2026-07-01T08:25:00.000Z',
       },
     ],
-    createTabDraft: () => null,
-    createTerminalDraft: () => null,
-    addTab: () => undefined,
+    createTerminalDraft: jasmine.createSpy('createTerminalDraft').and.returnValue(null),
     addTerminal: () => undefined,
     persistWorkspaceState: async () => undefined,
-    selectTab: async () => runtimeTab,
-    closeTab: jasmine.createSpy('closeTab').and.resolveTo(null),
+    duplicateTerminal: jasmine.createSpy('duplicateTerminal').and.resolveTo(null),
+    hasRunningTerminals: () => true,
     removeTerminal: jasmine.createSpy('removeTerminal').and.resolveTo(runtimeTerminal),
-    focusTerminal: async () => 'unchanged',
+    focusTerminal: jasmine.createSpy('focusTerminal').and.resolveTo('unchanged'),
     updatePaneSplit: () => undefined,
-    isTabActive: () => true,
     isTerminalFocused: () => true,
     getActiveTabTerminals: () => [runtimeTerminal],
     getEffectiveActiveLayoutMode: () => 'grid-2',
-    getFocusedTab: () => runtimeTab,
     getFocusedTerminal: () => runtimeTerminal,
     getTerminalDisplayTitle: () => 'API Server',
     getTerminalSummaryLine: () => 'Focused terminal',
     getTerminalStatusLabel: () => 'Running',
-    isTerminalRunning: () => true,
+    isTerminalRunning: jasmine.createSpy('isTerminalRunning').and.returnValue(true),
+    getTerminalById: () => runtimeTerminal,
     getTerminalMetaLine: () => 'main • 7192',
     shouldRenderTerminalPreview: () => true,
     getTerminalPreviewText: () => '$ npm run api',
@@ -76,8 +67,28 @@ describe('WorkspaceAreaComponent', () => {
     focusedPaneId: 'terminal-1',
     usesDefaultTerminalTheme: () => true,
     updateFocusedTerminalShell: () => undefined,
-    updateFocusedTerminalThemeColors: () => undefined,
-    resetFocusedTerminalTheme: () => undefined,
+    updateFocusedTerminalName: jasmine.createSpy('updateFocusedTerminalName'),
+    updateTerminalName: jasmine.createSpy('updateTerminalName'),
+    updateTerminalThemeColors: jasmine.createSpy('updateTerminalThemeColors'),
+    resetTerminalTheme: jasmine.createSpy('resetTerminalTheme'),
+    updateFocusedTerminalThemeColors: jasmine.createSpy('updateFocusedTerminalThemeColors'),
+    resetFocusedTerminalTheme: jasmine.createSpy('resetFocusedTerminalTheme'),
+    resolveNewTerminalShell: jasmine.createSpy('resolveNewTerminalShell').and.callFake((explicitShell, appDefaultShell) => explicitShell ?? appDefaultShell),
+    updateWorkspaceShellProfile: jasmine.createSpy('updateWorkspaceShellProfile').and.resolveTo(undefined),
+    getShellOptions: () => [
+      { value: '', label: 'System Default' },
+      { value: 'powershell', label: 'PowerShell' },
+      { value: 'cmd', label: 'Command Prompt' },
+      { value: 'wsl:Ubuntu', label: 'WSL: Ubuntu' },
+    ],
+    getWorkspaceShellProfileOptions: () => [
+      { value: '', label: 'Use App Default' },
+      { value: 'system', label: 'System Default' },
+      { value: 'powershell', label: 'PowerShell' },
+      { value: 'cmd', label: 'Command Prompt' },
+      { value: 'wsl:Ubuntu', label: 'WSL: Ubuntu' },
+    ],
+    getCommandHistorySource: () => 'Cloud POS • API Server',
   };
 
   const terminalService = {
@@ -99,6 +110,9 @@ describe('WorkspaceAreaComponent', () => {
     focusTerminal: jasmine.createSpy('focusTerminal'),
     applyTerminalTheme: jasmine.createSpy('applyTerminalTheme'),
     syncTerminalSize: () => undefined,
+    setInteractiveTerminalId: jasmine.createSpy('setInteractiveTerminalId'),
+    getBufferPreview: () => 'preview line',
+    getPreviewVersion: () => 0,
   };
 
   const utilityPanelService = {
@@ -109,18 +123,15 @@ describe('WorkspaceAreaComponent', () => {
   };
 
   const inspectorPresenter = {
-    activeTab: 'tab' as 'tab' | 'session',
+    activeTab: 'workspace' as InspectorMode,
     getInspectorSummaryItems: () => [
-      { label: 'Shell', value: 'PowerShell' },
-      { label: 'Directory', value: 'C:/repo/apps/api' },
-      { label: 'Git Branch', value: 'main' },
-      { label: 'Process', value: 'npm run api' },
-      { label: 'Started', value: 'Today at 09:15:42' },
-      { label: 'Uptime', value: '00:12:48' },
-      { label: 'Port', value: 'https://localhost:7192' },
+      { label: 'Terminals', value: '1' },
+      { label: 'Shell Profile', value: 'PowerShell' },
+      { label: 'Arrangement', value: 'Full stage' },
+      { label: 'Directory', value: 'C:/repo' },
     ],
     getInspectorItems: () =>
-      inspectorPresenter.activeTab === 'session'
+      inspectorPresenter.activeTab === 'terminal'
         ? [
             { label: 'Shell', value: 'PowerShell' },
             { label: 'Session Id', value: 'pty-1' },
@@ -133,16 +144,10 @@ describe('WorkspaceAreaComponent', () => {
             { label: 'Recovery', value: 'Live session' },
           ]
         : [
-            { label: 'Directory', value: 'C:/repo/apps/api' },
-            { label: 'Shell', value: 'PowerShell' },
             { label: 'Workspace', value: 'Cloud POS' },
-            { label: 'Layout', value: 'grid-2' },
-            { label: 'Focused Terminal', value: 'terminal-1' },
-            { label: 'Startup Command', value: 'npm run api' },
-            { label: 'Launch Profile', value: 'dev' },
-            { label: 'Status', value: 'running' },
-            { label: 'Last Recovery', value: 'Process exited' },
-            { label: 'Last Session Ended', value: 'ts:end' },
+            { label: 'Directory', value: 'C:/repo' },
+            { label: 'Shell Profile', value: 'PowerShell' },
+            { label: 'Terminals', value: '1' },
             { label: 'Last Saved', value: 'pending' },
           ],
   };
@@ -160,11 +165,23 @@ describe('WorkspaceAreaComponent', () => {
   };
 
   beforeEach(async () => {
-    inspectorPresenter.activeTab = 'tab';
+    inspectorPresenter.activeTab = 'workspace';
+    workspaceService.isTerminalRunning.calls.reset();
+    workspaceService.isTerminalRunning.and.returnValue(true);
+    workspaceService.updateFocusedTerminalName.calls.reset();
+    workspaceService.updateTerminalName.calls.reset();
+    workspaceService.removeTerminal.calls.reset();
+    workspaceService.terminals = [runtimeTerminal];
+    workspaceService.focusedPaneId = 'terminal-1';
+    workspaceService.getActiveTabTerminals = () => [runtimeTerminal];
+    workspaceService.focusTerminal.calls.reset();
+    workspaceService.focusTerminal.and.resolveTo('unchanged');
+    workspaceService.getFocusedTerminal = () => runtimeTerminal;
 
     await TestBed.configureTestingModule({
       imports: [WorkspaceAreaComponent],
       providers: [
+        WorkspaceLayoutService,
         { provide: WorkspaceRuntimeService, useValue: workspaceService },
         { provide: TerminalSessionService, useValue: terminalService },
         { provide: UtilityPanelService, useValue: utilityPanelService },
@@ -179,56 +196,270 @@ describe('WorkspaceAreaComponent', () => {
               background: '#0d1320',
               cursor: '#7dd3fc',
             }),
+            readDefaultShell: () => '',
           },
         },
       ],
     }).compileComponents();
+
+    TestBed.inject(WorkspaceLayoutService).enterFocus();
   });
 
-  it('renders tab detail cards by default', () => {
+  it('renders a compact workspace overview and secondary detail sections by default', () => {
     const fixture = TestBed.createComponent(WorkspaceAreaComponent);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
 
-    expect(text).toContain('Workspace Context');
-    expect(text).toContain('Launch + Recovery');
+    expect(fixture.nativeElement.querySelector('.inspector-overview-facts')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.inspector-summary-tile')).toBeNull();
+    expect(text).toContain('Defaults');
     expect(text).toContain('Recent Commands');
     expect(text).not.toContain('Environment Variables');
   });
 
-  it('renders the center workspace stage with tab strip and terminal cards', () => {
+  it('shows workspace facts once and keeps defaults in a focused section', () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+    fixture.debugElement.queryAll(By.css('.inspector-tabs button'))[0].nativeElement.click();
+    fixture.detectChanges();
+
+    const inspector = fixture.nativeElement.querySelector('.inspector');
+    const text = inspector.textContent;
+
+    expect(inspector.querySelectorAll('.inspector-fact-row').length).toBeGreaterThan(0);
+    expect(text).toContain('Defaults');
+    expect(text).toContain('Workspace shell profile');
+    expect(text).not.toContain('Workspace Context');
+  });
+
+  it('renders the center workspace stage with a focused terminal and no tab strip', () => {
     const fixture = TestBed.createComponent(WorkspaceAreaComponent);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.workspace-stage')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.pane-grid')?.getAttribute('data-layout')).toBe('single');
-    expect(fixture.nativeElement.querySelector('.tab-strip .workspace-tab.active')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.pane-grid .terminal-card.focused')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.pane-state-pill.running')).not.toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('main • 7192');
+    expect(fixture.nativeElement.querySelector('app-terminal-focus-view')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.tab-strip')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.pane-grid')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.terminal-state-dot.running')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Focused terminal');
     expect(fixture.nativeElement.querySelector('.terminal-preview')?.textContent).toContain('npm run api');
   });
 
-  it('shows an empty-state prompt when the active tab has no terminals', () => {
+  it('keeps terminal context menus inside the viewport', () => {
+    const widthDescriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+    const heightDescriptor = Object.getOwnPropertyDescriptor(window, 'innerHeight');
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 600 });
+
+    try {
+      const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+      fixture.detectChanges();
+      const edgeEvent = new MouseEvent('contextmenu', { clientX: 795, clientY: 595 });
+
+      (fixture.componentInstance as any).openTerminalContextMenu('terminal-1', edgeEvent);
+      fixture.detectChanges();
+      const menu = fixture.nativeElement.querySelector('.context-menu') as HTMLElement;
+
+      expect(menu.style.left).toBe('602px');
+      expect(menu.style.top).toBe('402px');
+    } finally {
+      if (widthDescriptor) Object.defineProperty(window, 'innerWidth', widthDescriptor);
+      else delete (window as unknown as Record<string, unknown>)['innerWidth'];
+      if (heightDescriptor) Object.defineProperty(window, 'innerHeight', heightDescriptor);
+      else delete (window as unknown as Record<string, unknown>)['innerHeight'];
+    }
+  });
+
+  it('shows an empty-state prompt when the workspace has no terminals', () => {
     const fixture = TestBed.createComponent(WorkspaceAreaComponent);
     const component = fixture.componentInstance;
     spyOn(component as any, 'getActiveTerminals').and.returnValue([]);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.workspace-empty-state')).not.toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('Add a shell to this tab');
+    expect(fixture.nativeElement.textContent).toContain('Empty workspace');
+    expect(fixture.nativeElement.textContent).toContain('Start a terminal');
+  });
+
+  it('shows one focused terminal and parks the rest without a peer rail', () => {
+    const terminals = Array.from({ length: 4 }, (_, index) => ({
+      ...runtimeTerminal,
+      id: `terminal-${index + 1}`,
+    }));
+    workspaceService.getActiveTabTerminals = () => terminals;
+    workspaceService.terminals = terminals;
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-terminal-focus-view')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.terminal-session-park')).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.terminal-park-host').length).toBe(3);
+    expect(fixture.nativeElement.querySelector('.pane-grid-zoomed')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.zoom-peer-1')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Terminal 1 of 4');
+  });
+
+  it('opens overview with preview cards and returns to focus when a card is selected', async () => {
+    const terminals = Array.from({ length: 4 }, (_, index) => ({
+      ...runtimeTerminal,
+      id: `terminal-${index + 1}`,
+    }));
+    workspaceService.getActiveTabTerminals = () => terminals;
+    workspaceService.terminals = terminals;
+    workspaceService.focusTerminal.and.resolveTo(terminals[2]);
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    fixture.debugElement.query(By.css('.workspace-zoom-button[aria-label="Zoom out to overview"]')).nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-terminal-overview')).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('app-terminal-preview-card').length).toBe(4);
+
+    fixture.nativeElement.querySelector('[data-terminal-id="terminal-3"]').click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-terminal-focus-view')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-terminal-overview')).toBeNull();
+    expect(workspaceService.focusTerminal).toHaveBeenCalledWith('terminal-3');
+  });
+
+  it('toggles overview with Ctrl+\\\\ and jumps terminals with Ctrl+number', () => {
+    const terminals = Array.from({ length: 3 }, (_, index) => ({
+      ...runtimeTerminal,
+      id: `terminal-${index + 1}`,
+    }));
+    workspaceService.getActiveTabTerminals = () => terminals;
+    workspaceService.terminals = terminals;
+    workspaceService.focusTerminal.and.callFake(async (id: string) => {
+      workspaceService.focusedPaneId = id;
+      return terminals.find((terminal) => terminal.id === id) || null;
+    });
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: '\\', ctrlKey: true, bubbles: true })
+    );
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-terminal-overview')).not.toBeNull();
+
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: '2', ctrlKey: true, bubbles: true })
+    );
+    fixture.detectChanges();
+    expect(workspaceService.focusTerminal).toHaveBeenCalledWith('terminal-2');
   });
 
   it('labels terminal color controls separately from workspace chrome', () => {
     const fixture = TestBed.createComponent(WorkspaceAreaComponent);
     fixture.detectChanges();
+    fixture.debugElement.queryAll(By.css('.inspector-tabs button'))[1].nativeElement.click();
+    fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
 
-    expect(text).toContain('Terminal appearance');
-    expect(text).toContain('Settings');
+    expect(text).toContain('Terminal Settings');
     expect(text).toContain('Colors');
+    expect(text).not.toContain('Workspace shell profile');
+  });
+
+  it('renames the focused terminal from terminal settings', () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+    fixture.debugElement.queryAll(By.css('.inspector-tabs button'))[1].nativeElement.click();
+    fixture.detectChanges();
+
+    const input = fixture.debugElement.query(By.css('[aria-label="Terminal name"]')).nativeElement;
+    input.value = 'API Server';
+    input.dispatchEvent(new Event('change'));
+
+    expect(workspaceService.updateFocusedTerminalName).toHaveBeenCalledOnceWith('API Server');
+    expect(fixture.nativeElement.textContent).toContain('terminal-1');
+  });
+
+  it('renames a terminal from the focus header by double-click', async () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    fixture.debugElement.query(By.css('.terminal-title-button')).nativeElement.dispatchEvent(
+      new MouseEvent('dblclick', { bubbles: true })
+    );
+    fixture.detectChanges();
+
+    const renameInput = fixture.debugElement.query(By.css('.terminal-rename-input'));
+    expect(renameInput).not.toBeNull();
+    (fixture.componentInstance as any).editingTerminalName = 'API Backend';
+    (fixture.componentInstance as any).commitRenameTerminal();
+    await fixture.whenStable();
+
+    expect(workspaceService.updateTerminalName).toHaveBeenCalledWith('terminal-1', 'API Backend');
+  });
+
+  it('updates focused terminal colors from the inspector', () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+    fixture.debugElement.queryAll(By.css('.inspector-tabs button'))[1].nativeElement.click();
+    fixture.detectChanges();
+
+    const colorInputs = fixture.debugElement.queryAll(By.css('.theme-color-input'));
+    expect(colorInputs.length).toBeGreaterThanOrEqual(2);
+
+    colorInputs[0].nativeElement.value = '#ffcc00';
+    colorInputs[0].nativeElement.dispatchEvent(new Event('input'));
+    colorInputs[1].nativeElement.value = '#112233';
+    colorInputs[1].nativeElement.dispatchEvent(new Event('input'));
+
+    expect(workspaceService.updateTerminalThemeColors).toHaveBeenCalled();
+    expect(terminalService.applyTerminalTheme).toHaveBeenCalled();
+  });
+
+  it('updates the workspace shell profile from the inspector', () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+    fixture.debugElement.queryAll(By.css('.inspector-tabs button'))[0].nativeElement.click();
+    fixture.detectChanges();
+
+    const selects = fixture.debugElement.queryAll(By.css('.inspector-shell-field .preference-select'));
+    selects[0].nativeElement.value = 'cmd';
+    selects[0].nativeElement.dispatchEvent(new Event('change'));
+
+    expect(workspaceService.updateWorkspaceShellProfile).toHaveBeenCalledWith('cmd');
+  });
+
+  it('updates the workspace shell profile to a WSL distro', () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+    fixture.debugElement.queryAll(By.css('.inspector-tabs button'))[0].nativeElement.click();
+    fixture.detectChanges();
+
+    const selects = fixture.debugElement.queryAll(By.css('.inspector-shell-field .preference-select'));
+    selects[0].nativeElement.value = 'wsl:Ubuntu';
+    selects[0].nativeElement.dispatchEvent(new Event('change'));
+
+    expect(workspaceService.updateWorkspaceShellProfile).toHaveBeenCalledWith('wsl:Ubuntu');
+  });
+
+  it('uses the workspace shell resolver when adding a terminal without an explicit shell', async () => {
+    const draft = {
+      ...runtimeTerminal,
+      id: 'terminal-2',
+      shell: 'powershell',
+    };
+    (workspaceService.createTerminalDraft as any) = jasmine.createSpy('createTerminalDraft').and.returnValue(draft);
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    const addButton = fixture.debugElement.query(By.css('[aria-label="Add terminal"]'));
+    addButton.nativeElement.click();
+    await fixture.whenStable();
+
+    expect(workspaceService.resolveNewTerminalShell).toHaveBeenCalledWith(undefined, '');
+    expect(workspaceService.createTerminalDraft).toHaveBeenCalledWith('');
   });
 
   it('switches to the live session inspector view', () => {
@@ -236,27 +467,60 @@ describe('WorkspaceAreaComponent', () => {
     fixture.detectChanges();
 
     const tabButtons = fixture.debugElement.queryAll(By.css('.inspector-tabs button'));
+    expect(tabButtons.length).toBe(2);
     tabButtons[1].nativeElement.click();
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
+    const envEntries = fixture.nativeElement.querySelectorAll('.env-entry');
 
-    expect(inspectorPresenter.activeTab).toBe('session');
+    expect(inspectorPresenter.activeTab).toBe('terminal');
     expect(text).toContain('Live Session');
     expect(text).toContain('Lifecycle + Recovery');
     expect(text).toContain('Environment Variables');
-    expect(text).not.toContain('Launch + Recovery');
+    expect(envEntries.length).toBe(1);
+    expect(envEntries[0].querySelector('span')?.textContent).toBe('NODE_ENV');
+    expect(envEntries[0].querySelector('strong')?.textContent).toBe('development');
+    expect(fixture.nativeElement.querySelector('.env-list .history-entry')).toBeNull();
+  });
+
+  it('hides and restores the inspector rail through panel visibility events', () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    const visibilityChanges: boolean[] = [];
+    fixture.componentInstance.inspectorPanelVisibleChange.subscribe((visible) =>
+      visibilityChanges.push(visible)
+    );
+    fixture.detectChanges();
+
+    const hideButton = fixture.debugElement.query(By.css('[aria-label="Hide inspector"]'));
+    hideButton.nativeElement.click();
+
+    fixture.componentInstance.inspectorPanelVisible = false;
+    fixture.detectChanges();
+
+    const restoreButton = fixture.debugElement.query(By.css('[aria-label="Show inspector"]'));
+    restoreButton.nativeElement.click();
+
+    expect(visibilityChanges).toEqual([false, true]);
+    expect(fixture.nativeElement.querySelector('.content-layout.inspector-hidden')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.inspector')).toBeNull();
   });
 
   it('removes a terminal from the focused card', async () => {
+    const confirmSpy = spyOn(window, 'confirm').and.returnValue(true);
     const fixture = TestBed.createComponent(WorkspaceAreaComponent);
     fixture.detectChanges();
 
-    const removeButton = fixture.debugElement.query(By.css('[aria-label="Remove terminal"]'));
-    removeButton.nativeElement.click();
+    const terminalCard = fixture.debugElement.query(By.css('.terminal-focus-card'));
+    terminalCard.nativeElement.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    fixture.detectChanges();
+    const removeButton = fixture.debugElement.queryAll(By.css('.context-menu [role="menuitem"]'))
+      .find((button) => button.nativeElement.textContent.includes('Close Terminal'));
+    removeButton!.nativeElement.click();
     await fixture.whenStable();
 
     expect(workspaceService.removeTerminal).toHaveBeenCalledWith('terminal-1');
     expect(hostCoordinator.syncAndRestore).toHaveBeenCalled();
+    expect(confirmSpy).toHaveBeenCalledWith('Close this terminal and stop its running process?');
   });
 });

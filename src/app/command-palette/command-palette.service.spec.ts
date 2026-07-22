@@ -18,26 +18,15 @@ describe('CommandPaletteService', () => {
     utility = TestBed.inject(UtilityPanelService);
 
     workspace.workspaces = [{ id: 'ws-1', name: 'Cloud POS', icon: 'cloud', accent: 'violet' }];
-    workspace.runtimeTabs = [
+    workspace.terminals = [
       {
-        id: 'tab-1',
-        title: 'API',
+        id: 'terminal-1',
+        name: 'API',
         cwd: 'C:\\Projects\\Api',
-        accent: 'violet',
-        layoutMode: 'grid-2',
-        colSplit: 50,
-        rowSplit: 50,
-        focusedTerminalId: 'terminal-1',
-        terminals: [
-          {
-            id: 'terminal-1',
-            cwd: 'C:\\Projects\\Api',
-            shell: '',
-            startupCommand: '',
-            status: 'running',
-            session: null,
-          },
-        ],
+        shell: '',
+        startupCommand: '',
+        status: 'running',
+        session: null,
       },
     ];
     utility.commandHistory = [
@@ -57,10 +46,14 @@ describe('CommandPaletteService', () => {
     expect(entries.every((entry) => entry.label.toLowerCase().includes('save') || entry.detail.toLowerCase().includes('save') || entry.group.toLowerCase().includes('save'))).toBeTrue();
   });
 
-  it('builds search result groups for workspaces and commands', () => {
+  it('builds search result groups for workspaces, terminals, and commands', () => {
     utility.searchQuery = 'cloud';
     const groups = service.getSearchResultGroups();
     expect(groups.some((group) => group.label === 'Workspaces')).toBeTrue();
+
+    utility.searchQuery = 'api';
+    const terminalGroups = service.getSearchResultGroups();
+    expect(terminalGroups.some((group) => group.label === 'Terminals')).toBeTrue();
 
     utility.searchQuery = 'dotnet';
     const commandGroups = service.getSearchResultGroups();
@@ -72,17 +65,16 @@ describe('CommandPaletteService', () => {
     const dispatcher: PaletteActionDispatcher = {
       saveWorkspace: save,
       restoreWorkspace: async () => undefined,
-      createTab: async () => undefined,
+      createTerminal: async () => undefined,
       relaunchTerminal: async () => undefined,
       interruptTerminal: async () => undefined,
       killTerminal: async () => undefined,
       openUtilityPanel: () => undefined,
       setInspectorTab: () => undefined,
-      setLayoutMode: async () => undefined,
+      setInspectorVisible: () => undefined,
       openCommandPalette: () => undefined,
       openGlobalSearch: () => undefined,
       selectWorkspace: async () => undefined,
-      selectTab: async () => undefined,
       createWorkspace: async () => undefined,
       rerunCommand: async () => undefined,
       focusPane: async () => undefined,
@@ -106,17 +98,16 @@ describe('CommandPaletteService', () => {
     const dispatcher: PaletteActionDispatcher = {
       saveWorkspace: async () => undefined,
       restoreWorkspace: async () => undefined,
-      createTab: async () => undefined,
+      createTerminal: async () => undefined,
       relaunchTerminal: async () => undefined,
       interruptTerminal: async () => undefined,
       killTerminal: async () => undefined,
       openUtilityPanel: () => undefined,
       setInspectorTab: () => undefined,
-      setLayoutMode: async () => undefined,
+      setInspectorVisible: () => undefined,
       openCommandPalette: () => undefined,
       openGlobalSearch,
       selectWorkspace: async () => undefined,
-      selectTab: async () => undefined,
       createWorkspace: async () => undefined,
       rerunCommand: async () => undefined,
       focusPane: async () => undefined,
@@ -133,5 +124,63 @@ describe('CommandPaletteService', () => {
     });
 
     expect(openGlobalSearch).toHaveBeenCalled();
+  });
+
+  it('dispatches inspector visibility actions', async () => {
+    const setInspectorVisible = jasmine.createSpy('setInspectorVisible');
+    const setInspectorTab = jasmine.createSpy('setInspectorTab');
+    const dispatcher: PaletteActionDispatcher = {
+      saveWorkspace: async () => undefined,
+      restoreWorkspace: async () => undefined,
+      createTerminal: async () => undefined,
+      relaunchTerminal: async () => undefined,
+      interruptTerminal: async () => undefined,
+      killTerminal: async () => undefined,
+      openUtilityPanel: () => undefined,
+      setInspectorTab,
+      setInspectorVisible,
+      openCommandPalette: () => undefined,
+      openGlobalSearch: () => undefined,
+      selectWorkspace: async () => undefined,
+      createWorkspace: async () => undefined,
+      rerunCommand: async () => undefined,
+      focusPane: async () => undefined,
+      appendOutput: () => undefined,
+    };
+
+    service.setDispatcher(dispatcher);
+    await service.executeEntry({
+      id: 'hide-inspector',
+      kind: 'action',
+      group: 'View',
+      label: 'Hide Inspector',
+      detail: '',
+    });
+    await service.executeEntry({
+      id: 'show-inspector',
+      kind: 'action',
+      group: 'View',
+      label: 'Show Inspector',
+      detail: '',
+    });
+    await service.executeEntry({
+      id: 'inspector-workspace',
+      kind: 'action',
+      group: 'View',
+      label: 'Show Workspace Inspector',
+      detail: '',
+    });
+    await service.executeEntry({
+      id: 'inspector-terminal',
+      kind: 'action',
+      group: 'View',
+      label: 'Show Terminal Inspector',
+      detail: '',
+    });
+
+    expect(setInspectorVisible).toHaveBeenCalledWith(false);
+    expect(setInspectorVisible).toHaveBeenCalledWith(true);
+    expect(setInspectorTab).toHaveBeenCalledWith('workspace');
+    expect(setInspectorTab).toHaveBeenCalledWith('terminal');
   });
 });

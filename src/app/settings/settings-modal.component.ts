@@ -1,7 +1,16 @@
 import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { SHELL_OPTIONS, SYSTEM_THEMES, SystemThemeId, TERMINAL_ANSI_PALETTE_OPTIONS, TerminalAnsiPaletteId } from '../models';
+import {
+  SYSTEM_THEMES,
+  SystemThemeId,
+  TERMINAL_ANSI_PALETTE_OPTIONS,
+  TerminalAnsiPaletteId,
+  ShellOption,
+  buildShellOptions,
+  isShellId,
+} from '../models';
+import { resolveHostPlatform } from '../platform/host-platform';
 import { DefaultShellPreference, NewSessionStartMode } from '../preferences/app-preferences.service';
 
 @Component({
@@ -20,6 +29,7 @@ export class SettingsModalComponent {
   @Input() defaultTerminalForeground = '#d8e1e8';
   @Input() defaultTerminalBackground = '#0d1320';
   @Input() terminalAnsiPalette: TerminalAnsiPaletteId = 'auto';
+  @Input() shellOptions: ShellOption[] = buildShellOptions([], resolveHostPlatform());
 
   @Output() readonly closed = new EventEmitter<void>();
   @Output() readonly utilityPanelPreferenceChange = new EventEmitter<boolean>();
@@ -31,7 +41,6 @@ export class SettingsModalComponent {
   @Output() readonly defaultTerminalBackgroundChange = new EventEmitter<string>();
   @Output() readonly terminalAnsiPaletteChange = new EventEmitter<TerminalAnsiPaletteId>();
 
-  protected readonly shellOptions = SHELL_OPTIONS;
   protected readonly systemThemes = SYSTEM_THEMES;
   protected readonly terminalAnsiPaletteOptions = TERMINAL_ANSI_PALETTE_OPTIONS;
   protected readonly newSessionStartOptions: Array<{
@@ -82,7 +91,7 @@ export class SettingsModalComponent {
   }
 
   protected setDefaultShell(value: string): void {
-    if (value === '' || value === 'powershell' || value === 'cmd' || value === 'bash' || value === 'zsh') {
+    if (isShellId(value)) {
       this.defaultShellChange.emit(value);
     }
   }

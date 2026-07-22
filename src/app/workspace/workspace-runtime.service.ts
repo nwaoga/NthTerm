@@ -2,24 +2,27 @@ import { Injectable, inject } from '@angular/core';
 
 import { SavedWorkspace, WorkspaceBridgeService, WorkspaceDraft } from '../workspace-bridge.service';
 import {
+  CommandHistoryEntry,
   LayoutMode,
   PaneSessionSnapshot,
-  RuntimeTab,
   RuntimeTerminal,
   RecoverySnapshot,
-  SHELL_OPTIONS,
   SessionListItem,
+  ShellId,
   WorkspaceListItem,
+  WorkspaceShellProfile,
   SessionHistoryEntry,
   WorkspaceSummary,
+  buildShellOptions,
+  buildWorkspaceShellProfileOptions,
+  isWorkspaceShellProfile,
 } from '../models';
+import { resolveHostPlatform } from '../platform/host-platform';
 import {
-  MAX_TABS_PER_WORKSPACE,
-  MAX_TERMINALS_PER_TAB,
-  createEmptyTabSnapshot,
+  MAX_TERMINALS_PER_WORKSPACE,
   createTerminalDraft,
   getEffectiveLayoutMode,
-  mapRuntimeTab,
+  mapRuntimeTerminal,
   normalizeWorkspaceSnapshot,
 } from './workspace-snapshot';
 
@@ -31,18 +34,22 @@ export class WorkspaceRuntimeService {
   lastSavedAt = '';
   selectedWorkspace = '';
   selectedWorkspaceId = '';
-  activeTabId = '';
+  workspaceShellProfile: WorkspaceShellProfile = '';
+  focusedTerminalId = '';
+  paneColSplit = 50;
+  paneRowSplit = 50;
   paneResizeMode: 'col' | 'row' | null = null;
   previewMode = false;
   editingWorkspaceId = '';
   editingWorkspaceName = '';
+  wslDistros: string[] = [];
+  workspaceAccent = 'slate';
 
   workspaces: WorkspaceListItem[] = [];
-  runtimeTabs: RuntimeTab[] = [];
+  terminals: RuntimeTerminal[] = [];
   workspaceSummary: WorkspaceSummary = {
-    layoutMode: 'grid-2x2',
+    layoutMode: 'grid-2',
     launchProfile: 'manual',
-    tabCount: 0,
     paneCount: 0,
   };
 
@@ -53,68 +60,63 @@ export class WorkspaceRuntimeService {
   private readonly workspaceBridge = inject(WorkspaceBridgeService);
 
   get layoutMode(): LayoutMode {
-    return this.getActiveTab()?.layoutMode || 'grid-2x2';
-  }
-
-  get paneColSplit(): number {
-    return this.getActiveTab()?.colSplit ?? 50;
-  }
-
-  get paneRowSplit(): number {
-    return this.getActiveTab()?.rowSplit ?? 50;
+    return this.getEffectiveActiveLayoutMode();
   }
 
   get focusedPaneId(): string {
-    return this.getActiveTab()?.focusedTerminalId || '';
+    return this.focusedTerminalId;
   }
 
-  getActiveTab(): RuntimeTab | undefined {
-    return this.runtimeTabs.find((tab) => tab.id === this.activeTabId);
+  set focusedPaneId(value: string) {
+    this.focusedTerminalId = value;
+  }
+
+  /** @deprecated Use terminals */
+  get runtimeTabs() {
+    return [];
+  }
+
+  /** @deprecated Tabs removed */
+  get activeTabId(): string {
+    return '';
   }
 
   getActiveTabTerminals(): RuntimeTerminal[] {
-    return this.getActiveTab()?.terminals || [];
+    return this.terminals;
   }
 
   getEffectiveActiveLayoutMode(): LayoutMode {
-    const tab = this.getActiveTab();
-    return tab ? getEffectiveLayoutMode(tab) : 'grid-2';
+    return getEffectiveLayoutMode(this.terminals.length);
+  }
+
+  getActiveLayoutLabel(): string {
+    switch (this.terminals.length) {
+      case 0:
+      case 1:
+        return 'Full stage';
+      case 2:
+        return 'Side by side';
+      case 3:
+        return 'Wide lower pane';
+      default:
+        return 'Four-pane grid';
+    }
   }
 
   getTerminalById(terminalId: string): RuntimeTerminal | undefined {
-    for (const tab of this.runtimeTabs) {
-      const terminal = tab.terminals.find((item) => item.id === terminalId);
-      if (terminal) {
-        return terminal;
-      }
-    }
-
-    return undefined;
+    return this.terminals.find((terminal) => terminal.id === terminalId);
   }
 
   getFocusedTerminal(): RuntimeTerminal | undefined {
-    const tab = this.getActiveTab();
-    if (!tab?.focusedTerminalId) {
+    if (!this.focusedTerminalId) {
       return undefined;
     }
 
-    return tab.terminals.find((terminal) => terminal.id === tab.focusedTerminalId);
-  }
-
-  getFocusedTab(): RuntimeTab | undefined {
-    return this.getActiveTab();
-  }
-
-  getFocusedPaneTab(): RuntimeTab | undefined {
-    return this.getActiveTab();
+    return this.terminals.find((terminal) => terminal.id === this.focusedTerminalId);
   }
 
   getPaneById(terminalId: string): RuntimeTerminal | undefined {
-    return this.getActiveTabTerminals().find((terminal) => terminal.id === terminalId);
-  }
-
-  getPaneTab(terminal: RuntimeTerminal): RuntimeTab | undefined {
-    return this.getActiveTab();
+    return this.getTerminalById(terminalId);
   }
 
   isWorkspaceActive(workspace: WorkspaceListItem): boolean {
@@ -126,21 +128,53 @@ export class WorkspaceRuntimeService {
     return this.isWorkspaceActive(session);
   }
 
-  isTabActive(tab: RuntimeTab): boolean {
-    return tab.id === this.activeTabId;
-  }
-
   isTerminalFocused(terminal: RuntimeTerminal): boolean {
-    return terminal.id === this.focusedPaneId;
+    return terminal.id === this.focusedTerminalId;
   }
 
   isPaneFocused(terminal: RuntimeTerminal): boolean {
     return this.isTerminalFocused(terminal);
   }
 
-  getFocusedTabShellLabel(): string {
+  getFocusedTerminalShellLabel(): string {
     const shell = this.getFocusedTerminal()?.shell || '';
-    return SHELL_OPTIONS.find((option) => option.value === shell)?.label || 'System Default';
+    return this.getShellOptions().find((option) => option.value === shell)?.label || 'System Default';
+  }
+
+  /** @deprecated Use getFocusedTerminalShellLabel */
+  getFocusedTabShellLabel(): string {
+    return this.getFocusedTerminalShellLabel();
+  }
+
+  getWorkspaceShellProfileLabel(): string {
+    return (
+      this.getWorkspaceShellProfileOptions().find((option) => option.value === this.workspaceShellProfile)
+        ?.label || 'Use App Default'
+    );
+  }
+
+  setWslDistros(distros: string[]): void {
+    this.wslDistros = Array.from(new Set(distros.map((distro) => distro.trim()).filter(Boolean)));
+  }
+
+  getShellOptions() {
+    return buildShellOptions(this.wslDistros, resolveHostPlatform());
+  }
+
+  getWorkspaceShellProfileOptions() {
+    return buildWorkspaceShellProfileOptions(this.wslDistros, resolveHostPlatform());
+  }
+
+  resolveNewTerminalShell(explicitShell: ShellId | undefined, appDefaultShell: ShellId): ShellId {
+    if (explicitShell !== undefined) {
+      return explicitShell;
+    }
+
+    if (this.workspaceShellProfile === 'system') {
+      return '';
+    }
+
+    return this.workspaceShellProfile || appDefaultShell || '';
   }
 
   async refreshWorkspaces(): Promise<void> {
@@ -169,44 +203,33 @@ export class WorkspaceRuntimeService {
 
   currentWorkspaceDraft(): WorkspaceDraft {
     const currentWorkspace = this.workspaces.find((workspace) => workspace.id === this.selectedWorkspaceId);
-    const activeTab = this.getActiveTab();
 
     return {
       id: this.selectedWorkspaceId,
       name: this.workspaceName.trim() || 'Untitled Workspace',
       cwd: this.workingDirectory.trim(),
+      shell: this.workspaceShellProfile,
       icon: currentWorkspace?.icon || 'cloud',
-      accent: currentWorkspace?.accent || 'slate',
-      layoutMode: activeTab?.layoutMode || 'grid-2x2',
+      accent: currentWorkspace?.accent || this.workspaceAccent || 'slate',
+      layoutMode: this.getEffectiveActiveLayoutMode(),
       launchProfile: this.workspaceSummary.launchProfile,
       sessionSnapshot: {
         layout: {
-          mode: activeTab?.layoutMode || 'grid-2x2',
-          activeTabId: this.activeTabId,
-          focusedPaneId: activeTab?.focusedTerminalId || '',
-          focusedTerminalId: activeTab?.focusedTerminalId || '',
-          colSplit: activeTab?.colSplit ?? 50,
-          rowSplit: activeTab?.rowSplit ?? 50,
-          panes: [],
+          mode: this.getEffectiveActiveLayoutMode(),
+          focusedPaneId: this.focusedTerminalId || '',
+          focusedTerminalId: this.focusedTerminalId || '',
+          colSplit: this.paneColSplit,
+          rowSplit: this.paneRowSplit,
         },
-        tabs: this.runtimeTabs.map((tab) => ({
-          id: tab.id,
-          title: tab.title,
-          cwd: tab.cwd,
-          accent: tab.accent,
-          layoutMode: tab.layoutMode,
-          colSplit: tab.colSplit,
-          rowSplit: tab.rowSplit,
-          focusedTerminalId: tab.focusedTerminalId,
-          terminals: tab.terminals.map((terminal) => ({
-            id: terminal.id,
-            cwd: terminal.cwd,
-            shell: terminal.shell || '',
-            startupCommand: terminal.startupCommand || '',
-            status: terminal.status,
-            session: terminal.session || null,
-            theme: terminal.theme ?? null,
-          })),
+        terminals: this.terminals.map((terminal) => ({
+          id: terminal.id,
+          name: terminal.name?.trim() || '',
+          cwd: terminal.cwd,
+          shell: terminal.shell || '',
+          startupCommand: terminal.startupCommand || '',
+          status: terminal.status,
+          session: terminal.session || null,
+          theme: terminal.theme ?? null,
         })),
         history: this.sessionHistory,
         recovery: this.recoverySnapshot,
@@ -220,27 +243,22 @@ export class WorkspaceRuntimeService {
     this.workspaceName = workspace.name;
     this.selectedWorkspace = workspace.name;
     this.selectedWorkspaceId = workspace.id;
+    this.workspaceShellProfile = this.normalizeWorkspaceShellProfile(workspace.shell);
+    this.workspaceAccent = workspace.accent || 'slate';
 
     const normalized = normalizeWorkspaceSnapshot(workspace.sessionSnapshot, workspace.cwd);
-    this.runtimeTabs = normalized.tabs.map((tab) => mapRuntimeTab(tab));
+    this.terminals = normalized.terminals.map((terminal) => mapRuntimeTerminal(terminal));
     this.sessionHistory = normalized.history?.slice(0, 20) || [];
     this.recoverySnapshot = normalized.recovery || this.buildEmptyRecoverySnapshot();
-    this.activeTabId =
-      normalized.layout.activeTabId || this.runtimeTabs[0]?.id || '';
-
-    const activeTab = this.getActiveTab();
-    if (activeTab) {
-      activeTab.focusedTerminalId =
-        normalized.layout.focusedTerminalId ||
-        activeTab.focusedTerminalId ||
-        activeTab.terminals[0]?.id ||
-        '';
-    }
+    this.focusedTerminalId =
+      normalized.layout.focusedTerminalId || this.terminals[0]?.id || '';
+    this.paneColSplit = normalized.layout.colSplit;
+    this.paneRowSplit = normalized.layout.rowSplit;
 
     const focusedTerminal = this.getFocusedTerminal();
-    this.workingDirectory = focusedTerminal?.cwd || activeTab?.cwd || workspace.cwd;
+    this.workingDirectory = focusedTerminal?.cwd || workspace.cwd;
     this.lastSavedAt = workspace.updatedAt;
-    this.updateWorkspaceSummary(activeTab?.layoutMode, workspace.launchProfile);
+    this.updateWorkspaceSummary(normalized.layout.mode, workspace.launchProfile);
   }
 
   async persistWorkspaceState(): Promise<void> {
@@ -384,24 +402,24 @@ export class WorkspaceRuntimeService {
     const name = options?.name || this.buildWorkspaceName('New Workspace');
     const icon = options?.icon || 'person';
     const accent = options?.accent || 'slate';
-    const starterTab = createEmptyTabSnapshot(name, cwd, accent);
 
     const created = await this.workspaceBridge.createWorkspace({
       name,
       cwd,
+      shell: '',
       templateId: '',
       icon,
       accent,
-      layoutMode: 'grid-2x2',
+      layoutMode: 'grid-2',
       launchProfile: 'manual',
       sessionSnapshot: {
         layout: {
-          mode: 'grid-2x2',
-          activeTabId: starterTab.id,
+          mode: 'grid-2',
           focusedTerminalId: '',
-          panes: [],
+          colSplit: 50,
+          rowSplit: 50,
         },
-        tabs: [starterTab],
+        terminals: [],
         history: [],
         recovery: this.buildEmptyRecoverySnapshot(),
       },
@@ -412,77 +430,82 @@ export class WorkspaceRuntimeService {
     return created;
   }
 
-  createTabDraft(): RuntimeTab | 'blocked' | null {
-    if (!this.activeWorkspace) {
+  hasRunningTerminals(): boolean {
+    return this.terminals.some((terminal) => terminal.status.toLowerCase() === 'running');
+  }
+
+  async cycleTerminal(offset: -1 | 1): Promise<RuntimeTerminal | null | 'unchanged'> {
+    if (!this.terminals.length) {
       return null;
     }
 
-    if (this.runtimeTabs.length >= MAX_TABS_PER_WORKSPACE) {
-      return 'blocked';
-    }
-
-    const nextIndex = this.runtimeTabs.length + 1;
-    const snapshot = createEmptyTabSnapshot(
-      `${this.workspaceName} Tab ${nextIndex}`,
-      this.workingDirectory,
-      this.workspaces.find((workspace) => workspace.id === this.selectedWorkspaceId)?.accent || 'violet'
+    const currentIndex = Math.max(
+      0,
+      this.terminals.findIndex((terminal) => terminal.id === this.focusedTerminalId)
     );
-
-    return mapRuntimeTab(snapshot);
+    const nextIndex = (currentIndex + offset + this.terminals.length) % this.terminals.length;
+    return this.focusTerminal(this.terminals[nextIndex].id);
   }
 
-  addTab(nextTab: RuntimeTab): void {
-    this.runtimeTabs = [...this.runtimeTabs, nextTab];
-    this.activeTabId = nextTab.id;
-    this.workingDirectory = nextTab.cwd;
-    this.updateWorkspaceSummary();
-  }
-
-  createTerminalDraft(shell = ''): RuntimeTerminal | 'blocked' | null {
-    const tab = this.getActiveTab();
-    if (!tab) {
+  async duplicateTerminal(terminalId: string): Promise<RuntimeTerminal | null | 'blocked'> {
+    const source = this.terminals.find((terminal) => terminal.id === terminalId);
+    if (!source) {
       return null;
     }
-
-    if (tab.terminals.length >= MAX_TERMINALS_PER_TAB) {
+    if (this.terminals.length >= MAX_TERMINALS_PER_WORKSPACE) {
       return 'blocked';
     }
 
-    return createTerminalDraft(tab, this.activeWorkspace?.cwd || this.workingDirectory, { shell });
+    const duplicate = createTerminalDraft(source.cwd, {
+      shell: source.shell,
+      theme: source.theme,
+      existingCount: this.terminals.length,
+    });
+    duplicate.name = source.name?.trim() ? `${source.name.trim()} copy` : '';
+    duplicate.startupCommand = source.startupCommand;
+    this.addTerminal(duplicate);
+    await this.persistWorkspaceState();
+    return duplicate;
+  }
+
+  createTerminalDraft(shell: ShellId = ''): RuntimeTerminal | 'blocked' | null {
+    if (!this.activeWorkspace && !this.previewMode) {
+      return null;
+    }
+
+    if (this.terminals.length >= MAX_TERMINALS_PER_WORKSPACE) {
+      return 'blocked';
+    }
+
+    return createTerminalDraft(this.activeWorkspace?.cwd || this.workingDirectory, {
+      shell,
+      existingCount: this.terminals.length,
+    });
+  }
+
+  async updateWorkspaceShellProfile(profile: WorkspaceShellProfile): Promise<void> {
+    this.workspaceShellProfile = this.normalizeWorkspaceShellProfile(profile);
+    await this.persistWorkspaceState();
   }
 
   addTerminal(terminal: RuntimeTerminal): void {
-    const tab = this.getActiveTab();
-    if (!tab) {
-      return;
-    }
-
-    tab.terminals = [...tab.terminals, terminal];
-    tab.focusedTerminalId = terminal.id;
+    this.terminals = [...this.terminals, terminal];
+    this.focusedTerminalId = terminal.id;
     this.workingDirectory = terminal.cwd;
     this.updateWorkspaceSummary();
   }
 
-  async selectTab(tabId: string): Promise<RuntimeTab | null> {
-    const tab = this.runtimeTabs.find((item) => item.id === tabId);
-    if (!tab) {
-      return null;
-    }
-
-    this.activeTabId = tabId;
-    const focusedTerminal = tab.terminals.find((terminal) => terminal.id === tab.focusedTerminalId);
-    this.workingDirectory = focusedTerminal?.cwd || tab.cwd;
-    await this.persistWorkspaceState();
-    return tab;
-  }
-
-  updateFocusedTabCwd(value: string): void {
+  updateFocusedTerminalCwd(value: string): void {
     this.workingDirectory = value;
-    this.updateActiveTabField('cwd', value);
     const terminal = this.getFocusedTerminal();
     if (terminal) {
       this.updateTerminalField(terminal.id, 'cwd', value);
     }
+  }
+
+  /** @deprecated Use updateFocusedTerminalCwd */
+  updateFocusedTabCwd(value: string): void {
+    this.updateFocusedTerminalCwd(value);
   }
 
   updateFocusedTerminalShell(value: string): void {
@@ -490,6 +513,17 @@ export class WorkspaceRuntimeService {
     if (terminal) {
       this.updateTerminalField(terminal.id, 'shell', value);
     }
+  }
+
+  updateFocusedTerminalName(value: string): void {
+    const terminal = this.getFocusedTerminal();
+    if (terminal) {
+      this.updateTerminalName(terminal.id, value);
+    }
+  }
+
+  updateTerminalName(terminalId: string, value: string): void {
+    this.updateTerminalField(terminalId, 'name', value.trim().slice(0, 48));
   }
 
   updateFocusedTerminalTheme(theme: RuntimeTerminal['theme']): void {
@@ -505,7 +539,11 @@ export class WorkspaceRuntimeService {
       return;
     }
 
-    this.updateTerminalField(terminal.id, 'theme', {
+    this.updateTerminalThemeColors(terminal.id, foreground, background);
+  }
+
+  updateTerminalThemeColors(terminalId: string, foreground: string, background: string): void {
+    this.updateTerminalField(terminalId, 'theme', {
       foreground,
       background,
     });
@@ -514,8 +552,12 @@ export class WorkspaceRuntimeService {
   resetFocusedTerminalTheme(): void {
     const terminal = this.getFocusedTerminal();
     if (terminal) {
-      this.updateTerminalField(terminal.id, 'theme', null);
+      this.resetTerminalTheme(terminal.id);
     }
+  }
+
+  resetTerminalTheme(terminalId: string): void {
+    this.updateTerminalField(terminalId, 'theme', null);
   }
 
   usesDefaultTerminalTheme(terminal: RuntimeTerminal | undefined): boolean {
@@ -534,118 +576,52 @@ export class WorkspaceRuntimeService {
     }
   }
 
-  async closeTab(tabId: string): Promise<RuntimeTab | null> {
-    const remainingTabs = this.runtimeTabs.filter((tab) => tab.id !== tabId);
-    this.runtimeTabs = remainingTabs;
-
-    if (!remainingTabs.length) {
-      this.activeTabId = '';
-      this.workingDirectory = this.activeWorkspace?.cwd || this.workingDirectory;
-      this.updateWorkspaceSummary();
-      await this.persistWorkspaceState();
-      return null;
-    }
-
-    if (this.activeTabId === tabId) {
-      const fallbackTab = remainingTabs[0];
-      this.activeTabId = fallbackTab.id;
-      const focusedTerminal = fallbackTab.terminals.find(
-        (terminal) => terminal.id === fallbackTab.focusedTerminalId
-      );
-      this.workingDirectory = focusedTerminal?.cwd || fallbackTab.cwd;
-      this.updateWorkspaceSummary();
-      await this.persistWorkspaceState();
-      return fallbackTab;
-    }
-
-    this.updateWorkspaceSummary();
-    await this.persistWorkspaceState();
-    return null;
-  }
-
   async removeTerminal(terminalId: string): Promise<RuntimeTerminal | null | 'unchanged'> {
-    const tab = this.getActiveTab();
-    if (!tab) {
-      return 'unchanged';
-    }
-
-    const terminal = tab.terminals.find((item) => item.id === terminalId);
+    const terminal = this.terminals.find((item) => item.id === terminalId);
     if (!terminal) {
       return 'unchanged';
     }
 
-    tab.terminals = tab.terminals.filter((item) => item.id !== terminalId);
-    if (tab.focusedTerminalId === terminalId) {
-      tab.focusedTerminalId = tab.terminals[0]?.id || '';
+    this.terminals = this.terminals.filter((item) => item.id !== terminalId);
+    if (this.focusedTerminalId === terminalId) {
+      this.focusedTerminalId = this.terminals[0]?.id || '';
     }
 
-    const nextFocused = tab.terminals.find((item) => item.id === tab.focusedTerminalId);
-    this.workingDirectory = nextFocused?.cwd || tab.cwd;
+    const nextFocused = this.terminals.find((item) => item.id === this.focusedTerminalId);
+    this.workingDirectory = nextFocused?.cwd || this.activeWorkspace?.cwd || this.workingDirectory;
     this.updateWorkspaceSummary();
     await this.persistWorkspaceState();
     return nextFocused ?? null;
   }
 
   /** @deprecated Use removeTerminal */
-  async clearPane(terminalId: string): Promise<RuntimeTab | null | 'unchanged'> {
-    const result = await this.removeTerminal(terminalId);
-    if (result === 'unchanged') {
-      return 'unchanged';
-    }
-
-    return this.getActiveTab() ?? null;
-  }
-
-  async setLayoutMode(mode: LayoutMode): Promise<boolean> {
-    const tab = this.getActiveTab();
-    if (!tab || tab.layoutMode === mode) {
-      return false;
-    }
-
-    tab.layoutMode = mode;
-    this.updateWorkspaceSummary(tab.layoutMode);
-    await this.persistWorkspaceState();
-    return true;
+  async clearPane(terminalId: string): Promise<RuntimeTerminal | null | 'unchanged'> {
+    return this.removeTerminal(terminalId);
   }
 
   async focusTerminal(terminalId: string): Promise<RuntimeTerminal | null | 'unchanged'> {
-    const tab = this.getActiveTab();
-    const terminal = tab?.terminals.find((item) => item.id === terminalId);
-    if (!tab || !terminal) {
+    const terminal = this.terminals.find((item) => item.id === terminalId);
+    if (!terminal) {
       return null;
     }
 
-    if (tab.focusedTerminalId === terminalId) {
+    if (this.focusedTerminalId === terminalId) {
       return 'unchanged';
     }
 
-    tab.focusedTerminalId = terminalId;
+    this.focusedTerminalId = terminalId;
     this.workingDirectory = terminal.cwd;
     await this.persistWorkspaceState();
     return terminal;
   }
 
   /** @deprecated Use focusTerminal */
-  async focusPane(terminalId: string): Promise<RuntimeTab | null | 'unchanged'> {
-    const result = await this.focusTerminal(terminalId);
-    if (result === 'unchanged') {
-      return 'unchanged';
-    }
-
-    return this.getActiveTab() ?? null;
+  async focusPane(terminalId: string): Promise<RuntimeTerminal | null | 'unchanged'> {
+    return this.focusTerminal(terminalId);
   }
 
   updateTerminalStatus(terminalId: string, status: string): void {
     this.updateTerminalField(terminalId, 'status', status);
-  }
-
-  /** @deprecated Use updateTerminalStatus */
-  updateTabStatus(tabId: string, status: string): void {
-    const tab = this.runtimeTabs.find((item) => item.id === tabId);
-    const terminalId = tab?.focusedTerminalId;
-    if (terminalId) {
-      this.updateTerminalStatus(terminalId, status);
-    }
   }
 
   updateTerminalSessionSnapshot(terminalId: string, session: PaneSessionSnapshot | null): void {
@@ -658,7 +634,6 @@ export class WorkspaceRuntimeService {
   }
 
   recordSessionLaunch(
-    tab: RuntimeTab,
     terminalId: string,
     metadata: { shell: string; startedAt: string | null }
   ): void {
@@ -666,7 +641,6 @@ export class WorkspaceRuntimeService {
       ...this.recoverySnapshot,
       lastLaunchAt: metadata.startedAt,
       lastAttachedPaneId: terminalId,
-      lastAttachedTabId: tab.id,
       lastRecoveredAt: new Date().toISOString(),
       lastStopReason: null,
       lastSessionEndedAt: null,
@@ -675,19 +649,21 @@ export class WorkspaceRuntimeService {
   }
 
   recordSessionEvent(
-    tab: RuntimeTab,
     terminalId: string,
-    entry: Omit<SessionHistoryEntry, 'id' | 'tabId' | 'tabTitle' | 'paneId' | 'shell' | 'cwd'>
+    entry: Omit<SessionHistoryEntry, 'id' | 'tabId' | 'tabTitle' | 'paneId' | 'shell' | 'cwd' | 'terminalTitle'>
   ): void {
-    const terminal = tab.terminals.find((item) => item.id === terminalId);
+    const terminal = this.getTerminalById(terminalId);
+    const terminalTitle = terminal
+      ? this.getTerminalDisplayTitle(terminal, Math.max(0, this.terminals.indexOf(terminal)))
+      : undefined;
+
     this.sessionHistory = [
       {
         id: `session-${Date.now()}-${this.sessionHistory.length}`,
-        tabId: tab.id,
-        tabTitle: tab.title,
         paneId: terminalId,
+        terminalTitle,
         shell: terminal?.shell || '',
-        cwd: terminal?.cwd || tab.cwd,
+        cwd: terminal?.cwd || this.workingDirectory,
         ...entry,
       },
       ...this.sessionHistory,
@@ -696,7 +672,6 @@ export class WorkspaceRuntimeService {
     this.recoverySnapshot = {
       ...this.recoverySnapshot,
       lastAttachedPaneId: terminalId,
-      lastAttachedTabId: tab.id,
       lastStopReason: entry.reason,
       lastSessionEndedAt: entry.endedAt,
       lastExitCode: entry.exitCode,
@@ -704,22 +679,17 @@ export class WorkspaceRuntimeService {
   }
 
   updatePaneSplit(mode: 'col' | 'row', clientX: number, clientY: number, bounds: DOMRect): void {
-    const tab = this.getActiveTab();
-    if (!tab) {
-      return;
-    }
-
     if (mode === 'col') {
       const pct = ((clientX - bounds.left) / bounds.width) * 100;
-      tab.colSplit = Math.min(78, Math.max(22, pct));
+      this.paneColSplit = Math.min(78, Math.max(22, pct));
     } else {
       const pct = ((clientY - bounds.top) / bounds.height) * 100;
-      tab.rowSplit = Math.min(78, Math.max(22, pct));
+      this.paneRowSplit = Math.min(78, Math.max(22, pct));
     }
   }
 
-  getTerminalTone(terminal: RuntimeTerminal): string {
-    return this.getActiveTab()?.accent || 'slate';
+  getTerminalTone(_terminal: RuntimeTerminal): string {
+    return this.workspaceAccent || 'slate';
   }
 
   getPaneTone(terminal: RuntimeTerminal): string {
@@ -727,12 +697,33 @@ export class WorkspaceRuntimeService {
   }
 
   getTerminalDisplayTitle(terminal: RuntimeTerminal, index: number): string {
-    const tab = this.getActiveTab();
-    if (tab && tab.terminals.length === 1) {
-      return tab.title;
+    const customName = terminal.name?.trim();
+    if (customName) {
+      return customName;
     }
 
-    return `Shell ${index + 1}`;
+    const shellLabel =
+      this.getShellOptions().find((option) => option.value === terminal.shell)?.label || 'System Default';
+    const matchingTerminals = this.terminals.filter((item) => {
+      const itemLabel =
+        this.getShellOptions().find((option) => option.value === item.shell)?.label || 'System Default';
+      return itemLabel === shellLabel;
+    });
+    if (matchingTerminals.length === 1) {
+      return shellLabel;
+    }
+
+    return `${shellLabel} ${matchingTerminals.indexOf(terminal) + 1 || index + 1}`;
+  }
+
+  getCommandHistorySource(entry: CommandHistoryEntry): string {
+    const terminal = entry.terminalId ? this.getTerminalById(entry.terminalId) : undefined;
+    const workspaceTitle = this.workspaceName || entry.tabTitle || 'Workspace';
+    const terminalTitle = terminal
+      ? this.getTerminalDisplayTitle(terminal, Math.max(0, this.terminals.indexOf(terminal)))
+      : entry.terminalTitle;
+
+    return terminalTitle ? `${workspaceTitle} • ${terminalTitle}` : workspaceTitle;
   }
 
   getPaneDisplayTitle(terminal: RuntimeTerminal, index: number): string {
@@ -764,17 +755,29 @@ export class WorkspaceRuntimeService {
   }
 
   getTerminalMetaLine(terminal: RuntimeTerminal): string {
-    const tab = this.getActiveTab();
-    if (this.previewMode && tab) {
-      switch (tab.title) {
-        case 'API':
+    if (this.previewMode) {
+      switch (terminal.name || terminal.startupCommand) {
+        case 'dotnet run':
           return 'main • 7192';
-        case 'Angular':
+        case 'npm start':
           return 'main • 4200';
-        case 'Database':
+        case 'docker exec -it cloudpos-db psql -U postgres':
           return 'local • 5432';
-        case 'Docker':
+        case 'docker compose ps':
           return 'up • 4 containers';
+      }
+
+      if (terminal.id === 'terminal-1') {
+        return 'main • 7192';
+      }
+      if (terminal.id === 'terminal-2') {
+        return 'main • 4200';
+      }
+      if (terminal.id === 'terminal-3') {
+        return 'local • 5432';
+      }
+      if (terminal.id === 'terminal-4') {
+        return 'up • 4 containers';
       }
     }
 
@@ -795,13 +798,12 @@ export class WorkspaceRuntimeService {
   }
 
   getTerminalPreviewText(terminal: RuntimeTerminal): string {
-    const tab = this.getActiveTab();
-    if (!tab) {
-      return '';
+    if (!this.previewMode) {
+      return `PS ${terminal.cwd}>`;
     }
 
-    switch (tab.title) {
-      case 'API':
+    switch (terminal.id) {
+      case 'terminal-1':
         return [
           'PS C:\\Projects\\CloudPOS\\Api> dotnet run',
           'info: Microsoft.Hosting.Lifetime[14]',
@@ -809,19 +811,19 @@ export class WorkspaceRuntimeService {
           'info: Microsoft.Hosting.Lifetime[0]',
           '      Application started. Press Ctrl+C to shut down.',
         ].join('\n');
-      case 'Angular':
+      case 'terminal-2':
         return [
           'PS C:\\Projects\\CloudPOS\\Angular> npm start',
           '> ng serve',
           '** Angular Live Development Server is listening on localhost:4200 **',
         ].join('\n');
-      case 'Database':
+      case 'terminal-3':
         return [
           'PS C:\\> docker exec -it cloudpos-db psql -U postgres',
           'postgres=# \\dt',
           '(4 rows)',
         ].join('\n');
-      case 'Docker':
+      case 'terminal-4':
         return [
           'PS C:\\Projects\\CloudPOS> docker compose ps',
           'api       cloudpos-api       Up 4 mins   0.0.0.0:5192->5192',
@@ -848,50 +850,39 @@ export class WorkspaceRuntimeService {
     ];
     this.selectedWorkspaceId = 'ws-cloud-pos';
 
-    const previewTabs = [
+    const previewTerminals = [
       {
-        title: 'API',
+        id: 'terminal-1',
+        name: 'API',
         cwd: 'C:\\Projects\\CloudPOS\\Api',
-        accent: 'violet',
         startupCommand: 'dotnet run',
       },
       {
-        title: 'Angular',
+        id: 'terminal-2',
+        name: 'Angular',
         cwd: 'C:\\Projects\\CloudPOS\\Angular',
-        accent: 'amber',
         startupCommand: 'npm start',
       },
       {
-        title: 'Database',
+        id: 'terminal-3',
+        name: 'Database',
         cwd: 'C:\\',
-        accent: 'blue',
         startupCommand: 'docker exec -it cloudpos-db psql -U postgres',
       },
       {
-        title: 'Docker',
+        id: 'terminal-4',
+        name: 'Docker',
         cwd: 'C:\\Projects\\CloudPOS',
-        accent: 'cyan',
         startupCommand: 'docker compose ps',
       },
-    ].map((item, index) => ({
-      id: `tab-${item.title.toLowerCase()}`,
-      title: item.title,
+    ].map((item) => ({
+      id: item.id,
+      name: item.name,
       cwd: item.cwd,
-      accent: item.accent,
-      layoutMode: 'grid-2' as LayoutMode,
-      colSplit: 50,
-      rowSplit: 50,
-      focusedTerminalId: `terminal-${index + 1}`,
-      terminals: [
-        {
-          id: `terminal-${index + 1}`,
-          cwd: item.cwd,
-          shell: 'powershell',
-          startupCommand: item.startupCommand,
-          status: 'running',
-          session: null,
-        },
-      ],
+      shell: 'powershell',
+      startupCommand: item.startupCommand,
+      status: 'running',
+      session: null,
     }));
 
     const workspace: SavedWorkspace = {
@@ -907,12 +898,12 @@ export class WorkspaceRuntimeService {
       updatedAt: new Date().toISOString(),
       sessionSnapshot: {
         layout: {
-          mode: 'grid-2',
-          activeTabId: previewTabs[0].id,
-          focusedTerminalId: previewTabs[0].focusedTerminalId,
-          panes: [],
+          mode: 'grid-2x2',
+          focusedTerminalId: previewTerminals[0].id,
+          colSplit: 50,
+          rowSplit: 50,
         },
-        tabs: previewTabs,
+        terminals: previewTerminals,
       },
     };
 
@@ -930,40 +921,26 @@ export class WorkspaceRuntimeService {
     };
   }
 
-  private updateActiveTabField(field: 'cwd', value: string): void {
-    const tab = this.getActiveTab();
-    if (!tab) {
-      return;
-    }
-
-    tab.cwd = value;
-  }
-
   private updateTerminalField<K extends keyof RuntimeTerminal>(
     terminalId: string,
     field: K,
     value: RuntimeTerminal[K]
   ): void {
-    for (const tab of this.runtimeTabs) {
-      const index = tab.terminals.findIndex((terminal) => terminal.id === terminalId);
-      if (index === -1) {
-        continue;
-      }
-
-      tab.terminals = tab.terminals.map((terminal, terminalIndex) =>
-        terminalIndex === index ? { ...terminal, [field]: value } : terminal
-      );
+    const index = this.terminals.findIndex((terminal) => terminal.id === terminalId);
+    if (index === -1) {
       return;
     }
+
+    this.terminals = this.terminals.map((terminal, terminalIndex) =>
+      terminalIndex === index ? { ...terminal, [field]: value } : terminal
+    );
   }
 
   private updateWorkspaceSummary(layoutMode?: string, launchProfile?: string): void {
-    const activeTab = this.getActiveTab();
     this.workspaceSummary = {
-      layoutMode: layoutMode || activeTab?.layoutMode || 'grid-2x2',
+      layoutMode: layoutMode || this.getEffectiveActiveLayoutMode(),
       launchProfile: launchProfile || this.workspaceSummary.launchProfile || 'manual',
-      tabCount: this.runtimeTabs.length,
-      paneCount: activeTab?.terminals.length || 0,
+      paneCount: this.terminals.length,
     };
   }
 
@@ -976,11 +953,14 @@ export class WorkspaceRuntimeService {
     return normalized.charAt(0).toUpperCase() + normalized.slice(1);
   }
 
+  private normalizeWorkspaceShellProfile(value: string | null | undefined): WorkspaceShellProfile {
+    return isWorkspaceShellProfile(value) ? (value as WorkspaceShellProfile) : '';
+  }
+
   private buildEmptyRecoverySnapshot(): RecoverySnapshot {
     return {
       lastLaunchAt: null,
       lastAttachedPaneId: null,
-      lastAttachedTabId: null,
       lastExitCode: null,
       lastStopReason: null,
       lastSessionEndedAt: null,

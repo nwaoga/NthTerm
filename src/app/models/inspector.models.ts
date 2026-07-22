@@ -10,4 +10,6 @@ export interface InspectorSummaryItem {
   value: string;
 }
 
+export type InspectorMode = 'workspace' | 'terminal';
+
 export interface RuntimeSessionInfo extends TerminalInfo {}

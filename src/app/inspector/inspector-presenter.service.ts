@@ -1,44 +1,58 @@
 import { Injectable, inject } from '@angular/core';
 
-import { InspectorItem, InspectorSummaryItem } from '../models';
+import { InspectorItem, InspectorMode, InspectorSummaryItem } from '../models';
 import { SystemMonitorService } from '../system/system-monitor.service';
 import { TerminalSessionService } from '../terminal/terminal-session.service';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 
 @Injectable({ providedIn: 'root' })
 export class InspectorPresenterService {
-  activeTab: 'tab' | 'session' = 'tab';
+  activeTab: InspectorMode = 'workspace';
 
   private readonly workspace = inject(WorkspaceRuntimeService);
   private readonly terminal = inject(TerminalSessionService);
   private readonly systemMonitor = inject(SystemMonitorService);
 
   getInspectorItems(): InspectorItem[] {
-    const focusedTab = this.workspace.getFocusedTab();
-    if (this.activeTab === 'session') {
+    const focusedTerminal = this.workspace.getFocusedTerminal();
+    if (this.activeTab === 'workspace') {
       return [
-        { label: 'Shell', value: this.terminal.sessionInfo?.shell || 'n/a' },
-        { label: 'Session Id', value: this.terminal.sessionInfo?.id || 'n/a' },
-        { label: 'PID', value: this.terminal.sessionInfo?.pid?.toString() || 'n/a' },
+        { label: 'Workspace', value: this.workspace.workspaceName || 'n/a' },
+        { label: 'Directory', value: this.workspace.workingDirectory || 'n/a' },
+        { label: 'Shell Profile', value: this.workspace.getWorkspaceShellProfileLabel() },
+        { label: 'Terminals', value: this.workspace.terminals.length.toString() },
         {
-          label: 'Started',
-          value: this.systemMonitor.formatTimestamp(this.terminal.sessionInfo?.startedAt),
+          label: 'Last Saved',
+          value: this.workspace.lastSavedAt
+            ? this.systemMonitor.formatTimestamp(this.workspace.lastSavedAt)
+            : 'pending',
         },
-        {
-          label: 'Uptime',
-          value: this.systemMonitor.formatUptime(
-            this.terminal.sessionInfo?.startedAt,
-            this.terminal.sessionInfo?.endedAt
-          ),
-        },
-        {
-          label: 'Last Activity',
-          value: this.systemMonitor.formatTimestamp(this.terminal.sessionInfo?.lastActiveAt),
-        },
-        {
-          label: 'Port',
-          value: this.terminal.sessionInfo?.detectedPort?.toString() || 'Not detected',
-        },
+      ];
+    }
+
+    return [
+      { label: 'Shell', value: this.terminal.sessionInfo?.shell || 'n/a' },
+      { label: 'Session Id', value: this.terminal.sessionInfo?.id || 'n/a' },
+      { label: 'PID', value: this.terminal.sessionInfo?.pid?.toString() || 'n/a' },
+      {
+        label: 'Started',
+        value: this.systemMonitor.formatTimestamp(this.terminal.sessionInfo?.startedAt),
+      },
+      {
+        label: 'Uptime',
+        value: this.systemMonitor.formatUptime(
+          this.terminal.sessionInfo?.startedAt,
+          this.terminal.sessionInfo?.endedAt
+        ),
+      },
+      {
+        label: 'Last Activity',
+        value: this.systemMonitor.formatTimestamp(this.terminal.sessionInfo?.lastActiveAt),
+      },
+      {
+        label: 'Port',
+        value: this.terminal.sessionInfo?.detectedPort?.toString() || 'Not detected',
+      },
       {
         label: 'Exit Code',
         value: this.terminal.sessionInfo?.exitCode?.toString() ?? 'n/a',
@@ -47,61 +61,42 @@ export class InspectorPresenterService {
         label: 'Recovery',
         value: this.workspace.recoverySnapshot.lastStopReason || 'Live session',
       },
-    ];
-  }
-
-    return [
       {
         label: 'Directory',
-        value: focusedTab?.cwd || this.workspace.workingDirectory || 'n/a',
+        value: focusedTerminal?.cwd || this.workspace.workingDirectory || 'n/a',
       },
-      { label: 'Shell', value: this.workspace.getFocusedTabShellLabel() },
-      {
-        label: 'Startup Command',
-        value: this.workspace.getFocusedTerminal()?.startupCommand?.trim() || 'None',
-      },
-      { label: 'Workspace', value: this.workspace.workspaceName || 'n/a' },
-      { label: 'Layout', value: this.workspace.layoutMode },
-      { label: 'Focused Terminal', value: this.workspace.focusedPaneId || 'n/a' },
-      {
-        label: 'Launch Profile',
-        value: this.workspace.workspaceSummary.launchProfile || 'manual',
-      },
-      { label: 'Status', value: this.workspace.getFocusedTerminal()?.status || 'idle' },
-      {
-        label: 'Last Recovery',
-        value: this.workspace.recoverySnapshot.lastStopReason || 'Clean restore',
-      },
-      {
-        label: 'Last Session Ended',
-        value:
-          this.systemMonitor.formatTimestamp(this.workspace.recoverySnapshot.lastSessionEndedAt) ||
-          'n/a',
-      },
-      { label: 'Last Saved', value: this.workspace.lastSavedAt || 'pending' },
     ];
   }
 
   getInspectorSummaryItems(): InspectorSummaryItem[] {
-    const focusedTab = this.workspace.getFocusedTab();
+    const focusedTerminal = this.workspace.getFocusedTerminal();
+    if (this.activeTab === 'workspace') {
+      return [
+        { label: 'Terminals', value: this.workspace.terminals.length.toString() },
+        { label: 'Shell Profile', value: this.workspace.getWorkspaceShellProfileLabel() },
+        { label: 'Arrangement', value: this.workspace.getActiveLayoutLabel() },
+        { label: 'Directory', value: this.workspace.workingDirectory || 'n/a' },
+      ];
+    }
+
     return [
       {
         label: 'Shell',
         value: this.workspace.previewMode
           ? 'PowerShell 7.4.2'
-          : this.workspace.getFocusedTabShellLabel(),
+          : this.workspace.getFocusedTerminalShellLabel(),
       },
       {
         label: 'Directory',
-        value: focusedTab?.cwd || this.workspace.workingDirectory || 'n/a',
+        value: focusedTerminal?.cwd || this.workspace.workingDirectory || 'n/a',
       },
       {
         label: 'Git Branch',
-        value: focusedTab?.title === 'Docker' ? 'infra' : 'main',
+        value: focusedTerminal?.name === 'Docker' ? 'infra' : 'main',
       },
       {
         label: 'Process',
-        value: this.formatProcessSummary(focusedTab),
+        value: this.formatProcessSummary(),
       },
       {
         label: 'Started',
@@ -119,18 +114,18 @@ export class InspectorPresenterService {
       {
         label: 'Port',
         value:
-          focusedTab?.title === 'Docker'
+          focusedTerminal?.name === 'Docker'
             ? 'n/a'
-            : focusedTab?.title === 'Database'
+            : focusedTerminal?.name === 'Database'
               ? '5432'
-              : focusedTab?.title === 'API'
+              : focusedTerminal?.name === 'API'
                 ? 'https://localhost:7192'
                 : 'http://localhost:4200',
       },
     ];
   }
 
-  private formatProcessSummary(focusedTab: ReturnType<WorkspaceRuntimeService['getFocusedTab']>): string {
+  private formatProcessSummary(): string {
     const command = this.workspace.getFocusedTerminal()?.startupCommand?.trim();
     if (!command) {
       return 'Interactive shell';

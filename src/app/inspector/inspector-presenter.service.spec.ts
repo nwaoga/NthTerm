@@ -19,19 +19,27 @@ describe('InspectorPresenterService', () => {
       lastStopReason: 'Process exited',
       lastSessionEndedAt: '2026-07-01T08:14:00.000Z',
     },
-    getFocusedTab: () => ({
-      id: 'tab-1',
-      title: 'API',
-      cwd: 'C:/repo/apps/api',
-    }),
+    terminals: [
+      {
+        id: 'terminal-1',
+        name: 'API',
+        cwd: 'C:/repo/apps/api',
+        status: 'running',
+        startupCommand: 'npm run api',
+        shell: 'powershell',
+      },
+    ],
     getFocusedTerminal: () => ({
       id: 'terminal-1',
+      name: 'API',
       cwd: 'C:/repo/apps/api',
       startupCommand: 'npm run api',
       status: 'running',
       shell: 'powershell',
     }),
-    getFocusedTabShellLabel: () => 'PowerShell',
+    getFocusedTerminalShellLabel: () => 'PowerShell',
+    getWorkspaceShellProfileLabel: () => 'PowerShell',
+    getActiveLayoutLabel: () => 'Full stage',
   };
 
   const terminalService = {
@@ -63,19 +71,39 @@ describe('InspectorPresenterService', () => {
     });
   });
 
-  it('returns tab-focused inspector items by default', () => {
+  it('returns workspace-focused inspector items by default', () => {
     const service = TestBed.inject(InspectorPresenterService);
 
     const items = service.getInspectorItems();
+    const summary = service.getInspectorSummaryItems();
 
-    expect(items[0]).toEqual({ label: 'Directory', value: 'C:/repo/apps/api' });
-    expect(items.find((item) => item.label === 'Startup Command')?.value).toBe('npm run api');
-    expect(items.find((item) => item.label === 'Last Recovery')?.value).toBe('Process exited');
+    expect(items[0]).toEqual({ label: 'Workspace', value: 'Cloud POS' });
+    expect(items.find((item) => item.label === 'Terminals')?.value).toBe('1');
+    expect(items.find((item) => item.label === 'Last Saved')?.value).toBe(
+      'ts:2026-07-01T08:15:00.000Z'
+    );
+    expect(summary.find((item) => item.label === 'Terminals')?.value).toBe('1');
+    expect(summary.find((item) => item.label === 'Tabs')).toBeUndefined();
   });
 
-  it('returns live session details when the session tab is active', () => {
+  it('returns workspace-level details when the workspace mode is active', () => {
     const service = TestBed.inject(InspectorPresenterService);
-    service.activeTab = 'session';
+    service.activeTab = 'workspace';
+
+    const items = service.getInspectorItems();
+    const summary = service.getInspectorSummaryItems();
+
+    expect(items[0]).toEqual({ label: 'Workspace', value: 'Cloud POS' });
+    expect(items.find((item) => item.label === 'Shell Profile')?.value).toBe('PowerShell');
+    expect(items.find((item) => item.label === 'Last Saved')?.value).toBe(
+      'ts:2026-07-01T08:15:00.000Z'
+    );
+    expect(summary.find((item) => item.label === 'Terminals')?.value).toBe('1');
+  });
+
+  it('returns live terminal details when the terminal mode is active', () => {
+    const service = TestBed.inject(InspectorPresenterService);
+    service.activeTab = 'terminal';
 
     const items = service.getInspectorItems();
 

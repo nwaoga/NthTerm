@@ -27,7 +27,13 @@ export interface TerminalInfo {
 }
 
 interface TerminalApi {
-  createTerminal(options?: { cwd?: string; workspaceName?: string; shell?: string }): Promise<{ id: string }>;
+  createTerminal(options?: {
+    terminalId?: string;
+    cwd?: string;
+    workspaceName?: string;
+    shell?: string;
+  }): Promise<{ id: string }>;
+  listWslDistros(): Promise<string[]>;
   writeTerminal(id: string, data: string): Promise<void>;
   resizeTerminal(id: string, cols: number, rows: number): Promise<void>;
   getTerminalInfo(id: string): Promise<TerminalInfo | null>;
@@ -40,9 +46,18 @@ interface TerminalApi {
 
 @Injectable({ providedIn: 'root' })
 export class TerminalBridgeService {
-  async createSession(options?: { cwd?: string; workspaceName?: string; shell?: string }): Promise<string> {
+  async createSession(options?: {
+    terminalId?: string;
+    cwd?: string;
+    workspaceName?: string;
+    shell?: string;
+  }): Promise<string> {
     const session = await this.getApi().createTerminal(options);
     return session.id;
+  }
+
+  listWslDistros(): Promise<string[]> {
+    return this.getApi().listWslDistros();
   }
 
   sendInput(id: string, data: string): Promise<void> {
@@ -89,6 +104,7 @@ export class TerminalBridgeService {
 
 declare global {
   interface DesktopApi {
+    platform?: string;
     terminal?: TerminalApi;
     workspace?: any;
     system?: SystemApi;

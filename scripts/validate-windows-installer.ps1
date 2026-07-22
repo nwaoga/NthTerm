@@ -6,6 +6,23 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
+function Get-Sha256([string]$path) {
+  $getFileHash = Get-Command Get-FileHash -ErrorAction SilentlyContinue
+  if ($getFileHash) {
+    return (Get-FileHash $path -Algorithm SHA256).Hash
+  }
+
+  $sha256 = [System.Security.Cryptography.SHA256]::Create()
+  $stream = [System.IO.File]::OpenRead($path)
+  try {
+    return ([System.BitConverter]::ToString($sha256.ComputeHash($stream))).Replace('-', '')
+  }
+  finally {
+    $stream.Dispose()
+    $sha256.Dispose()
+  }
+}
+
 $installer = Get-ChildItem -Path (Join-Path $root 'release') -Filter 'NthTerm-*-win-x64.exe' |
   Where-Object { $_.Name -notlike '*__uninstaller*' } |
   Sort-Object LastWriteTime -Descending |
@@ -24,7 +41,7 @@ $resultPath = Join-Path $root 'release\task6-installer-validation.json'
 
 New-Item -ItemType Directory -Force -Path $appDataDir | Out-Null
 
-$beforeHash = if (Test-Path $sqlite) { (Get-FileHash $sqlite -Algorithm SHA256).Hash } else { $null }
+$beforeHash = if (Test-Path $sqlite) { Get-Sha256 $sqlite } else { $null }
 "task6-marker $(Get-Date -Format o)" | Set-Content -Encoding utf8 $marker
 $markerBefore = Get-Content $marker -Raw
 
@@ -42,7 +59,7 @@ Start-Sleep -Seconds 8
 if ($proc.HasExited) { throw "Installed app exited early code=$($proc.ExitCode)" }
 
 Start-Sleep -Seconds 3
-$afterLaunchHash = if (Test-Path $sqlite) { (Get-FileHash $sqlite -Algorithm SHA256).Hash } else { $null }
+$afterLaunchHash = if (Test-Path $sqlite) { Get-Sha256 $sqlite } else { $null }
 $children = @(Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $proc.Id })
 $hasConhost = $children | Where-Object { $_.Name -eq 'conhost.exe' }
 
@@ -61,7 +78,7 @@ if ($markerAfter -ne $markerBefore) {
   throw 'AppData marker was not preserved across reinstall.'
 }
 
-$afterReinstallHash = (Get-FileHash $sqlite -Algorithm SHA256).Hash
+$afterReinstallHash = Get-Sha256 $sqlite
 
 $proc2 = Start-Process -FilePath $exe -PassThru
 Start-Sleep -Seconds 8

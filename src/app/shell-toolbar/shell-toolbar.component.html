@@ -1,6 +1,10 @@
-<header class="shell-toolbar" [class.windows-titlebar]="isWindows">
+<header
+  class="shell-toolbar"
+  [class.windows-titlebar]="hostPlatform === 'win32'"
+  [class.mac-titlebar]="hostPlatform === 'darwin'"
+>
   <div class="shell-toolbar-leading">
-    @if (!isWindows) {
+    @if (hostPlatform !== 'win32' && hostPlatform !== 'darwin') {
     <div class="traffic-lights" aria-hidden="true">
       <span class="traffic-light traffic-light-close"></span>
       <span class="traffic-light traffic-light-minimize"></span>
@@ -19,44 +23,23 @@
 
   <div class="toolbar-main">
     <div class="toolbar-centerband">
-      <div class="desktop-workspace-context" aria-label="Active workspace context">
-        <span class="workspace-context-icon" aria-hidden="true">
-          <svg viewBox="0 0 20 20" fill="none">
-            <path
-              d="M6.7 15.4h6.1a3.2 3.2 0 0 0 .5-6.4 4.4 4.4 0 0 0-8.4 1.2 2.7 2.7 0 0 0 1.8 5.2Z"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+      <div class="desktop-workspace-context" aria-label="Current workspace">
+        <span class="workspace-context-part">
+          <span class="workspace-context-label">Workspace</span>
+          <strong class="workspace-context-name">{{ getFocusedContextTitle() }}</strong>
         </span>
-        <div class="workspace-context-copy">
-          <span class="workspace-context-label">Active Workspace</span>
-          <strong class="workspace-context-name">{{ ws.selectedWorkspace }}</strong>
-        </div>
-        <span class="workspace-context-badge">Sidebar</span>
-      </div>
-      <div class="toolbar-center-meta">
-        <span class="toolbar-meta-pill">{{ getLayoutLabel() }}</span>
-        <span class="toolbar-center-summary">{{ getWorkspaceSummary() }}</span>
+        <span class="workspace-context-badge toolbar-center-summary">{{ getWorkspaceSummary() }}</span>
       </div>
     </div>
 
     <div class="toolbar-actions">
       <div class="toolbar-action-group toolbar-action-group-primary">
-        <button type="button" class="toolbar-pill toolbar-pill-primary" (click)="createTab()" [disabled]="!canAddTab()">
-          <span class="toolbar-icon toolbar-icon-leading" aria-hidden="true">
-            <svg viewBox="0 0 20 20" fill="none">
-              <path d="M10 4.2v11.6M4.2 10h11.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-            </svg>
-          </span>
-          <span>New Tab</span>
-        </button>
         <div class="split-action" (click)="$event.stopPropagation()">
           <button
             type="button"
             class="toolbar-pill toolbar-pill-primary split-action-main"
+            [attr.aria-label]="getTerminalActionLabel()"
+            [attr.title]="getTerminalActionLabel() + ' (Ctrl+T)'"
             (click)="createTerminal()"
             [disabled]="!canAddTerminal()"
           >
@@ -66,12 +49,12 @@
                 <path d="M7.6 9.2h4.8M7.6 11.2h3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
               </svg>
             </span>
-            <span>Add Terminal</span>
+            <span>{{ getTerminalActionLabel() }}</span>
           </button>
           <button
             type="button"
             class="toolbar-pill toolbar-pill-primary split-action-menu"
-            aria-label="Choose shell for new terminal"
+            aria-label="Choose shell for terminal"
             (click)="toggleShellMenu($event)"
             [disabled]="!canAddTerminal()"
           >
@@ -81,7 +64,7 @@
           </button>
           @if (shellMenuOpen) {
             <div class="view-menu-dropdown shell-menu-dropdown" role="menu">
-              @for (option of shellOptions; track option.value) {
+              @for (option of getShellOptions(); track option.value) {
                 <button
                   type="button"
                   class="view-menu-item"
@@ -94,30 +77,17 @@
             </div>
           }
         </div>
-        <div class="layout-switch" aria-label="Layout mode">
-          <button
-            type="button"
-            class="toolbar-pill toolbar-pill-segment"
-            [class.active]="ws.layoutMode === 'grid-2'"
-            (click)="setLayoutMode('grid-2')"
-          >
-            2-Up
-          </button>
-          <button
-            type="button"
-            class="toolbar-pill toolbar-pill-segment"
-            [class.active]="ws.layoutMode === 'grid-2x2'"
-            (click)="setLayoutMode('grid-2x2')"
-          >
-            2x2
-          </button>
-        </div>
       </div>
-      <button type="button" class="toolbar-pill muted toolbar-command toolbar-pill-ghost" (click)="openCommandPalette()">
+      <button
+        type="button"
+        class="toolbar-pill muted toolbar-command toolbar-pill-ghost"
+        aria-label="Command palette"
+        title="Command palette (Ctrl+Shift+P)"
+        (click)="openCommandPalette()"
+      >
         <span class="toolbar-icon" aria-hidden="true">
           <svg viewBox="0 0 20 20" fill="none">
-            <path d="M6.2 5.1a3.1 3.1 0 1 0 0 6.2h1.4V8.6h-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M13.8 5.1a3.1 3.1 0 1 1 0 6.2h-1.4V8.6h1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="m5 6 3.2 4L5 14M10.5 14H15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </span>
         <span>Command Palette</span>
@@ -137,7 +107,6 @@
             </svg>
           </span>
         </button>
-        <button type="button" class="toolbar-avatar" aria-label="Profile">BN</button>
       </div>
     </div>
   </div>

@@ -8,6 +8,7 @@ import { TerminalBridgeService } from './terminal-bridge.service';
 import { WorkspaceBridgeService } from './workspace-bridge.service';
 
 describe('AppComponent', () => {
+  const originalInnerWidth = window.innerWidth;
   let workspaceBridge: {
     listWorkspaces: jasmine.Spy;
     getLaunchWorkspace: jasmine.Spy;
@@ -18,6 +19,11 @@ describe('AppComponent', () => {
   };
 
   beforeEach(async () => {
+    localStorage.clear();
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 1440,
+    });
     workspaceBridge = {
       listWorkspaces: jasmine.createSpy('listWorkspaces').and.resolveTo([
         {
@@ -138,6 +144,7 @@ describe('AppComponent', () => {
             disposeSession: async () => undefined,
             interruptSession: async () => undefined,
             getSessionInfo: async () => null,
+            listWslDistros: async () => ['Ubuntu'],
             onData: () => () => undefined,
             onExit: () => () => undefined,
             onInfo: () => () => undefined,
@@ -165,6 +172,13 @@ describe('AppComponent', () => {
     }).compileComponents();
   });
 
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: originalInnerWidth,
+    });
+  });
+
   it('creates the app', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -180,6 +194,7 @@ describe('AppComponent', () => {
 
     const preferences = TestBed.inject(AppPreferencesService);
     spyOn(preferences, 'writeBottomPanelHeight').and.callThrough();
+    spyOn(preferences, 'writeWorkspaceBottomPanelHeight').and.callThrough();
 
     Object.defineProperty(window, 'innerHeight', {
       configurable: true,
@@ -200,9 +215,108 @@ describe('AppComponent', () => {
 
     expect((fixture.componentInstance as any).utilityPanelHeight).toBe(expectedHeight);
     expect(preferences.writeBottomPanelHeight).toHaveBeenCalledWith(expectedHeight);
+    expect(preferences.writeWorkspaceBottomPanelHeight).toHaveBeenCalledWith(
+      (fixture.componentInstance as any).ws.selectedWorkspaceId,
+      expectedHeight
+    );
 
     const workspaceShell: HTMLElement | null = fixture.nativeElement.querySelector('.workspace-shell');
     expect(workspaceShell?.style.getPropertyValue('--dock-height')).toBe(`${expectedHeight}px`);
+  });
+
+  it('persists inspector panel visibility changes from the workspace area', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const preferences = TestBed.inject(AppPreferencesService);
+    spyOn(preferences, 'writeInspectorPanelVisible').and.callThrough();
+
+    const component = fixture.componentInstance as any;
+    component.setInspectorPanelPreference(false);
+    fixture.detectChanges();
+
+    expect(component.inspectorPanelVisible).toBeFalse();
+    expect(preferences.writeInspectorPanelVisible).toHaveBeenCalledWith(false);
+    expect(fixture.nativeElement.querySelector('.content-layout.inspector-hidden')).not.toBeNull();
+  });
+
+  it('collapses and restores the dock while persisting the active workspace preference', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const preferences = TestBed.inject(AppPreferencesService);
+    spyOn(preferences, 'writeWorkspaceBottomPanelVisible').and.callThrough();
+
+    fixture.nativeElement.querySelector('[aria-label="Hide workspace dock"]').click();
+    fixture.detectChanges();
+
+    expect((fixture.componentInstance as any).utilityPanelVisible).toBeFalse();
+    expect(fixture.nativeElement.querySelector('[aria-label="Show workspace dock"]')).not.toBeNull();
+
+    fixture.nativeElement.querySelector('[aria-label="Show workspace dock"]').click();
+    fixture.detectChanges();
+
+    expect((fixture.componentInstance as any).utilityPanelVisible).toBeTrue();
+    expect(preferences.writeWorkspaceBottomPanelVisible).toHaveBeenCalledWith(
+      (fixture.componentInstance as any).ws.selectedWorkspaceId,
+      false
+    );
+  });
+
+  it('handles terminal, split, and dock keyboard workflows', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance as any;
+    const createTerminal = spyOn(component, 'onCreateTerminal').and.resolveTo();
+    const cycleTerminal = spyOn(component.ws, 'cycleTerminal').and.resolveTo(null);
+    const initialDockVisibility = component.utilityPanelVisible;
+
+    component.handleGlobalKeydown(new KeyboardEvent('keydown', { key: 't', ctrlKey: true }));
+    component.handleGlobalKeydown(new KeyboardEvent('keydown', { key: 'd', ctrlKey: true, shiftKey: true }));
+    component.handleGlobalKeydown(new KeyboardEvent('keydown', { key: 'Tab', ctrlKey: true }));
+    component.handleGlobalKeydown(new KeyboardEvent('keydown', { key: 'ArrowRight', ctrlKey: true, altKey: true }));
+    component.handleGlobalKeydown(new KeyboardEvent('keydown', { key: 'j', ctrlKey: true }));
+    await fixture.whenStable();
+
+    expect(createTerminal).toHaveBeenCalledWith(undefined);
+    expect(createTerminal).toHaveBeenCalledTimes(2);
+    expect(cycleTerminal).toHaveBeenCalledWith(1);
+    expect(cycleTerminal).toHaveBeenCalledTimes(2);
+    expect(component.utilityPanelVisible).toBe(!initialDockVisibility);
+  });
+
+  it('auto-collapses the inspector in compact windows without overwriting its preference', async () => {
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 1024,
+    });
+    const preferences = TestBed.inject(AppPreferencesService);
+    spyOn(preferences, 'readInspectorPanelVisible').and.returnValue(true);
+    spyOn(preferences, 'writeInspectorPanelVisible').and.callThrough();
+
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance as any;
+    expect(component.inspectorPanelVisible).toBeFalse();
+
+    component.setInspectorPanelPreference(true);
+    expect(component.inspectorPanelVisible).toBeTrue();
+    expect(preferences.writeInspectorPanelVisible).not.toHaveBeenCalled();
+
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 1440,
+    });
+    window.dispatchEvent(new Event('resize'));
+
+    expect(component.inspectorPanelVisible).toBeTrue();
   });
 
   it('creates new workspaces from the configured custom directory', async () => {
@@ -223,5 +337,60 @@ describe('AppComponent', () => {
         templateId: '',
       })
     );
+  });
+
+  it('uses the workspace shell profile when creating a terminal from the toolbar default action', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance as any;
+    const preferences = TestBed.inject(AppPreferencesService);
+    spyOn(preferences, 'readDefaultShell').and.returnValue('powershell');
+    spyOn(component.ws, 'resolveNewTerminalShell').and.returnValue('cmd');
+    spyOn(component.ws, 'createTerminalDraft').and.returnValue({
+      id: 'terminal-created',
+      cwd: 'C:\\',
+      shell: 'cmd',
+      startupCommand: '',
+      status: 'idle',
+      session: null,
+    });
+    spyOn(component.ws, 'addTerminal').and.callThrough();
+
+    await component.onCreateTerminal(undefined);
+
+    expect(component.ws.resolveNewTerminalShell).toHaveBeenCalledWith(undefined, 'powershell');
+    expect(component.ws.createTerminalDraft).toHaveBeenCalledWith('cmd');
+    expect(component.ws.addTerminal).toHaveBeenCalled();
+  });
+
+  it('creates a terminal from the toolbar default action', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance as any;
+    const preferences = TestBed.inject(AppPreferencesService);
+    const terminal = {
+      id: 'terminal-created',
+      cwd: 'C:\\',
+      shell: 'powershell',
+      startupCommand: '',
+      status: 'idle',
+      session: null,
+    };
+    spyOn(preferences, 'readDefaultShell').and.returnValue('powershell');
+    spyOn(component.ws, 'resolveNewTerminalShell').and.returnValue('powershell');
+    spyOn(component.ws, 'createTerminalDraft').and.returnValue(terminal);
+    spyOn(component.ws, 'addTerminal');
+    spyOn(component.terminal, 'focusTerminal');
+
+    await component.onCreateTerminal(undefined);
+
+    expect(component.ws.resolveNewTerminalShell).toHaveBeenCalledWith(undefined, 'powershell');
+    expect(component.ws.createTerminalDraft).toHaveBeenCalledWith('powershell');
+    expect(component.ws.addTerminal).toHaveBeenCalledWith(terminal);
+    expect(component.terminal.focusTerminal).toHaveBeenCalledWith('terminal-created');
   });
 });

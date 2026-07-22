@@ -205,22 +205,30 @@ class WorkspaceStore {
   normalizeWorkspaceForLaunch(workspace) {
     const resolvedCwd = this.resolveLaunchDirectory(workspace.cwd);
     const snapshot = workspace.sessionSnapshot || this.buildDefaultSnapshot(workspace.name, resolvedCwd);
-    const tabs = (snapshot.tabs || []).map((tab) => ({
-      ...tab,
-      cwd: this.resolveLaunchDirectory(tab.cwd || workspace.cwd),
-    }));
+    const terminals = Array.isArray(snapshot.terminals)
+      ? snapshot.terminals.map((terminal) => ({
+          ...terminal,
+          cwd: this.resolveLaunchDirectory(terminal.cwd || workspace.cwd),
+        }))
+      : undefined;
+    const tabs = Array.isArray(snapshot.tabs)
+      ? snapshot.tabs.map((tab) => ({
+          ...tab,
+          cwd: this.resolveLaunchDirectory(tab.cwd || workspace.cwd),
+        }))
+      : undefined;
 
     return {
       ...workspace,
       cwd: resolvedCwd,
       sessionSnapshot: {
         ...snapshot,
-        tabs,
+        ...(terminals ? { terminals } : {}),
+        ...(tabs ? { tabs } : {}),
         history: Array.isArray(snapshot.history) ? snapshot.history.slice(0, 20) : [],
         recovery: snapshot.recovery || {
           lastLaunchAt: null,
           lastAttachedPaneId: null,
-          lastAttachedTabId: null,
           lastExitCode: null,
           lastStopReason: null,
           lastSessionEndedAt: null,
@@ -433,32 +441,18 @@ class WorkspaceStore {
   }
 
   buildDefaultSnapshot(name, cwd) {
-    const tabId = 'tab-main';
     return {
       layout: {
-        mode: 'grid-2x2',
-        activeTabId: tabId,
+        mode: 'grid-2',
         focusedTerminalId: '',
-        panes: [],
+        colSplit: 50,
+        rowSplit: 50,
       },
-      tabs: [
-        {
-          id: tabId,
-          title: name,
-          cwd,
-          accent: 'violet',
-          layoutMode: 'grid-2x2',
-          colSplit: 50,
-          rowSplit: 50,
-          focusedTerminalId: '',
-          terminals: [],
-        },
-      ],
+      terminals: [],
       history: [],
       recovery: {
         lastLaunchAt: null,
         lastAttachedPaneId: null,
-        lastAttachedTabId: null,
         lastExitCode: null,
         lastStopReason: null,
         lastSessionEndedAt: null,

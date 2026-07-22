@@ -1,6 +1,5 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('node:path');
-const fs = require('node:fs');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const pty = require('node-pty');
@@ -11,37 +10,35 @@ const {
   createWindowsSpawnOptions,
 } = require('./terminal-spawn-coordinator');
 const { buildTerminalSpawnEnv } = require('./terminal-spawn-env');
-const { getWindowsPowerShell } = require('./resolve-shell');
+const { resolveShell } = require('./resolve-shell');
+const { listWslDistros } = require('./wsl-distros');
+const {
+  TerminalStartRegistry,
+  createTerminalStartKey,
+  findReusableTerminal,
+} = require('./terminal-start-registry');
+const {
+  DEFAULT_TITLE_BAR_THEME,
+  createBrowserWindowOptions,
+  createDarwinApplicationMenuTemplate,
+} = require('./window-chrome');
 
 const spawnCoordinator = new TerminalSpawnCoordinator({
   spawnFn: (file, args, options) => pty.spawn(file, args, options),
 });
 
 const terminals = new Map();
+const terminalStarts = new TerminalStartRegistry();
 const workspaceStore = new WorkspaceStore();
 let isQuitting = false;
 let mainWindow = null;
 
-const DEFAULT_TITLE_BAR_THEME = {
-  windowBackground: '#090d16',
-  color: '#151726',
-  symbolColor: '#dbe7f5',
-  height: 66,
-};
-
-function resolveAppIconPath() {
-  const candidates = [
-    path.join(__dirname, '..', 'build', 'icon.ico'),
-    path.join(__dirname, 'icon.ico'),
-  ];
-
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
+function installApplicationMenu() {
+  if (process.platform !== 'darwin') {
+    return;
   }
 
-  return undefined;
+  Menu.setApplicationMenu(Menu.buildFromTemplate(createDarwinApplicationMenuTemplate()));
 }
 
 function applyTitleBarTheme(window, theme = DEFAULT_TITLE_BAR_THEME) {
@@ -49,9 +46,8 @@ function applyTitleBarTheme(window, theme = DEFAULT_TITLE_BAR_THEME) {
     return;
   }
 
-  if (theme.windowBackground) {
-    window.setBackgroundColor(theme.windowBackground);
-  }
+  // Keep the acrylic/glass window clear; opaque backgrounds kill the material.
+  window.setBackgroundColor('#00000000');
 
   if (process.platform === 'win32' && typeof window.setTitleBarOverlay === 'function') {
     window.setTitleBarOverlay({
@@ -77,53 +73,6 @@ function parseDetectedPort(data) {
   }
 
   return null;
-}
-
-function getShell() {
-  if (process.platform === 'win32') {
-    return getWindowsPowerShell();
-  }
-
-  if (process.platform === 'darwin') {
-    return {
-      file: process.env.SHELL || '/bin/zsh',
-      args: [],
-    };
-  }
-
-  return {
-    file: process.env.SHELL || '/bin/bash',
-    args: [],
-  };
-}
-
-function resolveShell(preference) {
-  const normalized = (preference || '').trim().toLowerCase();
-  if (!normalized) {
-    return getShell();
-  }
-
-  if (normalized === 'powershell' || normalized === 'powershell.exe') {
-    return getWindowsPowerShell();
-  }
-
-  if (normalized === 'cmd' || normalized === 'cmd.exe') {
-    return { file: 'cmd.exe', args: [] };
-  }
-
-  if (normalized === 'bash' || normalized === 'bash.exe') {
-    return process.platform === 'win32'
-      ? { file: 'bash.exe', args: [] }
-      : { file: '/bin/bash', args: [] };
-  }
-
-  if (normalized === 'zsh' || normalized === 'zsh.exe') {
-    return process.platform === 'win32'
-      ? { file: 'zsh.exe', args: [] }
-      : { file: '/bin/zsh', args: [] };
-  }
-
-  return getShell();
 }
 
 function sendTerminalInfo(webContents, info) {
@@ -153,27 +102,12 @@ function disposeTerminalsForWebContents(webContentsId) {
 }
 
 function createWindow() {
-  const icon = resolveAppIconPath();
-  const window = new BrowserWindow({
-    width: 1440,
-    height: 920,
-    minWidth: 960,
-    minHeight: 640,
-    backgroundColor: DEFAULT_TITLE_BAR_THEME.windowBackground,
-    ...(icon ? { icon } : {}),
-    titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: DEFAULT_TITLE_BAR_THEME.color,
-      symbolColor: DEFAULT_TITLE_BAR_THEME.symbolColor,
-      height: DEFAULT_TITLE_BAR_THEME.height,
-    },
-    autoHideMenuBar: true,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
+  const window = new BrowserWindow(
+    createBrowserWindowOptions({
+      preloadPath: path.join(__dirname, 'preload.js'),
+      theme: DEFAULT_TITLE_BAR_THEME,
+    })
+  );
 
   mainWindow = window;
   applyTitleBarTheme(window, DEFAULT_TITLE_BAR_THEME);
@@ -190,7 +124,17 @@ function createWindow() {
 }
 
 function registerTerminalHandlers() {
-  ipcMain.handle('terminal:create', async (event, options = {}) => {
+  ipcMain.handle('terminal:create', (event, options = {}) => {
+    const terminalId = typeof options.terminalId === 'string' ? options.terminalId.trim() : '';
+    const startKey = createTerminalStartKey(event.sender.id, terminalId);
+
+    return terminalStarts.run(startKey, async () => {
+      const reusable = findReusableTerminal(terminals, event.sender.id, terminalId);
+      if (reusable) {
+        sendTerminalInfo(event.sender, reusable.entry.info);
+        return { id: reusable.id };
+      }
+
     const shell = resolveShell(options.shell);
     const id = crypto.randomUUID();
     const cwd = workspaceStore.resolveLaunchDirectory(options.cwd);
@@ -217,7 +161,7 @@ function registerTerminalHandlers() {
       id,
       pid: terminal.pid,
       cwd,
-      shell: path.basename(shell.file),
+      shell: shell.label || path.basename(shell.file),
       status: 'running',
       startedAt,
       lastActiveAt: startedAt,
@@ -228,6 +172,7 @@ function registerTerminalHandlers() {
 
     terminals.set(id, {
       terminal,
+      terminalId,
       info,
       env,
       ownerWebContentsId: event.sender.id,
@@ -269,6 +214,7 @@ function registerTerminalHandlers() {
     });
 
     return { id };
+    });
   });
 
   ipcMain.handle('terminal:write', (_event, id, data) => {
@@ -299,6 +245,10 @@ function registerTerminalHandlers() {
     await spawnCoordinator.enqueueDispose(async () => {
       entry.terminal?.kill();
     });
+  });
+
+  ipcMain.handle('terminal:list-wsl-distros', async () => {
+    return listWslDistros();
   });
 }
 
@@ -370,6 +320,7 @@ function registerAppHandlers() {
 app.whenReady()
   .then(async () => {
     await workspaceStore.init(app.getPath('userData'));
+    installApplicationMenu();
     registerTerminalHandlers();
     registerWorkspaceHandlers();
     registerSystemHandlers();

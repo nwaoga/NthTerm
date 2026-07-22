@@ -7,11 +7,14 @@ import {
   TerminalAnsiPaletteId,
   TerminalColorTheme,
 } from '../models/terminal-theme.models';
+import { ShellId as WorkspaceShellId, isShellId } from '../models/workspace.models';
 import { isTerminalAnsiPaletteId } from '../terminal/terminal-ansi-palettes';
 import { normalizeTerminalTheme } from '../terminal/terminal-theme.util';
 
 const BOTTOM_PANEL_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.visible';
 const BOTTOM_PANEL_HEIGHT_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.height';
+const WORKSPACE_BOTTOM_PANEL_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.workspaces';
+const INSPECTOR_PANEL_PREFERENCE_KEY = 'nthterm.preferences.inspectorPanel.visible';
 const NEW_SESSION_START_MODE_PREFERENCE_KEY = 'nthterm.preferences.newSession.startMode';
 const NEW_SESSION_CUSTOM_PATH_PREFERENCE_KEY = 'nthterm.preferences.newSession.customPath';
 const DEFAULT_SHELL_PREFERENCE_KEY = 'nthterm.preferences.defaultShell';
@@ -19,7 +22,7 @@ const DEFAULT_TERMINAL_THEME_PREFERENCE_KEY = 'nthterm.preferences.defaultTermin
 const TERMINAL_ANSI_PALETTE_PREFERENCE_KEY = 'nthterm.preferences.terminalAnsiPalette';
 const SYSTEM_THEME_PREFERENCE_KEY = 'nthterm.preferences.systemTheme';
 
-export type DefaultShellPreference = '' | 'powershell' | 'cmd' | 'bash' | 'zsh';
+export type DefaultShellPreference = WorkspaceShellId;
 const DEFAULT_BOTTOM_PANEL_HEIGHT = 280;
 const MIN_BOTTOM_PANEL_HEIGHT = 160;
 const MAX_BOTTOM_PANEL_HEIGHT = 520;
@@ -44,6 +47,35 @@ export class AppPreferencesService {
     }
   }
 
+  readWorkspaceBottomPanelVisible(workspaceId: string, fallback = this.readBottomPanelVisible()): boolean {
+    return this.readWorkspaceBottomPanelPreferences()[workspaceId]?.visible ?? fallback;
+  }
+
+  writeWorkspaceBottomPanelVisible(workspaceId: string, visible: boolean): void {
+    if (!workspaceId) return;
+    const preferences = this.readWorkspaceBottomPanelPreferences();
+    this.writeWorkspaceBottomPanelPreferences({
+      ...preferences,
+      [workspaceId]: { ...preferences[workspaceId], visible },
+    });
+  }
+
+  readInspectorPanelVisible(): boolean {
+    try {
+      return localStorage.getItem(INSPECTOR_PANEL_PREFERENCE_KEY) !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  writeInspectorPanelVisible(visible: boolean): void {
+    try {
+      localStorage.setItem(INSPECTOR_PANEL_PREFERENCE_KEY, String(visible));
+    } catch {
+      // Preference persistence is best-effort only.
+    }
+  }
+
   readBottomPanelHeight(): number {
     try {
       const raw = localStorage.getItem(BOTTOM_PANEL_HEIGHT_PREFERENCE_KEY);
@@ -63,6 +95,20 @@ export class AppPreferencesService {
     } catch {
       // Preference persistence is best-effort only.
     }
+  }
+
+  readWorkspaceBottomPanelHeight(workspaceId: string, fallback = this.readBottomPanelHeight()): number {
+    const height = this.readWorkspaceBottomPanelPreferences()[workspaceId]?.height;
+    return this.clampBottomPanelHeight(height ?? fallback);
+  }
+
+  writeWorkspaceBottomPanelHeight(workspaceId: string, height: number): void {
+    if (!workspaceId) return;
+    const preferences = this.readWorkspaceBottomPanelPreferences();
+    this.writeWorkspaceBottomPanelPreferences({
+      ...preferences,
+      [workspaceId]: { ...preferences[workspaceId], height: this.clampBottomPanelHeight(height) },
+    });
   }
 
   clampBottomPanelHeight(height: number): number {
@@ -186,6 +232,25 @@ export class AppPreferencesService {
     return value === 'midnight' || value === 'coffee' || value === 'white';
   }
 
+  private readWorkspaceBottomPanelPreferences(): Record<string, { visible?: boolean; height?: number }> {
+    try {
+      const stored = localStorage.getItem(WORKSPACE_BOTTOM_PANEL_PREFERENCE_KEY);
+      return stored ? JSON.parse(stored) as Record<string, { visible?: boolean; height?: number }> : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private writeWorkspaceBottomPanelPreferences(
+    preferences: Record<string, { visible?: boolean; height?: number }>
+  ): void {
+    try {
+      localStorage.setItem(WORKSPACE_BOTTOM_PANEL_PREFERENCE_KEY, JSON.stringify(preferences));
+    } catch {
+      // Preference persistence is best-effort only.
+    }
+  }
+
   private migrateSystemTheme(value: string | null): string | null {
     if (value === 'slate') {
       return 'white';
@@ -199,7 +264,7 @@ export class AppPreferencesService {
   }
 
   private isDefaultShell(value: string | null): value is DefaultShellPreference {
-    return value === '' || value === 'powershell' || value === 'cmd' || value === 'bash' || value === 'zsh';
+    return isShellId(value);
   }
 
   private isNewSessionStartMode(value: string | null): value is NewSessionStartMode {

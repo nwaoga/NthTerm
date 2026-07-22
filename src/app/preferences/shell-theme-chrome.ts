@@ -11,20 +11,21 @@ export interface ShellTitleBarTheme {
 
 export const SHELL_TITLE_BAR_THEMES: Record<SystemThemeId, ShellTitleBarTheme> = {
   midnight: {
-    windowBackground: '#090d16',
-    color: '#151726',
+    windowBackground: '#00000000',
+    // Transparent overlay so acrylic/glass toolbar shows through the caption buttons.
+    color: '#00000000',
     symbolColor: '#dbe7f5',
     height: SHELL_TITLE_BAR_HEIGHT,
   },
   coffee: {
-    windowBackground: '#e8e0d4',
-    color: '#faf6f0',
+    windowBackground: '#00000000',
+    color: '#00000000',
     symbolColor: '#4a4036',
     height: SHELL_TITLE_BAR_HEIGHT,
   },
   white: {
-    windowBackground: '#eef1f6',
-    color: '#ffffff',
+    windowBackground: '#00000000',
+    color: '#00000000',
     symbolColor: '#334155',
     height: SHELL_TITLE_BAR_HEIGHT,
   },

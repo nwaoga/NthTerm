@@ -16,13 +16,14 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-07-12)
+## Current State (2026-07-17)
 
-**Phase:** 5 Task 6 shipped (installer + upgrade validation). Phase 5 packaging track complete for unsigned Windows. Phase 7 shell polish remains complete.
+**Phase:** RC1 usability polish complete. Feature roadmap and unsigned Windows packaging track are complete.
 
 **Working today:**
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
-- Tab-owned terminal sessions that stay alive across tab switches in the same pane
+- Tab-owned terminal sessions that stay alive across tab switches and are parked/reattached without PTY teardown
+- Stable terminal IDs with renderer and Electron single-flight guards that prevent duplicate PTYs during overlapping restores
 - SQLite workspace persistence (tabs, pane layout, splits, rename/delete, recovery metadata)
 - Feature-oriented renderer refactor (services + shell components)
 - Command palette, global search (keyboard + dock), utility panels, inspector, system monitor
@@ -30,21 +31,81 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Settings modal (gear in toolbar) for workspace appearance, terminal defaults, and ANSI palette
 - Rich terminal ANSI output with VS Code–style palettes and explicit Git status colors
 - Toolbar cleanup: workspace actions left-aligned; search/dock shortcut buttons removed
+- Animated terminal focus mode with visible peer previews and `Ctrl+Shift+Enter` restore
+- Stacked focus/overview terminal layout (≤10) with `Ctrl+\` overview toggle and compact stack navigation
 - Bottom dock resize keeps output and system monitor panels aligned
 - Frameless desktop window with per-theme Windows title bar overlay
 - Electron Builder packaging configuration for local unpacked builds and Windows release artifacts
 - Release branding assets (app icon + NSIS installer chrome) with documented unsigned-vs-signed signing path
 - Unsigned NSIS install/reinstall validated on Windows with AppData persistence preserved
+- Right inspector rail can be hidden/restored with a persisted local preference and command palette actions
+- Active workspace shell profile controls default shell creation before falling back to the app default
+- Windows builds discover installed WSL distributions and expose them as selectable shell profiles
+- Compact windows preserve the terminal workspace through condensed toolbar controls, viewport-aware dock sizing, and an on-demand inspector overlay
+- Workspace tabs and layout controls expose keyboard and assistive-technology state correctly
+- Workspace, tab, and terminal ownership is explicit through breadcrumbs, contextual Start/Split actions, and shell-based terminal names
+- New tabs start with the resolved workspace/app-default terminal, while layout controls appear only for multi-terminal tabs
+- Tabs support inline rename, drag reorder, duplicate, close/reopen, and running-terminal indicators
+- Tab and terminal context menus keep lifecycle actions near the object they affect
+- The inspector has compact workspace, tab, and terminal modes with one identity overview, non-duplicated facts, and settings attached to the correct level
+- Terminal names persist independently from PTY sessions, and command history resolves attribution through stable terminal IDs
+- The workspace dock can collapse and remembers visibility and height independently for each workspace
+- Keyboard workflows cover tab creation/closing/cycling, terminal cycling/splitting, and dock toggling
+- Destructive prompts appear only when the affected workspace, tab, or terminal owns a live process
+- Inactive tool placeholders were removed from the workspace rail
+- Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** Phase 5 Task 6 installer and upgrade validation.
+**Last shipped:** RC1 post-verification terminal lifecycle, focus-layout, history attribution, and inspector-density pass.
+
+**Release target:** `0.1.0-rc.1` (unsigned Windows RC). Authenticode signing remains deferred until a certificate is available.
 
 **Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline; Phase 5 should preserve it while adding production readiness).
 
 ---
 
-## Pick Next Work
+## RC1 Readiness
 
-Choose **one** track below. Each is scoped for a single agent session or small PR series. Update `stories.md`, `decisions.md`, and ADO when done.
+**Status:** Done (2026-07-17).
+
+**Scope:**
+- Version the app as `0.1.0-rc.1` and publish a concise changelog.
+- Add a repeatable `npm run rc:verify` path for build, unit tests, Windows artifacts, and installer upgrade/persistence validation.
+- Run CI release builds on version tags as well as the existing PR and `main` triggers.
+- Reconcile README and continuity docs with the shipped inspector, workspace shell profile, and WSL distro work.
+
+**Completion criteria:**
+- `npm run rc:verify` passes locally.
+- `npm run build` and `npm run test:ci` pass.
+- The release artifact reports `0.1.0-rc.1` and the installed app passes the existing health/persistence checks.
+- The unsigned SmartScreen constraint is documented clearly.
+
+**Verified:** `npm run rc:verify` passed end to end for `0.1.0-rc.1`, including `npm run build`, `npm run test:ci` (18 Electron checks, 90 Angular specs), `npm run release:win`, and the installed-app upgrade/persistence smoke test. The versioned installer and zip are present under ignored `release/` output.
+
+## RC1 Post-Verification Polish
+
+**Status:** Done (2026-07-17).
+
+**Scope delivered:**
+- Automatic two-pane/four-area arrangement with all terminals retained and a focused-terminal zoom mode with visible peers.
+- xterm viewport cleanup, hidden horizontal scroll tracks, and theme-correct viewport remainder colors.
+- Tab switching that parks and reattaches live xterm surfaces without killing their PTYs.
+- Stable terminal naming and command-history attribution by terminal ID, with current names resolved at render time.
+- Single-flight terminal creation in Angular and Electron, plus running-session reuse by stable terminal ID.
+- Compact inspector hierarchy that removes duplicate workspace/tab facts and replaces large metric tiles with horizontal fact rows.
+- Full-window Electron visual verification across the live terminal stage and inspector.
+
+**Latest verification:** `npm run build` passed with the accepted bundle-budget warning; `npm run test:ci` passed with 29 Electron checks and 120 Angular specs.
+
+## Next Release Gate
+
+1. Azure DevOps follow-up is synced to #122 (terminal stability), #113 (inspector usability), and #106 (command history); keep those records aligned if final verification changes the evidence.
+2. Run `npm run rc:verify` again after the post-verification source changes so the installer/upgrade evidence matches the final candidate, not the earlier RC1 build.
+3. Review the complete working tree, commit intentionally, push, and create the RC tag only after the refreshed verification passes.
+4. Keep Authenticode signing deferred until a real certificate is available.
+
+## Historical Delivery Tracks
+
+The completed tracks below are retained as delivery history and acceptance context.
 
 ### Phase 5 Task 1 — Production desktop packaging
 
@@ -242,7 +303,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 **Status:** Implemented in code on 2026-06-23. Keep this section as the architectural reference for follow-up fixes or refinements.
 
-**ADO:** Create a new story or extend Phase 4 backlog item in `stories.md`.
+**ADO:** Delivered through the Phase 4/5 terminal lifecycle work, with later stability hardening tracked on #122.
 
 **Scope:**
 - One xterm instance + one PTY session per visible pane (or attach/detach pool with stable pane IDs)
@@ -252,7 +313,7 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 - Resize each pane's terminal independently on split drag
 
 **Key files:**
-- `repo/src/app/terminal/terminal-session.service.ts` — today single-session; needs per-pane map or coordinator
+- `repo/src/app/terminal/terminal-session.service.ts` — per-terminal xterm/session map with parking and single-flight startup
 - `repo/src/app/terminal/terminal-host-coordinator.service.ts`
 - `repo/src/app/workspace/workspace-area.component.ts` — pane grid + terminal host elements
 - `repo/src/app/workspace/workspace-runtime.service.ts` — pane/tab snapshot models
@@ -321,6 +382,8 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 **Completed on #113:** The right inspector now uses a more reference-like structure with a dedicated hero card, separated tab and live-session views, grouped workspace/recovery metadata, stronger badges, and clearer history/environment sections.
 
+**RC1 follow-up:** User testing retained the #113 data model but replaced the large hero/metric-card stack with a compact identity, fact-list, settings, and secondary-detail hierarchy. This intentional deviation is recorded in `decisions.md`.
+
 **Completed on #114:** The bottom dock now reads closer to the reference through a dedicated dock header, stronger tab strip, denser output/problem/history rows, richer search summaries, and more deliberate telemetry cards in the system monitor.
 
 **Key files:**
@@ -339,9 +402,8 @@ Choose **one** track below. Each is scoped for a single agent session or small P
 
 ## Recommended Priority (default if user does not specify)
 
-1. Optional follow-ups: inspector hide toggle, per-workspace shell profiles, WSL distro picker.
-2. Keep packaged runtime smoke / installer validation in mind before changing `asar`, native module, or persistence paths.
-3. Signed release workflow remains deferred until an Authenticode certificate is available.
+1. Keep packaged runtime smoke / installer validation in mind before changing `asar`, native module, or persistence paths.
+2. Signed release workflow remains deferred until an Authenticode certificate is available.
 
 ---
 

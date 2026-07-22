@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 import {
   CommandHistoryEntry,
+  CommandHistorySource,
   OutputLine,
   ProblemEntry,
   UtilityPanelId,
@@ -58,11 +59,13 @@ export class UtilityPanelService {
     this.problems = [];
   }
 
-  trackCommand(command: string, tabTitle: string): void {
+  trackCommand(command: string, source: string | CommandHistorySource): void {
     const trimmed = command.trim();
     if (!trimmed) {
       return;
     }
+
+    const tabTitle = typeof source === 'string' ? source : source.tabTitle;
 
     this.commandHistory = [
       {
@@ -70,6 +73,13 @@ export class UtilityPanelService {
         command: trimmed,
         timestamp: new Date().toISOString(),
         tabTitle,
+        ...(typeof source === 'string'
+          ? {}
+          : {
+              tabId: source.tabId,
+              terminalId: source.terminalId,
+              terminalTitle: source.terminalTitle,
+            }),
       },
       ...this.commandHistory,
     ].slice(0, 100);

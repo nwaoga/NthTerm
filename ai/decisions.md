@@ -160,3 +160,38 @@
 - Reinstall preserved AppData user data: a marker file under `%APPDATA%\NthTerm` survived unchanged, and `nthterm.sqlite` remained present after upgrade (hash may change on normal app writes, but the installer does not wipe Roaming user data).
 - Unsigned installer SmartScreen prompts remain expected until Authenticode signing is enabled; local validation used `Unblock-File` on the built artifact when needed.
 - Repeatable local check: `powershell -File scripts/validate-windows-installer.ps1` (expects `release/NthTerm-*-win-x64.exe` from `npm run release:win`).
+
+## 2026-07-17
+- The optional inspector hide toggle stores visibility in `localStorage` through `AppPreferencesService`, matching the existing bottom dock preference pattern because the setting is local UI chrome rather than workspace data.
+- The right inspector can be hidden from its rail header and restored from a small stage button so the workspace can expand without hiding the path back to metadata.
+- Command palette view actions now include Show/Hide Inspector, and choosing Tab/Session Inspector also restores the rail before switching mode.
+- Per-workspace shell profiles reuse the existing top-level workspace `shell` column instead of adding a second persistence path. An empty profile means "use app default"; `system` means explicitly use the OS/system shell; named shell values (`powershell`, `cmd`, `bash`, `zsh`) override the app default for new terminals in that workspace.
+- New terminal shell resolution now happens in the app/runtime path, not inside the toolbar, so toolbar default clicks, empty-state Add Terminal, and focused-card Add Terminal all honor the active workspace profile while explicit shell picker choices remain exact.
+- WSL distro support uses shell ids in the form `wsl:<distro>` so the existing workspace/terminal snapshot fields can persist them without a schema change. Electron resolves those ids to `wsl.exe -d <distro>` and reports the display label as `WSL: <distro>`.
+- WSL distro discovery is best-effort and Windows-only. The renderer asks Electron for `wsl.exe --list --quiet` results during desktop startup; if WSL is unavailable or the command fails, no WSL options are shown and existing shell choices are unchanged.
+- RC1 uses version `0.1.0-rc.1` and remains intentionally unsigned. The release bar is a repeatable local verification command plus tag-triggered CI artifacts; Authenticode is a separate capability that requires a real certificate and stays out of the default build path.
+- RC1 local verification passed: `npm run build`, `npm run test:ci` (18 Electron checks and 90 Angular specs), and `npm run release:win` created the versioned installer/zip. The resulting installer silently installed and reinstalled with exit code 0; both launches remained healthy, a ConPTY child was observed, and the AppData marker plus `nthterm.sqlite` survived the upgrade.
+- `npm run rc:verify` invokes the installer validation in the current PowerShell host. The installer script falls back to .NET SHA-256 when `Get-FileHash` is unavailable, which keeps the release check compatible with the host selected by npm on this machine.
+- Compact desktop behavior starts above Electron's `960px` minimum width: the toolbar condenses at `1180px`, while the inspector auto-collapses at `1100px` and can be reopened as an overlay. Compact open/close state is intentionally transient so resizing back to a wide window restores the user's persisted inspector preference.
+- The utility dock's persisted pixel height is capped at `42vh` in layout CSS, preventing a previously saved tall dock from crowding the terminal on short windows while retaining the user's stored value for larger windows.
+- Workspace tabs use semantic tab state with keyboard activation and a real close button; layout controls expose `aria-pressed`. The inactive profile/avatar affordance was removed because it had no behavior behind it.
+- Terminal identity is the persisted `terminalId`, not the Electron PTY session ID or current pane position. Names, command-history attribution, xterm surfaces, and restore ownership all follow that stable ID.
+- Inactive-tab terminal surfaces are parked off-screen and reattached when visible. A tab switch is a presentation change and must not dispose its PTY or clear its xterm scrollback.
+- Terminal startup is single-flight at both runtime boundaries: `TerminalSessionService` coalesces renderer restore races, while Electron's `TerminalStartRegistry` keys pending/reusable sessions by `(webContentsId, terminalId)`. Disposal waits for an in-progress start to avoid orphaning a late PTY.
+- Command history stores stable tab/terminal references with fallback labels. The workspace runtime resolves the current terminal display name during rendering, so renaming a terminal updates old history labels without rewriting entries.
+- Automatic arrangement derives from terminal count; focus zoom is temporary UI state with one dominant terminal and visible peers. It does not alter persisted terminal ownership or remove terminals from the tab.
+- RC1 inspector usability intentionally departs from the Phase 4 reference card stack: the same data is presented through one identity/status overview, horizontal facts, focused settings, and secondary recovery/history sections. Duplicate context cards and oversized metric tiles were removed to preserve terminal space.
+- xterm viewport styling uses the resolved terminal background and suppresses accidental horizontal scroll tracks; live terminal cards are not transformed during focus animation because transformed xterm canvases can blur or misframe native terminal rendering.
+- The post-verification regression baseline is 29 Electron checks and 119 Angular specs, with `npm run build` passing under the accepted xterm-driven bundle-budget warning.
+
+## 2026-07-21
+- Workspace tabs were removed from the product model. Ownership is now Workspace → Terminals (≤4 panes with automatic 1 / 2-up / 2x2 arrangement). Additional named contexts use additional workspaces, matching tmux session + panes rather than session + window + panes.
+- `sessionSnapshot` writes flat `terminals` at the workspace root. Multi-tab snapshots migrate on read by promoting the active tab's terminals only.
+- Inspector modes are Workspace | Terminal. The trapezoid tab strip, tab CRUD, inactive-tab PTY parking, and tab palette/search actions were deleted.
+- Shortcuts: Ctrl+T new terminal, Ctrl+W close focused terminal, Ctrl+Tab cycle terminals.
+
+## 2026-07-22
+- Workspace terminal presentation is now a stacked focus/overview layout (≤10 terminals). Focus mode is default; overview is a deliberate zoom-out with buffer-based preview cards (no mini-xterm, no peer thumbnail rail).
+- `WorkspaceLayoutService` owns `viewMode` (`focus` | `overview`) and `zoomLevel` (0–1) as presentation state separate from PTY/process state. Continuous zoom can later map onto `zoomLevel` without forking the model.
+- Inactive xterm surfaces park off-screen at preserved dimensions; `TerminalSessionService` only FitAddon/PTY-resizes the interactive host.
+- Shortcuts: Ctrl/Cmd+[ / ] previous/next terminal, Ctrl/Cmd+1–9 / 0 jump, Ctrl/Cmd+\ toggle overview.

@@ -1,6 +1,6 @@
 {
   "name": "nthterm",
-  "version": "0.0.0",
+  "version": "0.1.0-rc.1",
   "description": "A rich desktop terminal workspace manager built with Angular, Electron, xterm.js, node-pty, and SQLite.",
   "main": "electron/main.js",
   "scripts": {
@@ -15,9 +15,11 @@
     "package": "npm run build && electron-builder --dir",
     "release": "npm run build && electron-builder",
     "release:win": "npm run build && electron-builder --win",
+    "release:mac": "npm run build && electron-builder --mac",
+    "rc:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-rc.ps1",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:electron": "node --test electron/terminal-spawn-coordinator.spec.js electron/terminal-spawn-env.spec.js electron/resolve-shell.spec.js electron/patch-node-pty-windows.spec.js electron/branding-assets.spec.js",
+    "test:electron": "node --test electron/terminal-spawn-coordinator.spec.js electron/terminal-spawn-env.spec.js electron/terminal-start-registry.spec.js electron/resolve-shell.spec.js electron/wsl-distros.spec.js electron/patch-node-pty-windows.spec.js electron/branding-assets.spec.js electron/adaptive-layout.spec.js electron/window-chrome.spec.js",
     "test:ci": "npm run test:electron && ng test --watch=false --browsers=ChromeHeadless",
     "postinstall": "node electron/patch-node-pty-windows.js"
   },
@@ -36,6 +38,7 @@
       "dist/nthterm/browser/**/*",
       "electron/**/*",
       "build/icon.ico",
+      "build/icon.png",
       "package.json"
     ],
     "asarUnpack": [
@@ -61,6 +64,30 @@
         }
       ],
       "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "identity": null
     },
     "nsis": {
       "oneClick": false,

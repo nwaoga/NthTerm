@@ -14,7 +14,7 @@ import { CommandPaletteComponent } from './command-palette/command-palette.compo
 import { CommandPaletteService } from './command-palette/command-palette.service';
 import { LeftRailComponent } from './left-rail/left-rail.component';
 import { InspectorPresenterService } from './inspector/inspector-presenter.service';
-import { LayoutMode, WorkspaceListItem, UtilityPanelId } from './models';
+import { WorkspaceListItem, UtilityPanelId } from './models';
 import {
   AppPreferencesService,
   DefaultShellPreference,
@@ -29,10 +29,15 @@ import { StatusBarComponent } from './status-bar/status-bar.component';
 import { SystemMonitorService } from './system/system-monitor.service';
 import { TerminalHostCoordinatorService } from './terminal/terminal-host-coordinator.service';
 import { TerminalSessionService } from './terminal/terminal-session.service';
+import { TerminalBridgeService } from './terminal-bridge.service';
 import { UtilityPanelService } from './utility-panel/utility-panel.service';
 import { WorkspaceAreaComponent } from './workspace/workspace-area.component';
 import { WorkspaceBridgeService } from './workspace-bridge.service';
+import { WorkspaceLayoutService } from './workspace/workspace-layout.service';
 import { WorkspaceRuntimeService } from './workspace/workspace-runtime.service';
+import { MAX_TERMINALS_PER_WORKSPACE } from './workspace/workspace-snapshot';
+
+const COMPACT_INSPECTOR_MAX_WIDTH = 1100;
 
 @Component({
   selector: 'app-root',
@@ -52,6 +57,7 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('bottomDock') private bottomDock?: BottomDockComponent;
 
   protected utilityPanelVisible = true;
+  protected inspectorPanelVisible = true;
   protected utilityPanelHeight = 280;
   protected settingsOpen = false;
   protected dockResizeActive = false;
@@ -64,12 +70,17 @@ export class AppComponent implements AfterViewInit {
   protected defaultTerminalBackground = '#0d1320';
   protected terminalAnsiPalette: TerminalAnsiPaletteId = 'auto';
 
+  private inspectorPanelPreference = true;
+  private compactViewport = this.isCompactViewport();
+
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly ws = inject(WorkspaceRuntimeService);
+  protected readonly ws = inject(WorkspaceRuntimeService);
+  private readonly layout = inject(WorkspaceLayoutService);
   private readonly util = inject(UtilityPanelService);
   private readonly palette = inject(CommandPaletteService);
   private readonly terminal = inject(TerminalSessionService);
+  private readonly terminalBridge = inject(TerminalBridgeService);
   private readonly system = inject(SystemMonitorService);
   private readonly referenceReview = inject(ReferenceReviewContentService);
   private readonly preferences = inject(AppPreferencesService);
@@ -85,7 +96,7 @@ export class AppComponent implements AfterViewInit {
     this.palette.setDispatcher({
       saveWorkspace: () => this.saveWorkspace(),
       restoreWorkspace: () => this.restoreWorkspace(),
-      createTab: () => this.onCreateTab(),
+      createTerminal: () => this.onCreateTerminal(undefined),
       relaunchTerminal: () => this.terminal.relaunchTerminal(),
       interruptTerminal: () => this.terminal.interruptTerminal(),
       killTerminal: () => this.terminal.killTerminal(),
@@ -93,14 +104,10 @@ export class AppComponent implements AfterViewInit {
       setInspectorTab: (tab) => {
         this.inspector.activeTab = tab;
       },
-      setLayoutMode: (mode) => this.onLayoutModeChange(mode),
+      setInspectorVisible: (visible) => this.setInspectorPanelPreference(visible),
       openCommandPalette: () => this.openCommandPalette(),
       openGlobalSearch: () => this.openGlobalSearch(),
       selectWorkspace: (id) => this.onWorkspaceSelected(id),
-      selectTab: async (id) => {
-        const tab = await this.ws.selectTab(id);
-        if (tab) await this.hostCoordinator.syncAndRestore();
-      },
       createWorkspace: async () => {
         await this.onNewSessionRequested();
       },
@@ -115,6 +122,9 @@ export class AppComponent implements AfterViewInit {
 
   async ngAfterViewInit(): Promise<void> {
     this.utilityPanelVisible = this.preferences.readBottomPanelVisible();
+    this.inspectorPanelPreference = this.preferences.readInspectorPanelVisible();
+    this.compactViewport = this.isCompactViewport();
+    this.inspectorPanelVisible = this.inspectorPanelPreference && !this.compactViewport;
     this.utilityPanelHeight = this.preferences.readBottomPanelHeight();
     this.newSessionStartMode = this.preferences.readNewSessionStartMode();
     this.newSessionCustomPath = this.preferences.readNewSessionCustomPath();
@@ -127,9 +137,11 @@ export class AppComponent implements AfterViewInit {
     this.shellTheme.apply(this.systemTheme);
     if (!window.nthTermDesktop?.workspace) {
       this.loadPreviewState();
+      this.restoreWorkspaceDockPreference();
       this.changeDetectorRef.detectChanges();
     } else {
       const defaults = await this.workspaceBridge.getDirectoryDefaults();
+      this.ws.setWslDistros(await this.loadWslDistros());
       this.homeDirectory = defaults.homeDirectory;
       const workspaces = await this.workspaceBridge.listWorkspaces();
       const launchWorkspace = await this.workspaceBridge.getLaunchWorkspace();
@@ -140,6 +152,8 @@ export class AppComponent implements AfterViewInit {
         accent: w.accent || 'slate',
       }));
       this.ws.applyWorkspace(launchWorkspace);
+      this.layout.bindWorkspace(this.ws.selectedWorkspaceId, this.ws.focusedPaneId);
+      this.restoreWorkspaceDockPreference();
       await this.hostCoordinator.syncAndRestore();
       this.registerShutdownPersistence();
       this.system.startMonitoring();
@@ -167,12 +181,36 @@ export class AppComponent implements AfterViewInit {
   protected setUtilityPanelPreference(visible: boolean): void {
     this.utilityPanelVisible = visible;
     this.preferences.writeBottomPanelVisible(visible);
+    this.preferences.writeWorkspaceBottomPanelVisible(this.ws.selectedWorkspaceId, visible);
+    setTimeout(() => this.terminal.syncTerminalSize(), 0);
+  }
+
+  protected setInspectorPanelPreference(visible: boolean): void {
+    this.inspectorPanelVisible = visible;
+    if (!this.compactViewport) {
+      this.inspectorPanelPreference = visible;
+      this.preferences.writeInspectorPanelVisible(visible);
+    }
+    setTimeout(() => this.terminal.syncTerminalSize(), 0);
+  }
+
+  @HostListener('window:resize')
+  protected onViewportResize(): void {
+    const compactViewport = this.isCompactViewport();
+    if (compactViewport === this.compactViewport) return;
+
+    this.compactViewport = compactViewport;
+    this.inspectorPanelVisible = compactViewport ? false : this.inspectorPanelPreference;
     setTimeout(() => this.terminal.syncTerminalSize(), 0);
   }
 
   protected setNewSessionStartMode(mode: NewSessionStartMode): void {
     this.newSessionStartMode = mode;
     this.preferences.writeNewSessionStartMode(mode);
+  }
+
+  private isCompactViewport(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= COMPACT_INSPECTOR_MAX_WIDTH;
   }
 
   protected setNewSessionCustomPath(path: string): void {
@@ -219,6 +257,7 @@ export class AppComponent implements AfterViewInit {
     this.util.activeTab = tab;
     this.utilityPanelVisible = true;
     this.preferences.writeBottomPanelVisible(true);
+    this.preferences.writeWorkspaceBottomPanelVisible(this.ws.selectedWorkspaceId, true);
     setTimeout(() => this.terminal.syncTerminalSize(), 0);
   }
 
@@ -249,10 +288,65 @@ export class AppComponent implements AfterViewInit {
   protected handleGlobalKeydown(event: KeyboardEvent): void {
     const key = event.key.toLowerCase();
     const withCtrl = event.ctrlKey || event.metaKey;
+    const target = event.target as HTMLElement | null;
+    const editingText = target?.matches('input, textarea, select, [contenteditable="true"]') ?? false;
     if (withCtrl && event.shiftKey && key === 'f') {
       event.preventDefault();
       this.openGlobalSearch();
+      return;
     }
+    if (!withCtrl || editingText) {
+      return;
+    }
+    if (key === 't' && !event.shiftKey) {
+      event.preventDefault();
+      void this.onCreateTerminal(undefined);
+      return;
+    }
+    if (key === 'w' && !event.shiftKey) {
+      event.preventDefault();
+      void this.closeFocusedTerminal();
+      return;
+    }
+    if (key === 'tab') {
+      event.preventDefault();
+      void this.cycleTerminals(event.shiftKey ? -1 : 1);
+      return;
+    }
+    if (event.altKey && (key === 'arrowright' || key === 'arrowleft')) {
+      event.preventDefault();
+      void this.cycleTerminals(key === 'arrowleft' ? -1 : 1);
+      return;
+    }
+    if (event.shiftKey && key === 'd') {
+      event.preventDefault();
+      void this.onCreateTerminal(undefined);
+      return;
+    }
+    if (key === 'j' && !event.shiftKey) {
+      event.preventDefault();
+      this.setUtilityPanelPreference(!this.utilityPanelVisible);
+    }
+  }
+
+  private async closeFocusedTerminal(): Promise<void> {
+    const terminal = this.ws.getFocusedTerminal();
+    if (!terminal) return;
+    if (this.ws.isTerminalRunning(terminal) && !confirm('Close this terminal and stop its running process?')) {
+      return;
+    }
+    await this.ws.removeTerminal(terminal.id);
+    await this.hostCoordinator.syncAndRestore();
+    if (this.ws.focusedPaneId) {
+      this.terminal.focusTerminal(this.ws.focusedPaneId);
+    }
+  }
+
+  private async cycleTerminals(offset: -1 | 1): Promise<void> {
+    const terminal = await this.ws.cycleTerminal(offset);
+    if (!terminal || terminal === 'unchanged') return;
+    await this.hostCoordinator.syncAndRestore();
+    this.terminal.focusTerminal(terminal.id);
   }
 
   @HostListener('document:mousemove', ['$event'])
@@ -277,14 +371,29 @@ export class AppComponent implements AfterViewInit {
 
     this.dockResizeActive = false;
     this.preferences.writeBottomPanelHeight(this.utilityPanelHeight);
+    this.preferences.writeWorkspaceBottomPanelHeight(this.ws.selectedWorkspaceId, this.utilityPanelHeight);
     this.terminal.syncTerminalSize();
   }
 
   protected async onWorkspaceSelected(workspaceId: string): Promise<void> {
     const workspace = await this.ws.selectWorkspace(workspaceId);
     if (!workspace) return;
+    this.layout.bindWorkspace(this.ws.selectedWorkspaceId, this.ws.focusedPaneId);
+    this.restoreWorkspaceDockPreference();
     await this.hostCoordinator.syncAndRestore();
     this.util.appendOutput(`Switched to workspace "${workspace.name}"`, 'info');
+  }
+
+  private restoreWorkspaceDockPreference(): void {
+    const workspaceId = this.ws.selectedWorkspaceId;
+    this.utilityPanelVisible = this.preferences.readWorkspaceBottomPanelVisible(
+      workspaceId,
+      this.preferences.readBottomPanelVisible()
+    );
+    this.utilityPanelHeight = this.preferences.readWorkspaceBottomPanelHeight(
+      workspaceId,
+      this.preferences.readBottomPanelHeight()
+    );
   }
 
   protected async onNewSessionRequested(): Promise<void> {
@@ -313,7 +422,11 @@ export class AppComponent implements AfterViewInit {
       this.util.appendOutput(this.ws.status, 'warn');
       return;
     }
-    if (!confirm(`Delete workspace "${workspace.name}"? This cannot be undone.`)) return;
+    if (
+      workspace.id === this.ws.selectedWorkspaceId &&
+      this.ws.hasRunningTerminals() &&
+      !confirm(`Delete workspace "${workspace.name}" and stop its running terminals?`)
+    ) return;
     if (workspace.id === this.ws.selectedWorkspaceId) {
       await this.ws.persistWorkspaceState();
       this.terminal.dispose();
@@ -329,25 +442,12 @@ export class AppComponent implements AfterViewInit {
     this.util.appendOutput(`Deleted workspace "${result.deletedName}"`, 'info');
   }
 
-  protected async onCreateTab(): Promise<void> {
-    const nextTab = this.ws.createTabDraft();
-    if (!nextTab || nextTab === 'blocked') {
-      if (nextTab === 'blocked') {
-        this.ws.status = 'A workspace can have at most 5 tabs.';
-        this.util.appendOutput(this.ws.status, 'warn');
-      }
-      return;
-    }
-    this.ws.addTab(nextTab);
-    await this.ws.persistWorkspaceState();
-    await this.hostCoordinator.syncAndRestore();
-  }
-
-  protected async onCreateTerminal(shell: DefaultShellPreference = this.preferences.readDefaultShell()): Promise<void> {
-    const draft = this.ws.createTerminalDraft(shell);
+  protected async onCreateTerminal(shell?: DefaultShellPreference): Promise<void> {
+    const resolvedShell = this.ws.resolveNewTerminalShell(shell, this.preferences.readDefaultShell());
+    const draft = this.ws.createTerminalDraft(resolvedShell);
     if (!draft || draft === 'blocked') {
       if (draft === 'blocked') {
-        this.ws.status = 'A tab can have at most 4 terminals.';
+        this.ws.status = `A workspace can have at most ${MAX_TERMINALS_PER_WORKSPACE} terminals.`;
         this.util.appendOutput(this.ws.status, 'warn');
       }
       return;
@@ -358,14 +458,10 @@ export class AppComponent implements AfterViewInit {
     this.terminal.focusTerminal(draft.id);
   }
 
-  protected async onLayoutModeChange(mode: LayoutMode): Promise<void> {
-    const changed = await this.ws.setLayoutMode(mode);
-    if (changed) await this.hostCoordinator.syncAndRestore();
-  }
-
   protected onUtilityTabChange(_tab: UtilityPanelId): void {
     this.utilityPanelVisible = true;
     this.preferences.writeBottomPanelVisible(true);
+    this.preferences.writeWorkspaceBottomPanelVisible(this.ws.selectedWorkspaceId, true);
     setTimeout(() => this.terminal.syncTerminalSize(), 0);
   }
 
@@ -374,6 +470,14 @@ export class AppComponent implements AfterViewInit {
     if (!saved) return;
     this.ws.status = `Saved workspace to ${saved.cwd}`;
     this.util.appendOutput(this.ws.status, 'info');
+  }
+
+  private async loadWslDistros(): Promise<string[]> {
+    try {
+      return await this.terminalBridge.listWslDistros();
+    } catch {
+      return [];
+    }
   }
 
   private async restoreWorkspace(): Promise<void> {
@@ -388,7 +492,8 @@ export class AppComponent implements AfterViewInit {
   }
 
   private resolveNewSessionDirectory(fallbackDirectory = ''): string {
-    const focusedDirectory = this.ws.getFocusedTab()?.cwd?.trim() || this.ws.workingDirectory.trim();
+    const focusedDirectory =
+      this.ws.getFocusedTerminal()?.cwd?.trim() || this.ws.workingDirectory.trim();
     const customDirectory = this.newSessionCustomPath.trim();
     const homeDirectory = this.homeDirectory.trim();
 

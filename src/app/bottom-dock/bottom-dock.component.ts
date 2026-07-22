@@ -1,7 +1,7 @@
 import { Component, ElementRef, EventEmitter, Output, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { OutputLine, SearchResultGroup, UtilityPanelId } from '../models';
+import { CommandHistoryEntry, OutputLine, SearchResultGroup, UtilityPanelId } from '../models';
 import { CommandPaletteService } from '../command-palette/command-palette.service';
 import { SystemMonitorService } from '../system/system-monitor.service';
 import { TerminalSessionService } from '../terminal/terminal-session.service';
@@ -16,6 +16,7 @@ import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service'
 export class BottomDockComponent {
   @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
   @Output() readonly utilityTabChange = new EventEmitter<UtilityPanelId>();
+  @Output() readonly collapseRequested = new EventEmitter<void>();
 
   protected readonly util = inject(UtilityPanelService);
   protected readonly palette = inject(CommandPaletteService);
@@ -35,6 +36,10 @@ export class BottomDockComponent {
   protected setUtilityTab(tab: UtilityPanelId): void {
     this.util.activeTab = tab;
     this.utilityTabChange.emit(tab);
+  }
+
+  protected collapse(): void {
+    this.collapseRequested.emit();
   }
 
   focusSearchInput(): void {
@@ -132,6 +137,10 @@ export class BottomDockComponent {
 
   protected getCommandHistorySummary(): string {
     return `${this.getCommandHistoryCount()} captured commands`;
+  }
+
+  protected getCommandSource(entry: CommandHistoryEntry): string {
+    return this.workspace.getCommandHistorySource(entry);
   }
 
   protected formatOutputLine(line: OutputLine): string {

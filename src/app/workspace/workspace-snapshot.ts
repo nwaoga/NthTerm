@@ -1,11 +1,14 @@
-import { LayoutMode, PaneSessionSnapshot, RuntimeTab, RuntimeTerminal, TerminalColorTheme } from '../models';
+import { LayoutMode, PaneSessionSnapshot, RuntimeTerminal, TerminalColorTheme } from '../models';
 import { SavedWorkspace } from '../workspace-bridge.service';
 
-export const MAX_TABS_PER_WORKSPACE = 5;
-export const MAX_TERMINALS_PER_TAB = 4;
+export const MAX_TERMINALS_PER_WORKSPACE = 10;
+
+/** @deprecated Prefer MAX_TERMINALS_PER_WORKSPACE */
+export const MAX_TERMINALS_PER_TAB = MAX_TERMINALS_PER_WORKSPACE;
 
 export interface SavedTerminalSnapshot {
   id: string;
+  name?: string;
   cwd: string;
   shell?: string;
   startupCommand?: string;
@@ -14,6 +17,7 @@ export interface SavedTerminalSnapshot {
   theme?: TerminalColorTheme | null;
 }
 
+/** Legacy tab shape retained only for migrate-on-read. */
 export interface SavedTabSnapshot {
   id: string;
   title: string;
@@ -31,19 +35,12 @@ export interface SavedTabSnapshot {
 
 export interface NormalizedWorkspaceSnapshot {
   layout: {
-    activeTabId: string;
-    focusedTerminalId?: string;
-    mode?: LayoutMode;
-    focusedPaneId?: string;
-    colSplit?: number;
-    rowSplit?: number;
-    panes?: Array<{
-      id: string;
-      tabId: string | null;
-      session?: PaneSessionSnapshot | null;
-    }>;
+    focusedTerminalId: string;
+    mode: LayoutMode;
+    colSplit: number;
+    rowSplit: number;
   };
-  tabs: SavedTabSnapshot[];
+  terminals: SavedTerminalSnapshot[];
   history?: SavedWorkspace['sessionSnapshot']['history'];
   recovery?: SavedWorkspace['sessionSnapshot']['recovery'];
 }
@@ -52,110 +49,153 @@ export function normalizeWorkspaceSnapshot(
   snapshot: SavedWorkspace['sessionSnapshot'] | undefined,
   workspaceCwd: string
 ): NormalizedWorkspaceSnapshot {
-  const base: NormalizedWorkspaceSnapshot = {
+  const history = snapshot?.history;
+  const recovery = snapshot?.recovery;
+
+  const empty: NormalizedWorkspaceSnapshot = {
     layout: {
-      activeTabId: snapshot?.layout?.activeTabId || '',
       focusedTerminalId: '',
-      mode: (snapshot?.layout?.mode as LayoutMode) || 'grid-2x2',
-      colSplit: snapshot?.layout?.colSplit ?? 50,
-      rowSplit: snapshot?.layout?.rowSplit ?? 50,
+      mode: 'grid-2',
+      colSplit: 50,
+      rowSplit: 50,
     },
-    tabs: [],
-    history: snapshot?.history,
-    recovery: snapshot?.recovery,
+    terminals: [],
+    history,
+    recovery,
   };
 
-  const rawTabs = snapshot?.tabs || [];
-  if (!rawTabs.length) {
-    base.tabs = [createEmptyTabSnapshot('Main', workspaceCwd)];
-    base.layout.activeTabId = base.tabs[0].id;
-    return base;
+  if (!snapshot) {
+    return empty;
   }
 
-  const alreadyMigrated = rawTabs.some((tab) => Array.isArray(tab.terminals));
-  if (alreadyMigrated) {
-    base.tabs = rawTabs.map((tab) => ({
-      ...tab,
-      terminals: tab.terminals || [],
-      layoutMode: (tab.layoutMode as LayoutMode) || (snapshot?.layout?.mode as LayoutMode) || 'grid-2x2',
-      colSplit: tab.colSplit ?? snapshot?.layout?.colSplit ?? 50,
-      rowSplit: tab.rowSplit ?? snapshot?.layout?.rowSplit ?? 50,
-      focusedTerminalId: tab.focusedTerminalId || tab.terminals?.[0]?.id || '',
+  // Flat snapshot (post-tabs): terminals at workspace root.
+  if (Array.isArray(snapshot.terminals)) {
+    const terminals = snapshot.terminals.slice(0, MAX_TERMINALS_PER_WORKSPACE).map((terminal) => ({
+      ...terminal,
+      cwd: terminal.cwd || workspaceCwd,
+      shell: terminal.shell || '',
+      startupCommand: terminal.startupCommand || '',
+      status: terminal.status || 'idle',
+      session: terminal.session ?? null,
+      theme: terminal.theme ?? null,
     }));
-    base.layout.activeTabId =
-      snapshot?.layout?.activeTabId || base.tabs[0]?.id || '';
-    const activeTab = base.tabs.find((tab) => tab.id === base.layout.activeTabId);
-    base.layout.focusedTerminalId =
-      activeTab?.focusedTerminalId || activeTab?.terminals?.[0]?.id || '';
-    return base;
-  }
-
-  const panes = snapshot?.layout?.panes || [];
-  const focusedPaneId = snapshot?.layout?.focusedPaneId || '';
-  base.tabs = rawTabs.map((tab) => {
-    const assignedPanes = panes.filter((pane) => pane.tabId === tab.id);
-    const terminals: SavedTerminalSnapshot[] = assignedPanes.map((pane) => ({
-      id: pane.id.startsWith('pane-') ? pane.id.replace('pane-', 'terminal-') : pane.id,
-      cwd: tab.cwd || workspaceCwd,
-      shell: tab.shell || '',
-      startupCommand: tab.startupCommand || '',
-      status: tab.status || 'idle',
-      session: pane.session || null,
-    }));
-
     const focusedTerminalId =
-      assignedPanes.find((pane) => pane.id === focusedPaneId)?.id.replace('pane-', 'terminal-') ||
+      snapshot.layout?.focusedTerminalId ||
+      terminals.find((terminal) => terminal.id === snapshot.layout?.focusedPaneId)?.id ||
       terminals[0]?.id ||
       '';
 
     return {
-      id: tab.id,
-      title: tab.title,
-      cwd: tab.cwd || workspaceCwd,
-      accent: tab.accent,
-      shell: tab.shell,
-      startupCommand: tab.startupCommand,
-      status: tab.status,
-      layoutMode: (snapshot?.layout?.mode as LayoutMode) || 'grid-2x2',
-      colSplit: snapshot?.layout?.colSplit ?? 50,
-      rowSplit: snapshot?.layout?.rowSplit ?? 50,
-      focusedTerminalId,
+      layout: {
+        focusedTerminalId,
+        mode: getEffectiveLayoutMode(terminals.length),
+        colSplit: snapshot.layout?.colSplit ?? 50,
+        rowSplit: snapshot.layout?.rowSplit ?? 50,
+      },
       terminals,
+      history,
+      recovery,
     };
-  });
-
-  base.layout.activeTabId =
-    snapshot?.layout?.activeTabId || base.tabs[0]?.id || '';
-  const activeTab = base.tabs.find((tab) => tab.id === base.layout.activeTabId);
-  const focusedPaneTabId = panes.find((pane) => pane.id === focusedPaneId)?.tabId;
-  if (focusedPaneTabId && focusedPaneId) {
-    const terminalId = focusedPaneId.replace('pane-', 'terminal-');
-    base.layout.focusedTerminalId = terminalId;
-  } else {
-    base.layout.focusedTerminalId =
-      activeTab?.focusedTerminalId || activeTab?.terminals?.[0]?.id || '';
   }
 
-  return base;
-}
+  const rawTabs = snapshot.tabs || [];
+  if (!rawTabs.length) {
+    return empty;
+  }
 
-export function mapRuntimeTab(tab: SavedTabSnapshot): RuntimeTab {
+  const activeTabId = snapshot.layout?.activeTabId || rawTabs[0]?.id || '';
+  let activeTab = rawTabs.find((tab) => tab.id === activeTabId) || rawTabs[0];
+
+  const alreadyMigrated = rawTabs.some((tab) => Array.isArray(tab.terminals));
+  if (!alreadyMigrated) {
+    const panes = snapshot.layout?.panes || [];
+    const focusedPaneId = snapshot.layout?.focusedPaneId || '';
+    const migratedTabs = rawTabs.map((tab) => {
+      const assignedPanes = panes.filter((pane) => pane.tabId === tab.id);
+      const terminals: SavedTerminalSnapshot[] = assignedPanes.map((pane) => ({
+        id: pane.id.startsWith('pane-') ? pane.id.replace('pane-', 'terminal-') : pane.id,
+        cwd: tab.cwd || workspaceCwd,
+        shell: tab.shell || '',
+        startupCommand: tab.startupCommand || '',
+        status: tab.status || 'idle',
+        session: pane.session || null,
+      }));
+
+      const focusedTerminalId =
+        assignedPanes
+          .find((pane) => pane.id === focusedPaneId)
+          ?.id.replace('pane-', 'terminal-') ||
+        terminals[0]?.id ||
+        '';
+
+      return {
+        ...tab,
+        layoutMode: (snapshot.layout?.mode as LayoutMode) || 'grid-2x2',
+        colSplit: snapshot.layout?.colSplit ?? 50,
+        rowSplit: snapshot.layout?.rowSplit ?? 50,
+        focusedTerminalId,
+        terminals,
+      };
+    });
+
+    activeTab = migratedTabs.find((tab) => tab.id === activeTabId) || migratedTabs[0];
+    const focusedPaneTabId = panes.find((pane) => pane.id === focusedPaneId)?.tabId;
+    let focusedTerminalId = activeTab?.focusedTerminalId || activeTab?.terminals?.[0]?.id || '';
+    if (focusedPaneTabId === activeTab?.id && focusedPaneId) {
+      focusedTerminalId = focusedPaneId.replace('pane-', 'terminal-');
+    }
+
+    const terminals = (activeTab?.terminals || []).slice(0, MAX_TERMINALS_PER_WORKSPACE);
+    return {
+      layout: {
+        focusedTerminalId: terminals.some((t) => t.id === focusedTerminalId)
+          ? focusedTerminalId
+          : terminals[0]?.id || '',
+        mode: getEffectiveLayoutMode(terminals.length),
+        colSplit: activeTab?.colSplit ?? snapshot.layout?.colSplit ?? 50,
+        rowSplit: activeTab?.rowSplit ?? snapshot.layout?.rowSplit ?? 50,
+      },
+      terminals,
+      history,
+      recovery,
+    };
+  }
+
+  const terminals = (activeTab.terminals || []).slice(0, MAX_TERMINALS_PER_WORKSPACE).map((terminal) => ({
+    ...terminal,
+    cwd: terminal.cwd || activeTab.cwd || workspaceCwd,
+    shell: terminal.shell || '',
+    startupCommand: terminal.startupCommand || '',
+    status: terminal.status || 'idle',
+    session: terminal.session ?? null,
+    theme: terminal.theme ?? null,
+  }));
+
+  const focusedTerminalId =
+    snapshot.layout?.focusedTerminalId ||
+    activeTab.focusedTerminalId ||
+    terminals[0]?.id ||
+    '';
+
   return {
-    id: tab.id,
-    title: tab.title,
-    cwd: tab.cwd,
-    accent: tab.accent,
-    layoutMode: tab.layoutMode || 'grid-2x2',
-    colSplit: tab.colSplit ?? 50,
-    rowSplit: tab.rowSplit ?? 50,
-    focusedTerminalId: tab.focusedTerminalId || tab.terminals?.[0]?.id || '',
-    terminals: (tab.terminals || []).map(mapRuntimeTerminal),
+    layout: {
+      focusedTerminalId: terminals.some((t) => t.id === focusedTerminalId)
+        ? focusedTerminalId
+        : terminals[0]?.id || '',
+      mode: getEffectiveLayoutMode(terminals.length),
+      colSplit: activeTab.colSplit ?? snapshot.layout?.colSplit ?? 50,
+      rowSplit: activeTab.rowSplit ?? snapshot.layout?.rowSplit ?? 50,
+    },
+    terminals,
+    history,
+    recovery,
   };
 }
 
 export function mapRuntimeTerminal(terminal: SavedTerminalSnapshot): RuntimeTerminal {
   return {
     id: terminal.id,
+    name: terminal.name?.trim() || '',
     cwd: terminal.cwd,
     shell: terminal.shell || '',
     startupCommand: terminal.startupCommand || '',
@@ -165,29 +205,15 @@ export function mapRuntimeTerminal(terminal: SavedTerminalSnapshot): RuntimeTerm
   };
 }
 
-export function createEmptyTabSnapshot(title: string, cwd: string, accent = 'violet'): SavedTabSnapshot {
-  return {
-    id: `tab-${Date.now()}`,
-    title,
-    cwd,
-    accent,
-    layoutMode: 'grid-2x2',
-    colSplit: 50,
-    rowSplit: 50,
-    focusedTerminalId: '',
-    terminals: [],
-  };
-}
-
 export function createTerminalDraft(
-  tab: RuntimeTab,
-  workspaceCwd: string,
-  options?: { shell?: string; theme?: TerminalColorTheme | null }
+  cwd: string,
+  options?: { shell?: string; theme?: TerminalColorTheme | null; existingCount?: number }
 ): RuntimeTerminal {
-  const nextIndex = tab.terminals.length + 1;
+  const nextIndex = (options?.existingCount ?? 0) + 1;
   return {
     id: `terminal-${nextIndex}-${Date.now()}`,
-    cwd: tab.cwd || workspaceCwd,
+    name: '',
+    cwd,
     shell: options?.shell ?? '',
     startupCommand: '',
     status: 'idle',
@@ -196,10 +222,10 @@ export function createTerminalDraft(
   };
 }
 
-export function getEffectiveLayoutMode(tab: RuntimeTab): LayoutMode {
-  if (tab.terminals.length <= 2) {
+export function getEffectiveLayoutMode(terminalCount: number): LayoutMode {
+  if (terminalCount <= 2) {
     return 'grid-2';
   }
 
-  return tab.layoutMode || 'grid-2x2';
+  return 'grid-2x2';
 }

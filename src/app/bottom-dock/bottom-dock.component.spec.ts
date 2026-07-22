@@ -42,6 +42,9 @@ describe('BottomDockComponent', () => {
         command: 'npm run api',
         timestamp: '2026-07-01T08:05:00.000Z',
         tabTitle: 'API',
+        tabId: 'tab-1',
+        terminalId: 'terminal-1',
+        terminalTitle: 'API Server',
       },
     ],
     searchQuery: 'cloud',
@@ -98,7 +101,13 @@ describe('BottomDockComponent', () => {
         },
         { provide: SystemMonitorService, useValue: systemMonitorService },
         { provide: TerminalSessionService, useValue: { rerunCommand: jasmine.createSpy('rerunCommand') } },
-        { provide: WorkspaceRuntimeService, useValue: { previewMode: true } },
+        {
+          provide: WorkspaceRuntimeService,
+          useValue: {
+            previewMode: true,
+            getCommandHistorySource: () => 'API • API Server',
+          },
+        },
       ],
     }).compileComponents();
   });
@@ -163,6 +172,7 @@ describe('BottomDockComponent', () => {
     expect(text).toContain('Command History');
     expect(text).toContain('1 captured commands');
     expect(text).toContain('npm run api');
+    expect(text).toContain('API • API Server');
   });
 
   it('focuses the search input when focusSearchInput is called', fakeAsync(() => {
@@ -179,4 +189,15 @@ describe('BottomDockComponent', () => {
     const input = fixture.debugElement.query(By.css('input[type="search"]')).nativeElement as HTMLInputElement;
     expect(document.activeElement).toBe(input);
   }));
+
+  it('emits a collapse request from the dock header', () => {
+    const fixture = TestBed.createComponent(BottomDockComponent);
+    const collapseRequested = jasmine.createSpy('collapseRequested');
+    fixture.componentInstance.collapseRequested.subscribe(collapseRequested);
+    fixture.detectChanges();
+
+    fixture.debugElement.query(By.css('[aria-label="Hide workspace dock"]')).nativeElement.click();
+
+    expect(collapseRequested).toHaveBeenCalled();
+  });
 });

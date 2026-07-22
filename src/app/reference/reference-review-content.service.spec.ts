@@ -36,7 +36,7 @@ describe('ReferenceReviewContentService', () => {
 
     expect(workspace.previewMode).toBeTrue();
     expect(workspace.workspaceName).toBe('Cloud POS');
-    expect(workspace.runtimeTabs.length).toBe(4);
+    expect(workspace.terminals.length).toBe(4);
     expect(workspace.sessionHistory.length).toBe(2);
     expect(workspace.recoverySnapshot.lastStopReason).toBe('Clean restore');
     expect(workspace.lastSavedAt).toBe('Today at 09:12:05');

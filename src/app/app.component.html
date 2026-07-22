@@ -1,9 +1,7 @@
 <main class="app-shell">
   <app-shell-toolbar
     class="app-shell-toolbar-host"
-    (createTabRequested)="onCreateTab()"
     (createTerminalRequested)="onCreateTerminal($event)"
-    (layoutModeChange)="onLayoutModeChange($event)"
     (commandPaletteRequested)="openCommandPalette()"
     (settingsRequested)="openSettings()"
   />
@@ -22,7 +20,10 @@
     [class.workspace-shell-dock-resizing]="dockResizeActive"
     [style.--dock-height.px]="utilityPanelHeight"
   >
-    <app-workspace-area />
+    <app-workspace-area
+      [inspectorPanelVisible]="inspectorPanelVisible"
+      (inspectorPanelVisibleChange)="setInspectorPanelPreference($event)"
+    />
 
     @if (utilityPanelVisible) {
       <div
@@ -32,7 +33,14 @@
         aria-label="Resize workspace dock"
         (mousedown)="startUtilityPanelResize($event)"
       ></div>
-      <app-bottom-dock #bottomDock (utilityTabChange)="onUtilityTabChange($event)" />
+      <app-bottom-dock #bottomDock (utilityTabChange)="onUtilityTabChange($event)" (collapseRequested)="setUtilityPanelPreference(false)" />
+    } @else {
+      <button type="button" class="dock-restore-button" aria-label="Show workspace dock" title="Show workspace dock (Ctrl+J)" (click)="setUtilityPanelPreference(true)">
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="2.5" y="3" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" />
+          <path d="M2.5 9.5h11M6 7l2-2 2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
     }
 
     <app-status-bar />
@@ -51,6 +59,7 @@
     [defaultTerminalForeground]="defaultTerminalForeground"
     [defaultTerminalBackground]="defaultTerminalBackground"
     [terminalAnsiPalette]="terminalAnsiPalette"
+    [shellOptions]="ws.getShellOptions()"
     (closed)="closeSettings()"
     (utilityPanelPreferenceChange)="setUtilityPanelPreference($event)"
     (newSessionStartModeChange)="setNewSessionStartMode($event)"

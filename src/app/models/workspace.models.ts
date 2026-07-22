@@ -1,4 +1,5 @@
 import { TerminalColorTheme } from './terminal-theme.models';
+import { HostPlatformId } from '../platform/host-platform';
 
 export interface WorkspaceListItem {
   id: string;
@@ -12,24 +13,13 @@ export type SessionListItem = WorkspaceListItem;
 
 export interface RuntimeTerminal {
   id: string;
+  name?: string;
   cwd: string;
   shell: string;
   startupCommand: string;
   status: string;
   session?: PaneSessionSnapshot | null;
   theme?: TerminalColorTheme | null;
-}
-
-export interface RuntimeTab {
-  id: string;
-  title: string;
-  cwd: string;
-  accent: string;
-  layoutMode: LayoutMode;
-  colSplit: number;
-  rowSplit: number;
-  focusedTerminalId: string;
-  terminals: RuntimeTerminal[];
 }
 
 export interface PaneSessionSnapshot {
@@ -47,9 +37,12 @@ export interface PaneSessionSnapshot {
 
 export interface SessionHistoryEntry {
   id: string;
-  tabId: string;
-  tabTitle: string;
+  /** @deprecated Historical label only; tabs removed from product model. */
+  tabId?: string;
+  /** @deprecated Historical label only; tabs removed from product model. */
+  tabTitle?: string;
   paneId: string;
+  terminalTitle?: string;
   shell: string;
   cwd: string;
   status: 'running' | 'stopped' | 'killed' | 'failed';
@@ -64,7 +57,8 @@ export interface SessionHistoryEntry {
 export interface RecoverySnapshot {
   lastLaunchAt: string | null;
   lastAttachedPaneId: string | null;
-  lastAttachedTabId: string | null;
+  /** @deprecated Tabs removed; kept for migrate-on-read of older snapshots. */
+  lastAttachedTabId?: string | null;
   lastExitCode: number | null;
   lastStopReason: string | null;
   lastSessionEndedAt: string | null;
@@ -72,11 +66,21 @@ export interface RecoverySnapshot {
 }
 
 export type LayoutMode = 'grid-2' | 'grid-2x2';
+export type ShellId = '' | 'powershell' | 'cmd' | 'bash' | 'zsh' | `wsl:${string}`;
+export type WorkspaceShellProfile = ShellId | 'system';
+export interface ShellOption {
+  value: ShellId;
+  label: string;
+}
+
+export interface WorkspaceShellProfileOption {
+  value: WorkspaceShellProfile;
+  label: string;
+}
 
 export interface WorkspaceSummary {
   layoutMode: string;
   launchProfile: string;
-  tabCount: number;
   paneCount: number;
 }
 
@@ -86,4 +90,80 @@ export const SHELL_OPTIONS = [
   { value: 'cmd', label: 'Command Prompt' },
   { value: 'bash', label: 'Bash' },
   { value: 'zsh', label: 'Zsh' },
-] as const;
+] as const satisfies ReadonlyArray<ShellOption>;
+
+export const WORKSPACE_SHELL_PROFILE_OPTIONS = [
+  { value: '', label: 'Use App Default' },
+  { value: 'system', label: 'System Default' },
+  { value: 'powershell', label: 'PowerShell' },
+  { value: 'cmd', label: 'Command Prompt' },
+  { value: 'bash', label: 'Bash' },
+  { value: 'zsh', label: 'Zsh' },
+] as const satisfies ReadonlyArray<WorkspaceShellProfileOption>;
+
+const WINDOWS_ONLY_SHELL_VALUES = new Set(['powershell', 'cmd']);
+
+export function toWslShellId(distro: string): ShellId {
+  return `wsl:${distro.trim()}`;
+}
+
+export function isShellId(value: string | null | undefined): value is ShellId {
+  return (
+    value === '' ||
+    value === 'powershell' ||
+    value === 'cmd' ||
+    value === 'bash' ||
+    value === 'zsh' ||
+    Boolean(value?.startsWith('wsl:') && value.slice(4).trim())
+  );
+}
+
+export function isWorkspaceShellProfile(value: string | null | undefined): value is WorkspaceShellProfile {
+  return value === 'system' || isShellId(value);
+}
+
+export function buildShellOptions(
+  wslDistros: string[] = [],
+  platform: HostPlatformId = 'win32'
+): ShellOption[] {
+  const shells = SHELL_OPTIONS.filter((option) => {
+    if (platform === 'win32') {
+      return true;
+    }
+
+    return !WINDOWS_ONLY_SHELL_VALUES.has(option.value);
+  });
+
+  const wslOptions =
+    platform === 'win32'
+      ? wslDistros.map((distro) => ({
+          value: toWslShellId(distro),
+          label: `WSL: ${distro}`,
+        }))
+      : [];
+
+  return [...shells, ...wslOptions];
+}
+
+export function buildWorkspaceShellProfileOptions(
+  wslDistros: string[] = [],
+  platform: HostPlatformId = 'win32'
+): WorkspaceShellProfileOption[] {
+  const profiles = WORKSPACE_SHELL_PROFILE_OPTIONS.filter((option) => {
+    if (platform === 'win32') {
+      return true;
+    }
+
+    return !WINDOWS_ONLY_SHELL_VALUES.has(option.value);
+  });
+
+  const wslOptions =
+    platform === 'win32'
+      ? wslDistros.map((distro) => ({
+          value: toWslShellId(distro),
+          label: `WSL: ${distro}`,
+        }))
+      : [];
+
+  return [...profiles, ...wslOptions];
+}

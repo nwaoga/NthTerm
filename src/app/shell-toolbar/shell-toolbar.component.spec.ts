@@ -5,7 +5,12 @@ import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service'
 import { ShellToolbarComponent } from './shell-toolbar.component';
 
 describe('ShellToolbarComponent', () => {
+  let activeTerminals: Array<Record<string, unknown>>;
+
   beforeEach(async () => {
+    activeTerminals = [
+      { id: 'terminal-1', cwd: 'C:\\api', shell: '', startupCommand: '', status: 'running', session: null },
+    ];
     await TestBed.configureTestingModule({
       imports: [ShellToolbarComponent],
       providers: [
@@ -13,37 +18,20 @@ describe('ShellToolbarComponent', () => {
           provide: WorkspaceRuntimeService,
           useValue: {
             selectedWorkspace: 'Cloud POS',
+            workspaceName: 'Cloud POS',
             layoutMode: 'grid-2x2',
-            runtimeTabs: [
-              { id: 'tab-1', title: 'API' },
-              { id: 'tab-2', title: 'Angular' },
-            ],
-            getFocusedTab: () => ({ id: 'tab-1', title: 'API' }),
-            getActiveTabTerminals: () => [
-              { id: 'terminal-1', cwd: 'C:\\api', shell: '', startupCommand: '', status: 'running', session: null },
+            terminals: activeTerminals,
+            getActiveTabTerminals: () => activeTerminals,
+            getShellOptions: () => [
+              { value: '', label: 'System Default' },
+              { value: 'powershell', label: 'PowerShell' },
+              { value: 'cmd', label: 'Command Prompt' },
+              { value: 'wsl:Ubuntu', label: 'WSL: Ubuntu' },
             ],
           },
         },
       ],
     }).compileComponents();
-  });
-
-  it('emits create-tab and layout events from the toolbar controls', () => {
-    const fixture = TestBed.createComponent(ShellToolbarComponent);
-    const component = fixture.componentInstance;
-    const createSpy = jasmine.createSpy('createTabRequested');
-    const layoutSpy = jasmine.createSpy('layoutModeChange');
-
-    component.createTabRequested.subscribe(createSpy);
-    component.layoutModeChange.subscribe(layoutSpy);
-    fixture.detectChanges();
-
-    const createButtons = fixture.debugElement.queryAll(By.css('.toolbar-pill-primary'));
-    createButtons[0].nativeElement.click();
-    fixture.debugElement.queryAll(By.css('.toolbar-pill-segment'))[0].nativeElement.click();
-
-    expect(createSpy).toHaveBeenCalled();
-    expect(layoutSpy).toHaveBeenCalledWith('grid-2');
   });
 
   it('emits command palette and settings actions', () => {
@@ -63,6 +51,18 @@ describe('ShellToolbarComponent', () => {
     expect(settingsSpy).toHaveBeenCalled();
   });
 
+  it('omits manual layout and inactive profile controls', () => {
+    activeTerminals.push({ id: 'terminal-2' });
+    const fixture = TestBed.createComponent(ShellToolbarComponent);
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.layout-switch'))).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('2-Up');
+    expect(fixture.nativeElement.textContent).not.toContain('2x2');
+    expect(fixture.debugElement.query(By.css('[aria-label="Command palette"]'))).not.toBeNull();
+    expect(fixture.debugElement.query(By.css('[aria-label="Profile"]'))).toBeNull();
+  });
+
   it('does not render search or view-menu controls', () => {
     const fixture = TestBed.createComponent(ShellToolbarComponent);
     fixture.detectChanges();
@@ -71,7 +71,7 @@ describe('ShellToolbarComponent', () => {
     expect(fixture.debugElement.query(By.css('.toolbar-view-menu-button'))).toBeNull();
   });
 
-  it('emits create-terminal with the default shell from the split action', () => {
+  it('emits create-terminal without a shell from the split action', () => {
     const fixture = TestBed.createComponent(ShellToolbarComponent);
     const component = fixture.componentInstance;
     const terminalSpy = jasmine.createSpy('createTerminalRequested');
@@ -82,7 +82,7 @@ describe('ShellToolbarComponent', () => {
     const splitMain = fixture.debugElement.query(By.css('.split-action-main'));
     splitMain.nativeElement.click();
 
-    expect(terminalSpy).toHaveBeenCalled();
+    expect(terminalSpy).toHaveBeenCalledWith(undefined);
   });
 
   it('emits create-terminal with an explicit shell from the shell menu', () => {
@@ -102,24 +102,79 @@ describe('ShellToolbarComponent', () => {
     expect(terminalSpy).toHaveBeenCalledWith('cmd');
   });
 
+  it('renders discovered WSL distros in the shell menu', () => {
+    const fixture = TestBed.createComponent(ShellToolbarComponent);
+    fixture.detectChanges();
+
+    fixture.debugElement.query(By.css('.split-action-menu')).nativeElement.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('WSL: Ubuntu');
+  });
+
   it('renders workspace summary context in the center band', () => {
     const fixture = TestBed.createComponent(ShellToolbarComponent);
     fixture.detectChanges();
 
     const summary = fixture.debugElement.query(By.css('.toolbar-center-summary')).nativeElement
       .textContent;
-    const layout = fixture.debugElement.query(By.css('.toolbar-meta-pill')).nativeElement
-      .textContent;
-    const contextLabel = fixture.debugElement.query(By.css('.workspace-context-label')).nativeElement
-      .textContent;
-    const contextBadge = fixture.debugElement.query(By.css('.workspace-context-badge')).nativeElement
+    const context = fixture.debugElement.query(By.css('.desktop-workspace-context')).nativeElement
       .textContent;
 
-    expect(summary).toContain('2/5 tabs');
-    expect(summary).toContain('API');
-    expect(summary).toContain('1 shell');
-    expect(layout).toContain('2x2');
-    expect(contextLabel).toContain('Active Workspace');
-    expect(contextBadge).toContain('Sidebar');
+    expect(summary).toContain('1/10 terminal');
+    expect(context).toContain('Workspace');
+    expect(context).toContain('Cloud POS');
+    expect(context).toContain('1/10 terminal');
+    expect(context).not.toContain('Tab');
+  });
+
+  it('uses start and add language without exposing manual layouts', () => {
+    activeTerminals = [];
+    const emptyFixture = TestBed.createComponent(ShellToolbarComponent);
+    emptyFixture.detectChanges();
+
+    expect(emptyFixture.debugElement.query(By.css('.split-action-main')).nativeElement.textContent).toContain('Start Terminal');
+    expect(emptyFixture.debugElement.query(By.css('.layout-switch'))).toBeNull();
+
+    activeTerminals = [{ id: 'terminal-1' }];
+    const singleFixture = TestBed.createComponent(ShellToolbarComponent);
+    singleFixture.detectChanges();
+
+    expect(singleFixture.debugElement.query(By.css('.split-action-main')).nativeElement.textContent).toContain('Add Terminal');
+    expect(singleFixture.debugElement.query(By.css('.layout-switch'))).toBeNull();
+
+    activeTerminals.push({ id: 'terminal-2' });
+    singleFixture.detectChanges();
+    expect(singleFixture.debugElement.query(By.css('.layout-switch'))).toBeNull();
+  });
+
+  it('does not render a New Tab control', () => {
+    const fixture = TestBed.createComponent(ShellToolbarComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('New Tab');
+    expect(fixture.debugElement.query(By.css('[aria-label="New tab"]'))).toBeNull();
+  });
+
+  it('applies Windows caption spacing without decorative traffic lights', () => {
+    window.nthTermDesktop = { ...(window.nthTermDesktop || {}), platform: 'win32' };
+    const fixture = TestBed.createComponent(ShellToolbarComponent);
+    fixture.detectChanges();
+
+    const toolbar = fixture.debugElement.query(By.css('.shell-toolbar')).nativeElement as HTMLElement;
+    expect(toolbar.classList.contains('windows-titlebar')).toBeTrue();
+    expect(toolbar.classList.contains('mac-titlebar')).toBeFalse();
+    expect(fixture.debugElement.query(By.css('.traffic-lights'))).toBeNull();
+  });
+
+  it('reserves macOS traffic-light space without decorative lights', () => {
+    window.nthTermDesktop = { ...(window.nthTermDesktop || {}), platform: 'darwin' };
+    const fixture = TestBed.createComponent(ShellToolbarComponent);
+    fixture.detectChanges();
+
+    const toolbar = fixture.debugElement.query(By.css('.shell-toolbar')).nativeElement as HTMLElement;
+    expect(toolbar.classList.contains('mac-titlebar')).toBeTrue();
+    expect(toolbar.classList.contains('windows-titlebar')).toBeFalse();
+    expect(fixture.debugElement.query(By.css('.traffic-lights'))).toBeNull();
   });
 });

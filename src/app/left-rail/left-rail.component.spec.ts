@@ -60,6 +60,15 @@ describe('LeftRailComponent', () => {
     expect(fixture.nativeElement.querySelector('.preferences-card')).toBeNull();
   });
 
+  it('does not render inactive tool placeholders', () => {
+    const fixture = TestBed.createComponent(LeftRailComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Command History');
+    expect(fixture.nativeElement.textContent).not.toContain('Snippets');
+    expect(fixture.nativeElement.textContent).not.toContain('Environments');
+  });
+
   it('emits a new workspace request from the new workspace button', () => {
     const fixture = TestBed.createComponent(LeftRailComponent);
     const component = fixture.componentInstance;

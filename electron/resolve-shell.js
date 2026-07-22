@@ -37,8 +37,69 @@ function getWindowsPowerShell() {
   return { file: 'powershell.exe', args: ['-NoLogo'] };
 }
 
+function resolveShell(preference, options = {}) {
+  const platform = options.platform || process.platform;
+  const normalized = (preference || '').trim();
+  const normalizedLower = normalized.toLowerCase();
+
+  if (normalizedLower.startsWith('wsl:')) {
+    const distro = normalized.slice(4).trim();
+    return {
+      file: 'wsl.exe',
+      args: distro ? ['-d', distro] : [],
+      label: distro ? `WSL: ${distro}` : 'WSL',
+    };
+  }
+
+  if (!normalizedLower) {
+    return getDefaultShell(platform);
+  }
+
+  if (normalizedLower === 'powershell' || normalizedLower === 'powershell.exe') {
+    return getWindowsPowerShell();
+  }
+
+  if (normalizedLower === 'cmd' || normalizedLower === 'cmd.exe') {
+    return { file: 'cmd.exe', args: [] };
+  }
+
+  if (normalizedLower === 'bash' || normalizedLower === 'bash.exe') {
+    return platform === 'win32'
+      ? { file: 'bash.exe', args: [] }
+      : { file: '/bin/bash', args: [] };
+  }
+
+  if (normalizedLower === 'zsh' || normalizedLower === 'zsh.exe') {
+    return platform === 'win32'
+      ? { file: 'zsh.exe', args: [] }
+      : { file: '/bin/zsh', args: [] };
+  }
+
+  return getDefaultShell(platform);
+}
+
+function getDefaultShell(platform = process.platform) {
+  if (platform === 'win32') {
+    return getWindowsPowerShell();
+  }
+
+  if (platform === 'darwin') {
+    return {
+      file: process.env.SHELL || '/bin/zsh',
+      args: [],
+    };
+  }
+
+  return {
+    file: process.env.SHELL || '/bin/bash',
+    args: [],
+  };
+}
+
 module.exports = {
+  getDefaultShell,
   getPowerShell7Path,
   getWindowsPowerShell,
   pathExists,
+  resolveShell,
 };

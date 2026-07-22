@@ -1,7 +1,6 @@
 export type PaletteEntryKind =
   | 'action'
   | 'workspace'
-  | 'tab'
   | 'command'
   | 'output'
   | 'problem'
@@ -24,17 +23,16 @@ export interface SearchResultGroup {
 export interface PaletteActionDispatcher {
   saveWorkspace(): Promise<void>;
   restoreWorkspace(): Promise<void>;
-  createTab(): Promise<void>;
+  createTerminal(): Promise<void>;
   relaunchTerminal(): Promise<void>;
   interruptTerminal(): Promise<void>;
   killTerminal(): Promise<void>;
   openUtilityPanel(tab: import('./utility.models').UtilityPanelId): void;
-  setInspectorTab(tab: 'tab' | 'session'): void;
-  setLayoutMode(mode: import('./workspace.models').LayoutMode): Promise<void>;
+  setInspectorTab(tab: import('./inspector.models').InspectorMode): void;
+  setInspectorVisible(visible: boolean): void;
   openCommandPalette(): void;
   openGlobalSearch(): void;
   selectWorkspace(workspaceId: string): Promise<void>;
-  selectTab(tabId: string): Promise<void>;
   createWorkspace(): Promise<void>;
   rerunCommand(command: string): Promise<void>;
   focusPane(paneId: string): Promise<void>;

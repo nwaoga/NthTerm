@@ -1,21 +1,19 @@
-import { TestBed } from '@angular/core/testing';
-
 import {
-  MAX_TABS_PER_WORKSPACE,
-  MAX_TERMINALS_PER_TAB,
-  createEmptyTabSnapshot,
+  MAX_TERMINALS_PER_WORKSPACE,
+  createTerminalDraft,
+  getEffectiveLayoutMode,
   mapRuntimeTerminal,
   normalizeWorkspaceSnapshot,
 } from './workspace-snapshot';
 
 describe('workspace-snapshot', () => {
-  it('migrates legacy pane assignments into tab-owned terminals', () => {
+  it('migrates legacy multi-tab snapshots by keeping the active tab only', () => {
     const normalized = normalizeWorkspaceSnapshot(
       {
         layout: {
           mode: 'grid-2x2',
           activeTabId: 'tab-api',
-          focusedPaneId: 'pane-2',
+          focusedPaneId: 'pane-1',
           panes: [
             { id: 'pane-1', tabId: 'tab-api' },
             { id: 'pane-2', tabId: 'tab-angular' },
@@ -43,43 +41,86 @@ describe('workspace-snapshot', () => {
       'C:\\fallback'
     );
 
-    expect(normalized.tabs[0].terminals?.length).toBe(1);
-    expect(normalized.tabs[0].terminals?.[0].id).toBe('terminal-1');
-    expect(normalized.tabs[1].terminals?.[0].id).toBe('terminal-2');
-    expect(normalized.layout.focusedTerminalId).toBe('terminal-2');
-    expect(normalized.tabs[2]).toBeUndefined();
+    expect(normalized.terminals.length).toBe(1);
+    expect(normalized.terminals[0].id).toBe('terminal-1');
+    expect(normalized.layout.focusedTerminalId).toBe('terminal-1');
   });
 
-  it('creates an empty starter tab when no tabs exist', () => {
+  it('creates an empty workspace when no terminals or tabs exist', () => {
     const normalized = normalizeWorkspaceSnapshot(undefined, 'C:\\Projects\\Demo');
 
-    expect(normalized.tabs.length).toBe(1);
-    expect(normalized.tabs[0].terminals).toEqual([]);
-    expect(normalized.layout.activeTabId).toBe(normalized.tabs[0].id);
+    expect(normalized.terminals).toEqual([]);
+    expect(normalized.layout.focusedTerminalId).toBe('');
   });
 
-  it('enforces workspace tab and terminal limits as constants', () => {
-    expect(MAX_TABS_PER_WORKSPACE).toBe(5);
-    expect(MAX_TERMINALS_PER_TAB).toBe(4);
-    expect(createEmptyTabSnapshot('Main', 'C:\\').terminals).toEqual([]);
+  it('enforces the workspace terminal limit constant', () => {
+    expect(MAX_TERMINALS_PER_WORKSPACE).toBe(10);
   });
 
-  it('round-trips terminal color themes in snapshots', () => {
+  it('keeps legacy layout mode helpers for snapshot compatibility', () => {
+    expect(getEffectiveLayoutMode(0)).toBe('grid-2');
+    expect(getEffectiveLayoutMode(1)).toBe('grid-2');
+    expect(getEffectiveLayoutMode(2)).toBe('grid-2');
+    expect(getEffectiveLayoutMode(3)).toBe('grid-2x2');
+    expect(getEffectiveLayoutMode(4)).toBe('grid-2x2');
+  });
+
+  it('round-trips flat terminal color themes in snapshots', () => {
     const normalized = normalizeWorkspaceSnapshot(
       {
+        layout: {
+          mode: 'grid-2',
+          focusedTerminalId: 'terminal-1',
+        },
+        terminals: [
+          {
+            id: 'terminal-1',
+            name: 'API Server',
+            cwd: 'C:\\api',
+            status: 'idle',
+            theme: { foreground: '#eeeeee', background: '#101010' },
+          } as any,
+        ],
+      } as any,
+      'C:\\fallback'
+    );
+
+    expect(normalized.terminals[0].theme).toEqual({
+      foreground: '#eeeeee',
+      background: '#101010',
+    });
+    expect(mapRuntimeTerminal(normalized.terminals[0]).theme).toEqual({
+      foreground: '#eeeeee',
+      background: '#101010',
+    });
+    expect(mapRuntimeTerminal(normalized.terminals[0]).name).toBe('API Server');
+  });
+
+  it('promotes the active tab terminals from a multi-tab migrated snapshot', () => {
+    const normalized = normalizeWorkspaceSnapshot(
+      {
+        layout: {
+          mode: 'grid-2x2',
+          activeTabId: 'tab-angular',
+          focusedTerminalId: 'terminal-2',
+        },
         tabs: [
           {
-            id: 'tab-1',
+            id: 'tab-api',
             title: 'API',
             cwd: 'C:\\api',
             accent: 'violet',
+            terminals: [{ id: 'terminal-1', cwd: 'C:\\api', status: 'idle' }],
+          },
+          {
+            id: 'tab-angular',
+            title: 'Angular',
+            cwd: 'C:\\angular',
+            accent: 'amber',
+            focusedTerminalId: 'terminal-2',
             terminals: [
-              {
-                id: 'terminal-1',
-                cwd: 'C:\\api',
-                status: 'idle',
-                theme: { foreground: '#eeeeee', background: '#101010' },
-              } as any,
+              { id: 'terminal-2', cwd: 'C:\\angular', status: 'running' },
+              { id: 'terminal-3', cwd: 'C:\\angular\\src', status: 'idle' },
             ],
           },
         ],
@@ -87,13 +128,14 @@ describe('workspace-snapshot', () => {
       'C:\\fallback'
     );
 
-    expect(normalized.tabs[0].terminals?.[0].theme).toEqual({
-      foreground: '#eeeeee',
-      background: '#101010',
-    });
-    expect(mapRuntimeTerminal(normalized.tabs[0].terminals![0]).theme).toEqual({
-      foreground: '#eeeeee',
-      background: '#101010',
-    });
+    expect(normalized.terminals.map((t) => t.id)).toEqual(['terminal-2', 'terminal-3']);
+    expect(normalized.layout.focusedTerminalId).toBe('terminal-2');
+  });
+
+  it('builds terminal drafts with workspace cwd', () => {
+    const draft = createTerminalDraft('C:\\work', { shell: 'powershell', existingCount: 1 });
+    expect(draft.cwd).toBe('C:\\work');
+    expect(draft.shell).toBe('powershell');
+    expect(draft.status).toBe('idle');
   });
 });

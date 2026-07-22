@@ -1,49 +1,42 @@
-    <div class="content-layout">
+    <div class="content-layout" [class.inspector-hidden]="!inspectorPanelVisible">
       <section class="content-main">
         <div class="workspace-stage">
-          <nav class="tab-strip" aria-label="Workspace tabs">
-            @for (tab of ws.runtimeTabs; track trackById($index, tab)) {
-              <button
-                type="button"
-                class="workspace-tab"
-                [class.active]="isTabActive(tab)"
-                [attr.data-tone]="tab.accent"
-                (click)="selectTab(tab.id)"
-              >
-                <span class="workspace-tab-icon" aria-hidden="true">
-                  <svg viewBox="0 0 16 16" fill="none">
-                    <rect x="2.5" y="3.5" width="11" height="9" rx="1.4" stroke="currentColor" stroke-width="1.3" />
-                    <path d="M5 7.2h3.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-                    <path d="M5 9.6h2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-                  </svg>
-                </span>
-                <span class="workspace-tab-label">{{ tab.title }}</span>
-                <span class="workspace-tab-close" (click)="closeTab(tab.id, $event)" aria-label="Close tab">
-                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M4.5 4.5 11.5 11.5M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                  </svg>
-                </span>
-              </button>
-            }
-            @if (canAddTab()) {
-              <button type="button" class="tab-add" (click)="createTab()" aria-label="Add tab">
-                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                </svg>
-              </button>
-            }
-          </nav>
+          <div class="sr-only" aria-live="polite">{{ layout.announcementText }}</div>
+
+          @if (terminalContextMenu) {
+            <div class="context-menu" role="menu" [style.left.px]="terminalContextMenu.x" [style.top.px]="terminalContextMenu.y" (click)="$event.stopPropagation()">
+              <button type="button" role="menuitem" (click)="renameContextTerminal()">Rename Terminal</button>
+              <button type="button" role="menuitem" (click)="openColorsForContextTerminal()">Terminal Colors</button>
+              <button type="button" role="menuitem" (click)="restartContextTerminal()">Restart Terminal</button>
+              <button type="button" role="menuitem" (click)="duplicateContextTerminal()">Duplicate Terminal</button>
+              <button type="button" role="menuitem" class="danger" (click)="closeContextTerminal()">Close Terminal</button>
+            </div>
+          }
 
           <div class="workspace-stage-body">
           @if (!getActiveTerminals().length) {
             <section class="workspace-empty-state">
+              @if (!inspectorPanelVisible) {
+                <button
+                  type="button"
+                  class="inspector-restore-button workspace-empty-inspector-restore"
+                  aria-label="Show inspector"
+                  title="Show inspector"
+                  (click)="setInspectorPanelVisible(true)"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <rect x="2.5" y="3" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" />
+                    <path d="M9.5 3v10M5 6h2M5 8.5h2M5 11h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                  </svg>
+                </button>
+              }
               <div class="empty-pane-card">
-                <span class="preview-label">No terminals yet</span>
-                <strong>Add a shell to this tab</strong>
-                <p>Tabs start empty. Add up to {{ maxTerminals }} terminals per tab when you are ready to work.</p>
+                <span class="preview-label">Empty workspace</span>
+                <strong>Start a terminal</strong>
+                <p>This workspace has no running shell. Start one here, then add more when you need another.</p>
                 @if (canAddTerminal()) {
                   <div class="empty-terminal-actions">
-                    <button type="button" class="primary" (click)="addTerminal()">Add Terminal</button>
+                    <button type="button" class="primary" (click)="addTerminal()">Start Terminal</button>
                     <div class="shell-picker-inline">
                       @for (option of shellOptions; track option.value) {
                         <button type="button" class="shell-picker-chip" (click)="addTerminal(option.value)">
@@ -56,119 +49,121 @@
               </div>
             </section>
           } @else {
-            <section
-              #paneGrid
-              class="pane-grid"
-              [class.pane-grid-resizing]="ws.paneResizeMode !== null"
-              [attr.data-layout]="getGridLayout()"
-              [attr.data-terminal-count]="getActiveTerminals().length"
-              [style.--pane-col-split.%]="ws.paneColSplit"
-              [style.--pane-row-split.%]="ws.paneRowSplit"
+            <div
+              #terminalPark
+              class="terminal-session-park"
+              aria-hidden="true"
+              [style.--park-width.px]="parkWidth"
+              [style.--park-height.px]="parkHeight"
             >
-              @for (terminal of getActiveTerminals(); track trackById($index, terminal); let index = $index) {
-                <ng-container *ngTemplateOutlet="terminalCard; context: { terminal, index }" />
+              @for (terminal of getActiveTerminals(); track trackById($index, terminal)) {
+                @if (isOverviewMode() || terminal.id !== layout.activeTerminalId) {
+                  <div
+                    class="terminal-park-host"
+                    [attr.data-terminal-host]="terminal.id"
+                    data-terminal-park="true"
+                  ></div>
+                }
               }
-              @if (showResizeHandles() && getGridLayout() === 'grid-2') {
-                <div
-                  class="pane-resize-handle pane-resize-col"
-                  role="separator"
-                  aria-orientation="vertical"
-                  aria-label="Resize terminals"
-                  (mousedown)="startPaneResize($event, 'col')"
-                ></div>
+            </div>
+
+            <app-workspace-header
+              [workspaceName]="ws.workspaceName"
+              [terminalName]="getActiveTerminalTitle()"
+              [terminalIds]="getTerminalIds()"
+              [activeIndex]="getActiveIndex()"
+              [total]="getActiveTerminals().length"
+              [zoomLevel]="layout.zoomLevel"
+              [overviewActive]="isOverviewMode()"
+              [showInspectorRestore]="!inspectorPanelVisible"
+              (previous)="cycleTerminal(-1)"
+              (next)="cycleTerminal(1)"
+              (selectTerminal)="focusTerminal($event)"
+              (setZoom)="onZoomChange($event)"
+              (chromeWheel)="onChromeWheel($event)"
+              (restoreInspector)="setInspectorPanelVisible(true)"
+            />
+
+            <div
+              class="workspace-stack-stage"
+              [class.workspace-stack-stage-overview]="isOverviewMode()"
+              [class.workspace-stack-stage-focus]="!isOverviewMode()"
+            >
+              @if (isOverviewMode()) {
+                <app-terminal-overview
+                  [terminals]="getActiveTerminals()"
+                  [activeTerminalId]="layout.activeTerminalId"
+                  [editingTerminalId]="editingTerminalId"
+                  [editingTerminalName]="editingTerminalName"
+                  (editingTerminalNameChange)="editingTerminalName = $event"
+                  (select)="selectOverviewTerminal($event)"
+                  (openMenu)="openMenuFromOverview($event)"
+                  (startRename)="startRenameTerminal($event)"
+                  (commitRename)="commitRenameTerminal()"
+                  (cancelRename)="cancelRenameTerminal()"
+                />
+              } @else {
+                <app-terminal-focus-view
+                  [activeTerminal]="getFocusedTerminal() || null"
+                  [title]="getActiveTerminalTitle()"
+                  [summary]="getFocusedTerminal() ? getTerminalSummaryLine(getFocusedTerminal()!) : ''"
+                  [statusLabel]="getFocusedTerminal() ? getTerminalStatusLabel(getFocusedTerminal()!) : ''"
+                  [tone]="getFocusedTerminal() ? getTerminalTone(getFocusedTerminal()!) : ''"
+                  [running]="!!getFocusedTerminal() && isTerminalRunning(getFocusedTerminal()!)"
+                  [total]="getActiveTerminals().length"
+                  [canAdd]="canAddTerminal()"
+                  [showPreview]="!!getFocusedTerminal() && shouldRenderTerminalPreview(getFocusedTerminal()!)"
+                  [previewText]="getFocusedTerminal() ? getTerminalPreviewText(getFocusedTerminal()!) : ''"
+                  [renaming]="!!getFocusedTerminal() && editingTerminalId === getFocusedTerminal()!.id"
+                  [draftName]="editingTerminalName"
+                  (draftNameChange)="editingTerminalName = $event"
+                  (addTerminal)="addTerminal()"
+                  (openMenu)="getFocusedTerminal() && openTerminalContextMenu(getFocusedTerminal()!.id, $event)"
+                  (contextMenu)="getFocusedTerminal() && openTerminalContextMenu(getFocusedTerminal()!.id, $event)"
+                  (hostClick)="onTerminalHostClick($event)"
+                  (chromeWheel)="onChromeWheel($event)"
+                  (startRenameRequest)="startRenameTerminal($event)"
+                  (commitRenameRequest)="commitRenameTerminal()"
+                  (cancelRename)="cancelRenameTerminal()"
+                />
               }
-              @if (showResizeHandles() && getGridLayout() === 'grid-2x2') {
-                <div
-                  class="pane-resize-handle pane-resize-col"
-                  role="separator"
-                  aria-orientation="vertical"
-                  aria-label="Resize terminals horizontally"
-                  (mousedown)="startPaneResize($event, 'col')"
-                ></div>
-                <div
-                  class="pane-resize-handle pane-resize-row"
-                  role="separator"
-                  aria-orientation="horizontal"
-                  aria-label="Resize terminals vertically"
-                  (mousedown)="startPaneResize($event, 'row')"
-                ></div>
-              }
-            </section>
+            </div>
           }
           </div>
         </div>
-
-        <ng-template #terminalCard let-terminal="terminal" let-index="index">
-          <article
-            class="terminal-card pane-slot"
-            [class.pane-slot-1]="index === 0"
-            [class.pane-slot-2]="index === 1"
-            [class.pane-slot-3]="index === 2"
-            [class.pane-slot-4]="index === 3"
-            [class.focused]="isTerminalFocused(terminal)"
-            [attr.data-tone]="getTerminalTone(terminal)"
-            (click)="focusTerminal(terminal.id)"
-          >
-            <header class="terminal-card-header">
-              <div class="terminal-card-copy">
-                <div class="pane-header-topline">
-                  <span
-                    class="pane-state-pill"
-                    [class.focused]="isTerminalFocused(terminal)"
-                    [class.running]="isTerminalRunning(terminal)"
-                  >{{ getTerminalStatusLabel(terminal) }}</span>
-                  <span class="pane-summary-inline">{{ getTerminalSummaryLine(terminal) }}</span>
-                </div>
-                <p class="card-title card-title-row">
-                  <span>{{ getTerminalDisplayTitle(terminal, index) }}</span>
-                </p>
-                @if (getTerminalMetaLine(terminal)) {
-                  <p class="card-meta">{{ getTerminalMetaLine(terminal) }}</p>
-                }
-              </div>
-              @if (isTerminalFocused(terminal)) {
-                <div class="card-actions">
-                  @if (canAddTerminal()) {
-                    <button type="button" class="card-action-icon" aria-label="Add terminal" (click)="addTerminal(); $event.stopPropagation()">+</button>
-                  }
-                  <button type="button" class="card-action-icon" aria-label="Remove terminal" (click)="removeTerminal(terminal.id, $event)">🗑</button>
-                </div>
-              }
-            </header>
-
-            <div class="terminal-card-body">
-              <div
-                class="terminal-host"
-                [attr.data-terminal-host]="terminal.id"
-                aria-label="Interactive terminal"
-                (mousedown)="onTerminalHostClick(terminal.id, $event)"
-              >
-                @if (shouldRenderTerminalPreview(terminal)) {
-                  <pre class="terminal-preview">{{ getTerminalPreviewText(terminal) }}</pre>
-                }
-              </div>
-            </div>
-          </article>
-        </ng-template>
       </section>
 
+      @if (inspectorPanelVisible) {
       <aside class="inspector">
         <header class="inspector-rail-header">
           <div>
             <p class="rail-title">Inspector</p>
             <p class="inspector-rail-subtitle">
-              {{ isSessionInspectorActive() ? 'Live PTY metadata and recovery state' : 'Tab context, startup details, and workspace state' }}
+              {{ isWorkspaceInspectorActive() ? 'Workspace and defaults' : 'Terminal and live session' }}
             </p>
           </div>
-          <span class="inspector-mode-pill">{{ isSessionInspectorActive() ? 'Session' : 'Tab' }}</span>
+          <div class="inspector-header-actions">
+            <button
+              type="button"
+              class="inspector-toggle-button"
+              aria-label="Hide inspector"
+              title="Hide inspector"
+              (click)="setInspectorPanelVisible(false)"
+            >
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="2.5" y="3" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" />
+                <path d="M9.5 3v10M5.2 8h2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
         </header>
 
         <div class="inspector-tabs">
-          <button type="button" [class.active]="inspector.activeTab === 'tab'" (click)="setInspectorTab('tab')">Tab Details</button>
-          <button type="button" [class.active]="inspector.activeTab === 'session'" (click)="setInspectorTab('session')">Live Session</button>
+          <button type="button" [class.active]="inspector.activeTab === 'workspace'" (click)="setInspectorTab('workspace')">Workspace</button>
+          <button type="button" [class.active]="inspector.activeTab === 'terminal'" (click)="setInspectorTab('terminal')">Terminal</button>
         </div>
 
-        <section class="inspector-card inspector-hero-card">
+        <section class="inspector-card inspector-hero-card inspector-overview">
           <header class="inspector-header inspector-hero-header">
             <div class="inspector-hero-copy">
               <p class="rail-title">{{ getInspectorHeroLabel() }}</p>
@@ -178,17 +173,17 @@
                 <span>{{ getInspectorHeroMeta() }}</span>
               </div>
             </div>
-
-            <div class="inspector-actions">
-              <button type="button" class="primary" (click)="relaunchTerminal()" [disabled]="!getFocusedTerminal()">Restart</button>
-              <button type="button" class="danger" (click)="interruptTerminal()" [disabled]="!canControlSession()">Stop</button>
-              <button type="button" (click)="killTerminal()" [disabled]="!canControlSession()">Kill</button>
-            </div>
           </header>
 
-          <div class="inspector-summary-grid">
+          <div class="inspector-actions" aria-label="Terminal controls">
+            <button type="button" class="primary" (click)="relaunchTerminal()" [disabled]="!getFocusedTerminal()">Restart</button>
+            <button type="button" class="danger" (click)="interruptTerminal()" [disabled]="!canControlSession()">Stop</button>
+            <button type="button" (click)="killTerminal()" [disabled]="!canControlSession()">Kill</button>
+          </div>
+
+          <div class="inspector-fact-list inspector-overview-facts">
             @for (item of getInspectorSummaryItems(); track trackByLabel($index, item)) {
-              <div class="inspector-summary-tile">
+              <div class="inspector-fact-row">
                 <span>{{ item.label }}</span>
                 <strong>{{ item.value }}</strong>
               </div>
@@ -199,13 +194,72 @@
         @if (!isSessionInspectorActive()) {
           <section class="inspector-card compact">
             <div class="inspector-section-heading">
-              <p class="rail-title">Workspace Context</p>
-              <span class="inspector-section-badge">Tab</span>
+              <p class="rail-title">Defaults</p>
+              <span class="inspector-section-badge">New terminals</span>
             </div>
-            @if (!isSessionInspectorActive() && getFocusedTerminal()) {
-              <div class="preference-section-heading inspector-terminal-heading">
-                <p class="preference-section-title">Terminal appearance</p>
-                <p class="preference-section-copy">Text and background inside this terminal only. Workspace themes are in Settings.</p>
+            <label class="preference-field inspector-shell-field">
+              <span class="preference-label">Workspace shell profile</span>
+              <select
+                class="preference-select"
+                [value]="ws.workspaceShellProfile"
+                (change)="setWorkspaceShellProfile($any($event.target).value)"
+              >
+                @for (option of workspaceShellProfileOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+              <p class="preference-hint">Used by Start Terminal and Add Terminal when no shell is chosen.</p>
+            </label>
+            <div class="inspector-detail-list">
+              @for (item of getInspectorSecondaryItems(); track trackByLabel($index, item)) {
+              <div class="inspector-detail-row">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+              }
+            </div>
+          </section>
+
+          <section class="inspector-card compact">
+            <div class="inspector-section-heading">
+              <p class="rail-title">Recent Commands</p>
+              <span class="inspector-section-badge">{{ getRecentCommands().length }}</span>
+            </div>
+            <div class="history-list">
+              @if (getRecentCommands().length) {
+                @for (entry of getRecentCommands(); track entry.id) {
+                  <div class="history-entry">
+                    <span>{{ entry.command }}</span>
+                    <strong>{{ getCommandSource(entry) }} · {{ formatClock(entry.timestamp) }}</strong>
+                  </div>
+                }
+              } @else {
+                <p class="utility-empty compact">Run commands in the terminal to populate history.</p>
+              }
+            </div>
+          </section>
+        } @else {
+          @if (getFocusedTerminal()) {
+            <section class="inspector-card compact">
+              <div class="inspector-section-heading">
+                <p class="rail-title">Terminal Settings</p>
+                <span class="inspector-section-badge">Focused</span>
+              </div>
+              <label class="preference-field inspector-shell-field">
+                <span class="preference-label">Name</span>
+                <input
+                  class="preference-input"
+                  type="text"
+                  maxlength="48"
+                  aria-label="Terminal name"
+                  placeholder="Automatic"
+                  [value]="getFocusedTerminal()?.name || ''"
+                  (change)="setFocusedTerminalName($any($event.target).value)"
+                />
+              </label>
+              <div class="inspector-detail-row terminal-id-row">
+                <span>Terminal ID</span>
+                <strong>{{ getFocusedTerminal()?.id }}</strong>
               </div>
               <label class="preference-field inspector-shell-field">
                 <span class="preference-label">Shell</span>
@@ -250,51 +304,9 @@
                   </button>
                 }
               </div>
-            }
-            <div class="inspector-detail-list">
-              @for (item of getInspectorPrimaryItems(); track trackByLabel($index, item)) {
-                <div class="inspector-detail-row">
-                  <span>{{ item.label }}</span>
-                  <strong>{{ item.value }}</strong>
-                </div>
-              }
-            </div>
-          </section>
+            </section>
+          }
 
-          <section class="inspector-card compact">
-            <div class="inspector-section-heading">
-              <p class="rail-title">Launch + Recovery</p>
-              <span class="inspector-section-badge">State</span>
-            </div>
-            <div class="inspector-detail-list">
-              @for (item of getInspectorSecondaryItems(); track trackByLabel($index, item)) {
-                <div class="inspector-detail-row">
-                  <span>{{ item.label }}</span>
-                  <strong>{{ item.value }}</strong>
-                </div>
-              }
-            </div>
-          </section>
-
-          <section class="inspector-card compact">
-            <div class="inspector-section-heading">
-              <p class="rail-title">Recent Commands</p>
-              <span class="inspector-section-badge">{{ getRecentCommands().length }}</span>
-            </div>
-            <div class="history-list">
-              @if (getRecentCommands().length) {
-                @for (entry of getRecentCommands(); track entry.id) {
-                  <div class="history-entry">
-                    <span>{{ entry.command }}</span>
-                    <strong>{{ formatClock(entry.timestamp) }}</strong>
-                  </div>
-                }
-              } @else {
-                <p class="utility-empty compact">Run commands in the terminal to populate history.</p>
-              }
-            </div>
-          </section>
-        } @else {
           <section class="inspector-card compact">
             <div class="inspector-section-heading">
               <p class="rail-title">Live Session</p>
@@ -334,7 +346,7 @@
               @if (getSessionHistory().length) {
                 @for (entry of getSessionHistory(); track entry.id) {
                   <div class="history-entry">
-                    <span>{{ entry.tabTitle }} · {{ entry.reason }}</span>
+                    <span>{{ entry.terminalTitle || entry.tabTitle || 'Terminal' }} · {{ entry.reason }}</span>
                     <strong>{{ formatSessionHistoryClock(entry.endedAt, entry.startedAt, entry.lastActiveAt) }}</strong>
                   </div>
                 }
@@ -349,10 +361,10 @@
               <p class="rail-title">Environment Variables</p>
               <span class="inspector-section-badge">{{ getVisibleEnvironmentVariables().length }}</span>
             </div>
-            <div class="history-list">
+            <div class="history-list env-list">
               @if (getVisibleEnvironmentVariables().length) {
                 @for (entry of getVisibleEnvironmentVariables(); track entry.name) {
-                  <div class="history-entry">
+                  <div class="env-entry">
                     <span>{{ entry.name }}</span>
                     <strong>{{ entry.value }}</strong>
                   </div>
@@ -364,4 +376,5 @@
           </section>
         }
       </aside>
+      }
     </div>

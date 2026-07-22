@@ -9,6 +9,11 @@
       <span class="dock-status-inline">{{ getOutputLineCount() }} log lines</span>
       <span class="dock-status-inline">{{ getProblemCount() }} problems</span>
       <span class="dock-status-inline">{{ getCommandHistoryCount() }} commands</span>
+      <button type="button" class="dock-collapse-button" aria-label="Hide workspace dock" title="Hide workspace dock (Ctrl+J)" (click)="collapse()">
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -201,7 +206,7 @@
               @for (entry of util.commandHistory; track entry.id) {
                 <button type="button" class="history-row" (click)="rerunCommand(entry.command)">
                   <span>{{ entry.command }}</span>
-                  <strong>{{ entry.tabTitle }} • {{ formatClock(entry.timestamp) }}</strong>
+                  <strong>{{ getCommandSource(entry) }} • {{ formatClock(entry.timestamp) }}</strong>
                 </button>
               }
             </div>
