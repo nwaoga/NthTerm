@@ -63,6 +63,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - The shared left-rail “New Workspace” action is now full-width and single-line. The System Monitor uses a compact four-metric row in short windows so all readings stay visible; these two layout fixes apply on both macOS and Windows.
 - Verification completed: `npm run build` passed (the existing initial-bundle budget warning remains). The affected Angular specs passed: 10 app-shell specs and 12 left-rail/bottom-dock specs.
 - `npm run test:ci` passes on macOS and Windows. Shell pickers stay platform-filtered, while persisted Windows/WSL shell labels still resolve for display on macOS/Linux.
+- Azure DevOps closed stories for this batch: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135) stacked layout, [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136) glass chrome, [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137) macOS packaging/CI (`cf83d64`).
 - The working tree intentionally leaves `package-lock.json` modified and uncommitted; inspect it separately before committing or discarding it.
 
 **Release target:** `0.1.0-rc.1` (unsigned Windows RC). Authenticode signing remains deferred until a certificate is available.

@@ -7,6 +7,10 @@
   - [ ] Review, commit, push, and tag the verified candidate
 
 ## Done
+- [x] Post-RC1: stacked layout, glass chrome, and macOS packaging
+  - [x] [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135) Stacked focus/overview terminal layout (≤10 terminals)
+  - [x] [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136) Frosted glass shell chrome (Windows acrylic / macOS vibrancy)
+  - [x] [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137) Unsigned macOS packaging, platform chrome, and cross-platform shell CI (`cf83d64`)
 - [x] RC1 post-verification: terminal identity, focus layout, history attribution, and inspector density
   - [x] Keep every terminal visible in automatic two-pane/four-area arrangements and focused-terminal peer previews
   - [x] Stacked focus/overview layout (≤10 terminals) with parked inactive PTYs and buffer-based overview cards
