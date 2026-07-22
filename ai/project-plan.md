@@ -62,7 +62,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Commit `29902e7` adds macOS-specific shell polish: an opaque application canvas over Electron vibrancy, reduced glass blur, and native macOS UI/monospace font stacks. These changes are scoped to `data-host-platform="darwin"`; Windows chrome and acrylic behavior are unchanged.
 - The shared left-rail “New Workspace” action is now full-width and single-line. The System Monitor uses a compact four-metric row in short windows so all readings stay visible; these two layout fixes apply on both macOS and Windows.
 - Verification completed: `npm run build` passed (the existing initial-bundle budget warning remains). The affected Angular specs passed: 10 app-shell specs and 12 left-rail/bottom-dock specs.
-- `npm run test:ci` still has three pre-existing `WorkspaceRuntimeService` failures when it runs under macOS because those assertions expect Windows shell labels/WSL options. Electron tests pass; the styling work does not affect that failure.
+- `npm run test:ci` passes on macOS and Windows. Shell pickers stay platform-filtered, while persisted Windows/WSL shell labels still resolve for display on macOS/Linux.
 - The working tree intentionally leaves `package-lock.json` modified and uncommitted; inspect it separately before committing or discarding it.
 
 **Release target:** `0.1.0-rc.1` (unsigned Windows RC). Authenticode signing remains deferred until a certificate is available.

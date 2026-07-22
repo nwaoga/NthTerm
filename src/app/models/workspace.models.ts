@@ -167,3 +167,42 @@ export function buildWorkspaceShellProfileOptions(
 
   return [...profiles, ...wslOptions];
 }
+
+function resolveWslLabel(shell: string, wslDistros: string[] = []): string | undefined {
+  if (!shell.startsWith('wsl:')) {
+    return undefined;
+  }
+
+  const distro = shell.slice(4).trim();
+  if (!distro) {
+    return undefined;
+  }
+
+  const match = wslDistros.find(
+    (candidate) => candidate === distro || candidate.toLowerCase() === distro.toLowerCase()
+  );
+  return `WSL: ${match || distro}`;
+}
+
+/** Label lookup for persisted shells, including Windows-only values when running on macOS/Linux. */
+export function resolveShellOptionLabel(shell: string, wslDistros: string[] = []): string {
+  const builtin = SHELL_OPTIONS.find((option) => option.value === shell);
+  if (builtin) {
+    return builtin.label;
+  }
+
+  return resolveWslLabel(shell, wslDistros) || 'System Default';
+}
+
+/** Label lookup for persisted workspace profiles across host platforms. */
+export function resolveWorkspaceShellProfileLabel(
+  profile: string,
+  wslDistros: string[] = []
+): string {
+  const builtin = WORKSPACE_SHELL_PROFILE_OPTIONS.find((option) => option.value === profile);
+  if (builtin) {
+    return builtin.label;
+  }
+
+  return resolveWslLabel(profile, wslDistros) || 'Use App Default';
+}

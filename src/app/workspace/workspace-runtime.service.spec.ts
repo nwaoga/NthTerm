@@ -366,15 +366,52 @@ describe('WorkspaceRuntimeService', () => {
   });
 
   it('adds WSL distros to shell options and resolves WSL profiles', () => {
-    service.setWslDistros(['Ubuntu', 'Debian', 'Ubuntu']);
-    service.workspaceShellProfile = 'wsl:Ubuntu';
+    const previousDesktop = window.nthTermDesktop;
+    window.nthTermDesktop = { ...(previousDesktop || {}), platform: 'win32' };
 
-    expect(service.getShellOptions().map((option) => option.value)).toContain('wsl:Ubuntu');
-    expect(service.getWorkspaceShellProfileOptions().map((option) => option.label)).toContain(
-      'WSL: Debian'
-    );
-    expect(service.getWorkspaceShellProfileLabel()).toBe('WSL: Ubuntu');
-    expect(service.resolveNewTerminalShell(undefined, 'powershell')).toBe('wsl:Ubuntu');
+    try {
+      service.setWslDistros(['Ubuntu', 'Debian', 'Ubuntu']);
+      service.workspaceShellProfile = 'wsl:Ubuntu';
+
+      expect(service.getShellOptions().map((option) => option.value)).toContain('wsl:Ubuntu');
+      expect(service.getWorkspaceShellProfileOptions().map((option) => option.label)).toContain(
+        'WSL: Debian'
+      );
+      expect(service.getWorkspaceShellProfileLabel()).toBe('WSL: Ubuntu');
+      expect(service.resolveNewTerminalShell(undefined, 'powershell')).toBe('wsl:Ubuntu');
+    } finally {
+      if (previousDesktop) {
+        window.nthTermDesktop = previousDesktop;
+      } else {
+        delete window.nthTermDesktop;
+      }
+    }
+  });
+
+  it('hides Windows-only shell choices on macOS while keeping labels for persisted shells', () => {
+    const previousDesktop = window.nthTermDesktop;
+    window.nthTermDesktop = { ...(previousDesktop || {}), platform: 'darwin' };
+
+    try {
+      service.setWslDistros(['Ubuntu']);
+      service.workspaceShellProfile = 'cmd';
+      service.terminals = [
+        makeTerminal({ id: 'terminal-1', shell: 'powershell', status: 'running' }),
+        makeTerminal({ id: 'terminal-2', shell: 'wsl:Ubuntu', status: 'running' }),
+      ];
+
+      const optionValues = service.getShellOptions().map((option) => option.value);
+      expect(optionValues).toEqual(['', 'bash', 'zsh']);
+      expect(service.getWorkspaceShellProfileLabel()).toBe('Command Prompt');
+      expect(service.getTerminalDisplayTitle(service.terminals[0], 0)).toBe('PowerShell');
+      expect(service.getTerminalDisplayTitle(service.terminals[1], 1)).toBe('WSL: Ubuntu');
+    } finally {
+      if (previousDesktop) {
+        window.nthTermDesktop = previousDesktop;
+      } else {
+        delete window.nthTermDesktop;
+      }
+    }
   });
 
   it('names terminals by shell and only numbers duplicate shells', () => {

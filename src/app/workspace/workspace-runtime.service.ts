@@ -16,6 +16,8 @@ import {
   buildShellOptions,
   buildWorkspaceShellProfileOptions,
   isWorkspaceShellProfile,
+  resolveShellOptionLabel,
+  resolveWorkspaceShellProfileLabel,
 } from '../models';
 import { resolveHostPlatform } from '../platform/host-platform';
 import {
@@ -138,7 +140,7 @@ export class WorkspaceRuntimeService {
 
   getFocusedTerminalShellLabel(): string {
     const shell = this.getFocusedTerminal()?.shell || '';
-    return this.getShellOptions().find((option) => option.value === shell)?.label || 'System Default';
+    return resolveShellOptionLabel(shell, this.wslDistros);
   }
 
   /** @deprecated Use getFocusedTerminalShellLabel */
@@ -147,10 +149,7 @@ export class WorkspaceRuntimeService {
   }
 
   getWorkspaceShellProfileLabel(): string {
-    return (
-      this.getWorkspaceShellProfileOptions().find((option) => option.value === this.workspaceShellProfile)
-        ?.label || 'Use App Default'
-    );
+    return resolveWorkspaceShellProfileLabel(this.workspaceShellProfile, this.wslDistros);
   }
 
   setWslDistros(distros: string[]): void {
@@ -702,13 +701,10 @@ export class WorkspaceRuntimeService {
       return customName;
     }
 
-    const shellLabel =
-      this.getShellOptions().find((option) => option.value === terminal.shell)?.label || 'System Default';
-    const matchingTerminals = this.terminals.filter((item) => {
-      const itemLabel =
-        this.getShellOptions().find((option) => option.value === item.shell)?.label || 'System Default';
-      return itemLabel === shellLabel;
-    });
+    const shellLabel = resolveShellOptionLabel(terminal.shell, this.wslDistros);
+    const matchingTerminals = this.terminals.filter(
+      (item) => resolveShellOptionLabel(item.shell, this.wslDistros) === shellLabel
+    );
     if (matchingTerminals.length === 1) {
       return shellLabel;
     }
