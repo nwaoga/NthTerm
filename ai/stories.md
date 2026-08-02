@@ -3,6 +3,10 @@
 ## Backlog
 - [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac`
 - [ ] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
+- [ ] [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141) Ship a minimal public landing page for RC launch
+  - [ ] One-page hero + pitch, 2–3 screenshots, Win/Mac download buttons
+  - [ ] Unsigned SmartScreen/Gatekeeper warning + GitHub/Issues links
+  - [ ] Host as static GitHub Pages (or `site/`); set repo description + homepage URL
 
 ## Done
 - [x] [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) Re-run RC verification and tag the release candidate
