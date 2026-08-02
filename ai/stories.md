@@ -1,20 +1,15 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) Re-run RC verification and tag the release candidate
-  - [x] Bump package/changelog to `0.1.0-rc.2` for the stacked/glass/macOS candidate
-  - [x] Run `npm run rc:verify` against `0.1.0-rc.2` (passed 2026-08-02)
-  - [ ] Tag `v0.1.0-rc.2` to trigger CI release artifacts
-  - [ ] Keep Authenticode signing deferred; manual install-over upgrade for now
 - [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac`
 - [ ] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
-- [ ] RC1 final publication gate (covered by #138)
-  - [x] Sync post-verification notes to Azure DevOps #122, #113, and #106
-  - [x] Sync post-RC1 stacked/glass/macOS closeout to #135–#137
-  - [ ] Re-run `npm run rc:verify` after the final source changes
-  - [ ] Review, commit, push, and tag the verified candidate
 
 ## Done
+- [x] [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) Re-run RC verification and tag the release candidate
+  - [x] Bump package/changelog to `0.1.0-rc.2` for the stacked/glass/macOS candidate
+  - [x] Run `npm run rc:verify` against `0.1.0-rc.2` (passed 2026-08-02)
+  - [x] Tag `v0.1.0-rc.2` to trigger CI release artifacts
+  - [x] Keep Authenticode signing deferred; manual install-over upgrade for now
 - [x] Post-RC1: stacked layout, glass chrome, and macOS packaging
   - [x] [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135) Stacked focus/overview terminal layout (≤10 terminals)
   - [x] [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136) Frosted glass shell chrome (Windows acrylic / macOS vibrancy)

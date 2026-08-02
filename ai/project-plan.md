@@ -107,14 +107,12 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ## Next Release Gate
 
-Recommended order for the next session:
-
-1. [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) — `npm run rc:verify` passed for `0.1.0-rc.2` (build, test:ci, release:win, install/reinstall persistence). Remaining: push tag `v0.1.0-rc.2` for CI artifacts.
-2. [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — On macOS, run `npm run release:mac` and smoke-test the unsigned dmg/zip (Gatekeeper warnings expected).
+1. ~~[#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138)~~ — Done. `0.1.0-rc.2` verified and tagged (`v0.1.0-rc.2`).
+2. [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — On macOS, run `npm run release:mac` and smoke-test the unsigned dmg/zip (or download CI macOS artifacts from the tag run). Gatekeeper warnings expected.
 3. [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) — Polish stacked focus/overview day-to-day UX from Mac/Windows feedback.
-4. Keep Authenticode signing / Apple notarization deferred until certificates are available.
+4. Keep Authenticode signing / Apple notarization deferred until certificates are available. Manual install-over upgrades until then.
 
-Closed this session: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137).
+Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138).
 
 ## Historical Delivery Tracks
 

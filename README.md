@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **0.1.0-rc.2** — unsigned Windows and macOS release candidate (stacked focus/overview layout, glass chrome, platform packaging). Windows `rc:verify` for this build is the next gate.
+Current milestone: **0.1.0-rc.2** (`v0.1.0-rc.2` tagged) — unsigned Windows and macOS release candidate (stacked focus/overview layout, glass chrome, platform packaging). Windows `rc:verify` passed; macOS artifact smoke is next.
 
 Working today:
 
