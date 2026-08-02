@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **0.1.0-rc.1** — unsigned Windows and macOS release candidate packaging. The packaging, installer validation (Windows), workspace shell profiles, and WSL distro picker are complete.
+Current milestone: **0.1.0-rc.2** — unsigned Windows and macOS release candidate (stacked focus/overview layout, glass chrome, platform packaging). Windows `rc:verify` for this build is the next gate.
 
 Working today:
 
@@ -33,9 +33,9 @@ Working today:
 - explicit `New Workspace` creation from the workspace rail
 - workspace rename and delete from the sessions sidebar
 - each workspace persists tabs, layout mode, focused pane, pane splits, and pane-to-tab assignments
-- automatic terminal arrangement: full stage, side by side, wide lower pane, or four-pane grid
-- concurrent PTY-backed terminal sessions across visible panes, with focused-pane inspector/control targeting
-- live terminal sessions stay attached to their tab across tab switches instead of being recreated when the pane assignment changes
+- stacked terminal layout: focus mode for one interactive terminal and overview mode with preview cards (up to 10 per workspace)
+- concurrent PTY-backed terminal sessions with parked inactive hosts and focused-terminal inspector/control targeting
+- frosted glass shell chrome (Windows acrylic / macOS vibrancy) with opaque terminal surfaces
 - stable terminal identities with single-flight PTY creation, preventing overlapping restore passes from spawning duplicate sessions
 - renameable terminals whose command-history attribution follows the stable terminal ID and current display name
 - compact workspace, tab, and terminal inspectors with non-duplicated facts, live PTY metadata, settings, and restart/stop/kill actions
@@ -196,7 +196,7 @@ python scripts/generate-branding-assets.py
 4. Keep the unsigned CI path available for PR validation; add a separate protected release workflow/job that injects signing secrets
 
 GitHub Actions runs the same build and test path on pull requests and pushes to `main`. The Windows and macOS release jobs upload unsigned installer/app artifacts from the workflow run.
-Pushing a version tag such as `v0.1.0-rc.1` runs the same validation and produces the unsigned Windows and macOS artifacts for that candidate.
+Pushing a version tag such as `v0.1.0-rc.2` runs the same validation and produces the unsigned Windows and macOS artifacts for that candidate.
 
 After `npm run release:win`, validate install/reinstall and AppData preservation locally:
 

@@ -1,10 +1,21 @@
-## Unreleased
+## 0.1.0-rc.2 - 2026-08-02
+
+Unsigned Windows + macOS release candidate after the stacked-layout and glass chrome pass.
 
 - Replaced the multi-pane grid and peer-rail focus zoom with a stacked terminal layout: focus mode (one interactive terminal) and overview mode (preview cards for all terminals).
 - Raised the per-workspace terminal limit from 4 to 10.
 - Added workspace layout state (`viewMode` / `zoomLevel`) separate from PTY process state; inactive terminals stay parked without unnecessary PTY resizes.
 - Added keyboard navigation: `Ctrl/Cmd+[` / `]` cycle terminals, `Ctrl/Cmd+1–9` / `0` jump, `Ctrl/Cmd+\` toggle overview.
 - Toolbar “Split Terminal” is now “Add Terminal” (adds another terminal to the stack).
+- Added frosted glass shell chrome with Windows acrylic and macOS vibrancy; terminals stay opaque.
+- Added unsigned macOS packaging (`release:mac`, dmg/zip) and a GitHub Actions macOS artifact job.
+- Platform-aware shell pickers (zsh/bash on macOS; PowerShell/CMD/WSL on Windows) while persisted Windows/WSL labels still resolve for display on macOS.
+- Fixed inspector environment-variable rows that wrapped labels letter-by-letter.
+- Kept left-rail fill uniform top-to-bottom under glass.
+
+### Known limitation
+
+Artifacts remain unsigned. Windows SmartScreen and macOS Gatekeeper warnings are expected until Authenticode signing and Apple notarization are configured. In-app auto-update is deferred; upgrade by installing the newer build over the existing install (AppData / Application Support is preserved).
 
 ## 0.1.0-rc.1 - 2026-07-17
 

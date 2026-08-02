@@ -66,7 +66,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Azure DevOps closed stories for this batch: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135) stacked layout, [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136) glass chrome, [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137) macOS packaging/CI (`cf83d64`).
 - The working tree intentionally leaves `package-lock.json` modified and uncommitted; inspect it separately before committing or discarding it.
 
-**Release target:** `0.1.0-rc.1` (unsigned Windows RC). Authenticode signing remains deferred until a certificate is available.
+**Release target:** `0.1.0-rc.2` (unsigned Windows + macOS RC; Windows `rc:verify` pending). Authenticode signing / notarization remain deferred until certificates are available.
 
 **Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline; Phase 5 should preserve it while adding production readiness).
 
@@ -109,7 +109,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 Recommended order for the next session:
 
-1. [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) — Run `npm run rc:verify` so Windows installer/upgrade evidence matches the current candidate (stacked layout, glass chrome, macOS packaging, shell CI fixes), then tag only if green.
+1. [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) — Version/changelog are prepared as `0.1.0-rc.2`. Run `npm run rc:verify` so Windows installer/upgrade evidence matches this candidate, then tag `v0.1.0-rc.2` only if green.
 2. [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — On macOS, run `npm run release:mac` and smoke-test the unsigned dmg/zip (Gatekeeper warnings expected).
 3. [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) — Polish stacked focus/overview day-to-day UX from Mac/Windows feedback.
 4. Keep Authenticode signing / Apple notarization deferred until certificates are available.

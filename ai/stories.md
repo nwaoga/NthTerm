@@ -2,9 +2,10 @@
 
 ## Backlog
 - [ ] [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) Re-run RC verification and tag the release candidate
-  - [ ] Run `npm run rc:verify` after the stacked/glass/macOS source batch
-  - [ ] Review changelog/version, then tag only when verification is green
-  - [ ] Keep Authenticode signing deferred
+  - [x] Bump package/changelog to `0.1.0-rc.2` for the stacked/glass/macOS candidate
+  - [ ] Run `npm run rc:verify` against `0.1.0-rc.2`
+  - [ ] Tag `v0.1.0-rc.2` only when verification is green
+  - [ ] Keep Authenticode signing deferred; manual install-over upgrade for now
 - [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac`
 - [ ] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
 - [ ] RC1 final publication gate (covered by #138)
