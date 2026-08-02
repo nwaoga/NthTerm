@@ -13,7 +13,7 @@
 - Prefer small incremental stories and commits.
 
 ## Current Prompt Focus
-- Candidate prepared as `0.1.0-rc.2` (version + changelog). Next: ADO #138 `npm run rc:verify`, then tag `v0.1.0-rc.2` only if green.
+- `0.1.0-rc.2` Windows `rc:verify` passed. Next on #138: tag/push `v0.1.0-rc.2` for CI artifacts.
 - After that: #139 (macOS `release:mac` smoke), then #140 (stacked layout polish).
 - Preserve the compact inspector hierarchy (Workspace | Terminal) and stacked focus/overview layout.
 - Renderer refactor is complete; keep new code in feature folders/services and do not grow god files.
