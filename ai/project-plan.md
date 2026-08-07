@@ -16,11 +16,12 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-07-22)
+## Current State (2026-08-07)
 
-**Phase:** RC1 usability polish complete. Feature roadmap and unsigned Windows packaging track are complete.
+**Phase:** RC1 usability polish complete. Feature roadmap and unsigned Windows packaging track are complete. Public RC landing page shipped.
 
 **Working today:**
+- Public RC marketing page at `https://nwaoga.github.io/NthTerm/` (static `site/`, GitHub Pages)
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
 - Tab-owned terminal sessions that stay alive across tab switches and are parked/reattached without PTY teardown
 - Stable terminal IDs with renderer and Electron single-flight guards that prevent duplicate PTYs during overlapping restores
@@ -55,20 +56,25 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** RC1 post-verification terminal lifecycle, focus-layout, history attribution, and inspector-density pass.
+**Last shipped:** [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141) RC landing page on GitHub Pages (`https://nwaoga.github.io/NthTerm/`).
 
-## Handover — 2026-07-22
+## Handover — 2026-08-07
 
-- Commit `29902e7` adds macOS-specific shell polish: an opaque application canvas over Electron vibrancy, reduced glass blur, and native macOS UI/monospace font stacks. These changes are scoped to `data-host-platform="darwin"`; Windows chrome and acrylic behavior are unchanged.
-- The shared left-rail “New Workspace” action is now full-width and single-line. The System Monitor uses a compact four-metric row in short windows so all readings stay visible; these two layout fixes apply on both macOS and Windows.
-- Verification completed: `npm run build` passed (the existing initial-bundle budget warning remains). The affected Angular specs passed: 10 app-shell specs and 12 left-rail/bottom-dock specs.
-- `npm run test:ci` passes on macOS and Windows. Shell pickers stay platform-filtered, while persisted Windows/WSL shell labels still resolve for display on macOS/Linux.
-- Azure DevOps closed stories for this batch: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135) stacked layout, [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136) glass chrome, [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137) macOS packaging/CI (`cf83d64`).
-- The working tree intentionally leaves `package-lock.json` modified and uncommitted; inspect it separately before committing or discarding it.
+- Closed [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141): minimal public RC landing page. Source lives in `site/` (static HTML/CSS + icons — **not** the Angular Electron app).
+- Hosting: GitHub Pages via `.github/workflows/pages.yml` (deploys `site/` on `main` when that path changes). Live URL: `https://nwaoga.github.io/NthTerm/`.
+- GitHub repo `homepage` + `description` point at the Pages URL. Download CTAs target Release `v0.1.0-rc.2`.
+- Commit `d21b7ef` on `main` (already pushed). ADO #141 is Closed.
+- Continuity docs updated: `ai/stories.md`, this plan, `ai/prompts.md`.
+- Do **not** commit the untracked `output/` tree (local chrome-capture / poster junk). Leave it ignored or delete locally.
+- No custom domain; `github.io/NthTerm` is intentional for unsigned RC. Signing / notarization / `electron-updater` remain deferred.
 
-**Release target:** `0.1.0-rc.2` (unsigned Windows + macOS RC; Windows `rc:verify` pending). Authenticode signing / notarization remain deferred until certificates are available.
+**Next stories**
+1. [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — macOS unsigned dmg/zip smoke (`release:mac` or CI tag artifacts). Needs a Mac; Gatekeeper warnings expected.
+2. [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) — stacked focus/overview day-to-day UX polish from Mac/Windows feedback. Practical next step on Windows-only machines.
 
-**Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline; Phase 5 should preserve it while adding production readiness).
+**Release target:** `0.1.0-rc.2` tagged (`v0.1.0-rc.2`); Windows `rc:verify` passed earlier. Authenticode / Apple notarization deferred until certificates are available.
+
+**Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline).
 
 ---
 
