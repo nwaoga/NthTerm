@@ -110,28 +110,32 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 1. ~~[#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138)~~ — Done. `0.1.0-rc.2` verified and tagged (`v0.1.0-rc.2`).
 2. [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — On macOS, run `npm run release:mac` and smoke-test the unsigned dmg/zip (or download CI macOS artifacts from the tag run). Gatekeeper warnings expected.
 3. [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) — Polish stacked focus/overview day-to-day UX from Mac/Windows feedback.
-4. [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141) — Minimal public landing page for RC launch (hero, screenshots, Win/Mac downloads, unsigned warning, GitHub links). Static GitHub Pages is enough; no blog/auth.
+4. ~~[#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141)~~ — Done. Minimal RC landing page live at `https://nwaoga.github.io/NthTerm/` (GitHub Pages from `site/`).
 5. Keep Authenticode signing / Apple notarization deferred until certificates are available. Manual install-over upgrades until then. Add a later story for `electron-updater` after signing.
 
-### Landing page sketch (#141)
+### Landing page (#141)
+
+**Status:** Done (2026-08-07).
 
 **Goal:** one honest RC page so people can understand and download without reading the repo README.
 
-**Must have**
-- Brand + one-line pitch (“terminal workspace manager for stacked sessions”)
-- 2–3 product screenshots (focus mode, overview, maybe inspector/glass)
-- Download CTAs: Windows installer + macOS dmg/zip → latest GitHub Release assets for `v0.1.0-rc.2+`
+**Shipped**
+- Brand-first hero + short SWE-facing pitch (frontend / backend / Docker stack)
+- CSS product mocks: stacked focus view + 4-card overview (Vite, Go API, compose, Vitest)
+- Feature triad: Focus, Workspaces, Stacked PTYs
+- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.2`
 - Unsigned build callout (SmartScreen / Gatekeeper)
-- GitHub + Issues footer links
+- GitHub + Issues + Releases footer links
+- Visual language: midnight/purple glass; Cursor-like sparse page rhythm
+- Published via GitHub Actions → GitHub Pages (`site/`); repo `homepage` set to Pages URL
 
-**Hosting**
-- Prefer `site/` (or `docs/`) static HTML/CSS published via GitHub Pages
-- Set GitHub repo `description` + `homepageUrl` to the Pages URL
+**Optional later**
+- Swap CSS mocks for real product screenshots when available
 
 **Out of scope (first slice)**
 - Blog, newsletter, analytics suite, account/auth, auto-update pitch beyond “install over existing”
 
-Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138).
+Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141).
 
 ## Historical Delivery Tracks
 

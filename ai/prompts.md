@@ -13,7 +13,8 @@
 - Prefer small incremental stories and commits.
 
 ## Current Prompt Focus
-- Next: #139 (macOS smoke), #140 (stacked polish), #141 (minimal landing page for RC launch).
+- Next: #139 (macOS smoke), #140 (stacked polish).
+- Landing page (#141) is live at `https://nwaoga.github.io/NthTerm/` from `site/` via GitHub Pages.
 - `v0.1.0-rc.2` is tagged; CI should publish unsigned Windows + macOS artifacts.
 - Preserve the compact inspector hierarchy (Workspace | Terminal) and stacked focus/overview layout.
 - Renderer refactor is complete; keep new code in feature folders/services and do not grow god files.

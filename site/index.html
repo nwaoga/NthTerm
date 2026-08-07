@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NthTerm — stacked terminal workspaces</title>
+    <meta
+      name="description"
+      content="NthTerm keeps frontend, backend, and Docker terminals in one desktop workspace — focus one session or overview the whole stack."
+    />
+    <link rel="icon" href="./favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="./icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="NthTerm home">
+        <span class="brand-mark">N</span>
+        <span class="brand-name">NthTerm</span>
+      </a>
+      <nav class="topnav">
+        <a href="#overview">Overview</a>
+        <a href="#features">Features</a>
+        <a href="https://github.com/nwaoga/NthTerm">GitHub</a>
+        <a class="topnav-cta" href="#download">Download</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <h1 class="brand-hero">NthTerm</h1>
+          <p class="lede">
+            Keep frontend, backend, and Docker in one workspace. Focus a live session — or zoom out and see the whole stack.
+          </p>
+          <div class="cta-row" id="download">
+            <a
+              class="btn btn-primary"
+              href="https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2"
+              >Download RC</a
+            >
+            <a class="btn btn-ghost" href="https://github.com/nwaoga/NthTerm">View source →</a>
+          </div>
+          <p class="warning">
+            Unsigned RC — SmartScreen and Gatekeeper may warn. Install over an existing copy; workspace data stays put.
+          </p>
+        </div>
+
+        <div class="hero-stage" aria-label="NthTerm product preview">
+          <div class="hero-glow" aria-hidden="true"></div>
+          <div class="app-shell-mock" role="img" aria-label="NthTerm focus mode with stacked terminals">
+            <div class="mock-toolbar-leading">
+              <div class="mock-badge">N</div>
+              <div class="mock-brand-copy">
+                <span class="mock-brand-label">Workspace Shell</span>
+                <strong class="mock-brand-title">NthTerm</strong>
+              </div>
+            </div>
+
+            <div class="mock-toolbar-main">
+              <div class="mock-workspace-chip">
+                <span class="mock-chip-part">
+                  <span class="mock-chip-label">Workspace</span>
+                  <strong>Backend</strong>
+                </span>
+                <span class="mock-chip-badge">4 terminals</span>
+              </div>
+              <span class="mock-pill">Add Terminal</span>
+            </div>
+
+            <aside class="mock-rail">
+              <div class="mock-rail-head">
+                <p class="mock-rail-title">Workspaces</p>
+                <span class="mock-create">+ New Workspace</span>
+              </div>
+              <div class="mock-session">
+                <span class="mock-session-icon spark"></span>
+                <span>Frontend</span>
+              </div>
+              <div class="mock-session active">
+                <span class="mock-session-icon server"></span>
+                <span>Backend</span>
+              </div>
+              <div class="mock-session">
+                <span class="mock-session-icon cloud"></span>
+                <span>Docker</span>
+              </div>
+            </aside>
+
+            <section class="mock-main">
+              <header class="mock-stack-header">
+                <div class="mock-stack-copy">
+                  <p class="mock-rail-title">Backend</p>
+                  <strong>api · go run</strong>
+                </div>
+                <div class="mock-dots" aria-hidden="true">
+                  <span></span><span class="on"></span><span></span><span></span>
+                </div>
+                <div class="mock-zoom">
+                  <div class="mock-zoom-segment">
+                    <span class="active">In</span>
+                    <span>Out</span>
+                  </div>
+                </div>
+              </header>
+
+              <div class="mock-focus">
+                <div class="mock-stack-layer layer-2"></div>
+                <div class="mock-stack-layer layer-1"></div>
+                <article class="mock-focus-card">
+                  <div class="mock-focus-card-header">
+                    <strong>api · go run</strong>
+                    <span class="mock-running">Running</span>
+                  </div>
+                  <div class="mock-terminal">
+                    <pre><code><span class="prompt">~/repos/api$</span> go run ./cmd/server
+<span class="dim">INFO  listening on :8080</span>
+<span class="ok">ready · health check ok</span>
+<span class="prompt">~/repos/api$</span> <span class="cursor">▋</span></code></pre>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <p class="trust-line">Frontend, API, Docker, and tests — without juggling windows.</p>
+
+      <section class="section showcase" id="overview">
+        <div class="section-head">
+          <h2>See the whole stack at once.</h2>
+          <p class="section-copy">
+            Vite on one card, your API on another, compose logs beside tests. Park them all — PTYs stay alive.
+          </p>
+        </div>
+
+        <div class="app-shell-mock overview-shell" role="img" aria-label="NthTerm overview with four terminals">
+          <div class="mock-toolbar-leading">
+            <div class="mock-badge">N</div>
+            <div class="mock-brand-copy">
+              <span class="mock-brand-label">Workspace Shell</span>
+              <strong class="mock-brand-title">NthTerm</strong>
+            </div>
+          </div>
+
+          <div class="mock-toolbar-main">
+            <div class="mock-workspace-chip">
+              <span class="mock-chip-part">
+                <span class="mock-chip-label">Workspace</span>
+                <strong>Frontend</strong>
+              </span>
+              <span class="mock-chip-badge">4 terminals</span>
+            </div>
+            <span class="mock-pill">Add Terminal</span>
+          </div>
+
+          <aside class="mock-rail">
+            <div class="mock-rail-head">
+              <p class="mock-rail-title">Workspaces</p>
+              <span class="mock-create">+ New Workspace</span>
+            </div>
+            <div class="mock-session active">
+              <span class="mock-session-icon spark"></span>
+              <span>Frontend</span>
+            </div>
+            <div class="mock-session">
+              <span class="mock-session-icon server"></span>
+              <span>Backend</span>
+            </div>
+            <div class="mock-session">
+              <span class="mock-session-icon cloud"></span>
+              <span>Docker</span>
+            </div>
+          </aside>
+
+          <section class="mock-main">
+            <header class="mock-stack-header">
+              <div class="mock-stack-copy">
+                <p class="mock-rail-title">Frontend</p>
+                <strong>Overview · 4 terminals</strong>
+              </div>
+              <div class="mock-dots" aria-hidden="true">
+                <span class="on"></span><span></span><span></span><span></span>
+              </div>
+              <div class="mock-zoom">
+                <div class="mock-zoom-segment">
+                  <span>In</span>
+                  <span class="active">Out</span>
+                </div>
+              </div>
+            </header>
+
+            <div class="mock-overview-grid">
+              <article class="mock-preview-card active">
+                <header class="mock-preview-head">
+                  <span class="mock-preview-num">1</span>
+                  <div class="mock-preview-meta">
+                    <strong>web · vite</strong>
+                    <span>pnpm dev · localhost:5173</span>
+                  </div>
+                  <span class="mock-running">Running</span>
+                </header>
+                <pre class="mock-preview-buffer"><code><span class="prompt">~/web$</span> pnpm dev
+<span class="ok">VITE v6 ready in 312 ms</span>
+<span class="dim">➜  Local:   http://localhost:5173/</span></code></pre>
+              </article>
+
+              <article class="mock-preview-card">
+                <header class="mock-preview-head">
+                  <span class="mock-preview-num">2</span>
+                  <div class="mock-preview-meta">
+                    <strong>api · go run</strong>
+                    <span>listening · :8080</span>
+                  </div>
+                  <span class="mock-running">Running</span>
+                </header>
+                <pre class="mock-preview-buffer"><code><span class="prompt">~/api$</span> go run ./cmd/server
+<span class="dim">INFO  listening on :8080</span>
+<span class="ok">ready · health check ok</span></code></pre>
+              </article>
+
+              <article class="mock-preview-card">
+                <header class="mock-preview-head">
+                  <span class="mock-preview-num">3</span>
+                  <div class="mock-preview-meta">
+                    <strong>docker compose</strong>
+                    <span>postgres · redis · mailhog</span>
+                  </div>
+                  <span class="mock-running">Running</span>
+                </header>
+                <pre class="mock-preview-buffer"><code><span class="dim">postgres-1  | database system is ready</span>
+<span class="dim">redis-1     | Ready to accept connections</span>
+<span class="prompt">$</span> <span class="cursor">▋</span></code></pre>
+              </article>
+
+              <article class="mock-preview-card">
+                <header class="mock-preview-head">
+                  <span class="mock-preview-num">4</span>
+                  <div class="mock-preview-meta">
+                    <strong>tests · vitest</strong>
+                    <span>watch mode · 42 passed</span>
+                  </div>
+                  <span class="mock-running">Running</span>
+                </header>
+                <pre class="mock-preview-buffer"><code><span class="prompt">~/web$</span> pnpm test
+<span class="ok"> ✓  src/auth.spec.ts  (12)</span>
+<span class="dim">Test Files  4 passed (4)</span></code></pre>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="section features" id="features">
+        <div class="section-head">
+          <h2>Focus when you need depth.</h2>
+          <p class="section-copy">
+            Jump into the API while Vite and compose keep running in the stack behind you.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <figure class="feature-card">
+            <div class="shot-frame focus-shot">
+              <div class="mini-stack-header">
+                <strong>api · go run</strong>
+                <span class="mini-zoom"><em>In</em><em>Out</em></span>
+              </div>
+              <div class="mini-focus">
+                <div class="mini-layer"></div>
+                <article class="mini-term-card">
+                  <header class="mini-term-bar">
+                    <span>api · go run</span>
+                    <span class="mock-running">Running</span>
+                  </header>
+                  <pre class="mini-term-body"><code><span class="prompt">~/api$</span> go run ./cmd/server
+<span class="dim">INFO  listening on :8080</span>
+<span class="ok">ready · health check ok</span>
+<span class="prompt">~/api$</span> <span class="cursor">▋</span></code></pre>
+                </article>
+              </div>
+            </div>
+            <figcaption>
+              <strong>Focus</strong>
+              <span>Drop into the backend while the rest of the stack stays parked.</span>
+            </figcaption>
+          </figure>
+
+          <figure class="feature-card">
+            <div class="shot-frame glass-shot">
+              <aside class="glass-rail">
+                <span class="glass-rail-label">Workspaces</span>
+                <span class="glass-rail-item">Frontend</span>
+                <span class="glass-rail-item on">Backend</span>
+                <span class="glass-rail-item">Docker</span>
+              </aside>
+              <div class="glass-stage">
+                <div class="glass-toolbar">
+                  <span class="glass-chip">Backend</span>
+                  <span class="glass-pill">Add</span>
+                </div>
+                <div class="glass-term-card">
+                  <pre><code><span class="prompt">~/web$</span> pnpm dev
+<span class="ok">VITE ready in 312 ms</span>
+<span class="dim">Local: http://localhost:5173</span></code></pre>
+                </div>
+              </div>
+            </div>
+            <figcaption>
+              <strong>Workspaces</strong>
+              <span>Separate Frontend, Backend, and Docker — switch without losing state.</span>
+            </figcaption>
+          </figure>
+
+          <figure class="feature-card">
+            <div class="shot-frame stack-shot">
+              <div class="stack-layer back" aria-hidden="true"></div>
+              <div class="stack-layer mid" aria-hidden="true"></div>
+              <article class="stack-front">
+                <header class="mini-term-bar">
+                  <span>docker compose · 3 of 4</span>
+                  <span class="mock-running">Running</span>
+                </header>
+                <pre class="mini-term-body"><code><span class="prompt">$</span> docker compose up
+<span class="dim">postgres-1 | database system is ready</span>
+<span class="ok">redis-1    | Ready to accept</span>
+<span class="prompt">$</span> <span class="cursor">▋</span></code></pre>
+              </article>
+            </div>
+            <figcaption>
+              <strong>Stacked PTYs</strong>
+              <span>Compose keeps running behind the terminal you’re in.</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section final-cta">
+        <h2>Try NthTerm now.</h2>
+        <p class="section-copy">Grab the latest release candidate for your platform.</p>
+        <div class="platform-row">
+          <a class="platform-card" href="https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2">
+            <strong>Download for Windows</strong>
+            <span>NSIS installer · x64</span>
+          </a>
+          <a class="platform-card" href="https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2">
+            <strong>Download for macOS</strong>
+            <span>dmg / zip · arm64 &amp; x64</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-brand">
+        <span class="brand-mark sm">N</span>
+        <span>NthTerm · 0.1.0-rc.2</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/nwaoga/NthTerm">GitHub</a>
+        <a href="https://github.com/nwaoga/NthTerm/issues">Issues</a>
+        <a href="https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2">Releases</a>
+      </div>
+    </footer>
+  </body>
+</html>

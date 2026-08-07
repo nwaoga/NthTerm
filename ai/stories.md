@@ -3,12 +3,13 @@
 ## Backlog
 - [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac`
 - [ ] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
-- [ ] [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141) Ship a minimal public landing page for RC launch
-  - [ ] One-page hero + pitch, 2–3 screenshots, Win/Mac download buttons
-  - [ ] Unsigned SmartScreen/Gatekeeper warning + GitHub/Issues links
-  - [ ] Host as static GitHub Pages (or `site/`); set repo description + homepage URL
 
 ## Done
+- [x] [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141) Ship a minimal public landing page for RC launch
+  - [x] One-page Cursor-inspired hero + pitch in `site/` with NthTerm midnight theme
+  - [x] CSS product mocks: focus + overview (Frontend / Backend / Docker; Vite, API, compose, tests)
+  - [x] Win/Mac download CTAs → `v0.1.0-rc.2`, unsigned SmartScreen/Gatekeeper warning, GitHub/Issues links
+  - [x] Commit/push `site/`; host as GitHub Pages; set repo description + homepage URL
 - [x] [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138) Re-run RC verification and tag the release candidate
   - [x] Bump package/changelog to `0.1.0-rc.2` for the stacked/glass/macOS candidate
   - [x] Run `npm run rc:verify` against `0.1.0-rc.2` (passed 2026-08-02)
