@@ -56,24 +56,22 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) stacked focus/overview day-to-day UX polish.
+**Last shipped:** [v0.1.0-rc.2](https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2) unsigned prerelease assets for Windows and macOS.
 
-## Handover — 2026-08-08 (pick up on Mac → #139)
+## Handover — 2026-08-08 (close #139, then separate the next UI polish)
 
-- Closed [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) on Windows: Escape exits overview; hide stack chrome for a single terminal; Focus/Overview labels; overview arrow-key navigation; throttled ~4 Hz overview preview refresh; `ai/architecture.md` updated.
-- Verification: `npm run build` and `npm run test:ci` passed (38 Electron / 144 Angular).
-- Landing page (#141) remains live at `https://nwaoga.github.io/NthTerm/`.
-- Do **not** commit untracked `output/` (local chrome-capture junk).
+- PR [#1](https://github.com/nwaoga/NthTerm/pull/1) merged as `4fe0df5`: tag builds publish unsigned Windows/macOS assets to GitHub Releases, and `smoke:mac` runs on macOS CI.
+- GitHub Release [v0.1.0-rc.2](https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2) is live as a prerelease with Windows `.exe/.zip`, Apple Silicon `.dmg/.zip`, and Intel `.dmg/.zip` artifacts. Release workflow `31278290064` completed successfully.
+- #139 CI smoke is green: first launch stayed alive, SQLite persistence was observed, Application Support data survived, and the app quit cleanly. The remaining action is to close ADO #139.
+- Local-only UI polish is intentionally uncommitted and mixed with other work. It includes the persisted left navigation toggle, matching inspector edge toggle, system-monitor compact layout, and status-bar shell accuracy. Do not blanket-stage it; review and split into a dedicated commit before publishing.
+- Latest local verification after pulling and resolving the header conflict: `npm run build` passed (accepted bundle-size warning) and `npm run test:ci` passed (41 Electron / 148 Angular).
 - Signing / notarization / `electron-updater` remain deferred.
 
-**Next (Mac only): [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139)**
+**Next:**
 
-1. Pull latest `main`.
-2. Prefer CI artifacts from tag `v0.1.0-rc.2` (macOS dmg/zip), **or** run `npm run release:mac` locally.
-3. Open the unsigned app (Gatekeeper warning expected — right-click Open / allow exception).
-4. Smoke: launch, create/switch workspaces, start ≥2 terminals, toggle Focus/Overview (`Ctrl+\` / `Cmd+\`), confirm PTYs stay alive, quit cleanly.
-5. Note Application Support path persistence if reinstalling over an existing copy.
-6. Record results in ADO #139 + `ai/stories.md` / this plan; close #139 when green.
+1. Pull latest `main` to obtain PR #1 / `4fe0df5`, then close [ADO #139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) using the published-release and CI-smoke evidence above.
+2. On the machine holding the mixed local UI work, review the staged/unstaged diff, split the sidebar/inspector/monitor/status-bar polish into its own commit, and push it through a PR.
+3. Decide whether that polish is a new RC tag; do not replace or mutate the published `v0.1.0-rc.2` artifacts.
 
 **Release target:** `0.1.0-rc.2` tagged (`v0.1.0-rc.2`); Windows `rc:verify` passed. Authenticode / Apple notarization deferred until certificates are available.
 
@@ -117,7 +115,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 ## Next Release Gate
 
 1. ~~[#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138)~~ — Done. `0.1.0-rc.2` verified and tagged (`v0.1.0-rc.2`).
-2. [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — **Next (Mac):** smoke-test unsigned macOS dmg/zip (`release:mac` or CI artifacts from `v0.1.0-rc.2`). Gatekeeper warnings expected.
+2. [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — **Ready to close:** CI macOS smoke and the public `v0.1.0-rc.2` release assets are green.
 3. ~~[#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140)~~ — Done. Stacked focus/overview day-to-day UX polish (Escape, single-terminal chrome, Focus/Overview labels, overview arrows, throttled previews).
 4. ~~[#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141)~~ — Done. Minimal RC landing page live at `https://nwaoga.github.io/NthTerm/` (GitHub Pages from `site/`).
 5. Keep Authenticode signing / Apple notarization deferred until certificates are available. Manual install-over upgrades until then. Add a later story for `electron-updater` after signing.

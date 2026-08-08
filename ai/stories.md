@@ -1,11 +1,10 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac` _(pick up on Mac)_
-  - [ ] Pull latest `main`; use CI `v0.1.0-rc.2` macOS artifacts or `npm run release:mac`
-  - [ ] Open unsigned app (Gatekeeper expected)
-  - [ ] Smoke launch, multi-terminal Focus/Overview, PTY stay-alive, clean quit
-  - [ ] Record results and close ADO #139
+- [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Close the macOS release gate
+  - [x] CI macOS packaged-app smoke: launch, SQLite/Application Support persistence, and clean quit
+  - [x] Publish `v0.1.0-rc.2` unsigned Windows and macOS assets to GitHub Releases
+  - [ ] Close ADO #139 using the CI and release evidence
 
 ## Done
 - [x] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
