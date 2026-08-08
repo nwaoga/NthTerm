@@ -142,10 +142,12 @@ function registerTerminalHandlers() {
     const env = buildTerminalSpawnEnv(process.env, {
       workspaceName: options.workspaceName,
     });
+    const cols = Number.isInteger(options.cols) && options.cols > 0 ? options.cols : 120;
+    const rows = Number.isInteger(options.rows) && options.rows > 0 ? options.rows : 32;
     const spawnOptions = createWindowsSpawnOptions({
       name: 'xterm-256color',
-      cols: 120,
-      rows: 32,
+      cols,
+      rows,
       cwd,
       env,
     });
