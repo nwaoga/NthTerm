@@ -124,6 +124,11 @@ test('the full toolbar remains draggable outside genuine controls', () => {
   assert.doesNotMatch(shellCss, /\.shell-toolbar svg[\s\S]{0,120}-webkit-app-region: no-drag;/);
 });
 
+test('terminal shell menus layer above live terminal surfaces', () => {
+  assert.match(shellCss, /\.shell-toolbar \{\s*position: relative;\s*z-index: 100;/);
+  assert.match(shellCss, /\.shell-menu-dropdown \{[\s\S]*?z-index: 200;/);
+});
+
 test('terminal surfaces suppress accidental horizontal xterm scroll tracks', () => {
   assert.match(
     shellCss,

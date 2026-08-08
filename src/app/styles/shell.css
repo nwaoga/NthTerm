@@ -516,6 +516,7 @@ input {
 }
 
 .app-shell {
+  position: relative;
   display: grid;
   grid-template-columns: 224px minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
@@ -573,6 +574,60 @@ app-root[data-host-platform='darwin'] .status-bar {
   grid-row: 2;
   min-width: 0;
   min-height: 0;
+}
+
+.left-rail-toggle,
+.inspector-edge-toggle {
+  position: absolute;
+  z-index: 20;
+  top: calc(var(--shell-toolbar-height) + 10px);
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  background: var(--shell-bg-elevated);
+  box-shadow: var(--shell-shadow-panel);
+  color: var(--shell-text-muted);
+  cursor: pointer;
+}
+
+.left-rail-toggle {
+  left: 210px;
+}
+
+.inspector-edge-toggle {
+  top: 20px;
+  right: 318px;
+}
+
+.left-rail-toggle:hover,
+.left-rail-toggle:focus-visible,
+.inspector-edge-toggle:hover,
+.inspector-edge-toggle:focus-visible {
+  border-color: var(--shell-accent-soft);
+  color: var(--shell-text-strong);
+  outline: none;
+}
+
+.left-rail-toggle svg,
+.inspector-edge-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.app-shell.left-rail-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell.left-rail-hidden .workspace-shell {
+  grid-column: 1;
+}
+
+.app-shell.left-rail-hidden .left-rail-toggle {
+  left: 10px;
 }
 
 .left-rail {
@@ -1078,6 +1133,8 @@ app-workspace-area .content-layout {
 }
 
 .shell-toolbar {
+  position: relative;
+  z-index: 100;
   display: grid;
   grid-template-columns: 224px minmax(0, 1fr);
   align-items: center;
@@ -1580,6 +1637,7 @@ app-workspace-area .content-layout {
 
 .split-action {
   position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: stretch;
 }
@@ -1607,6 +1665,7 @@ app-workspace-area .content-layout {
   right: 0;
   left: auto;
   min-width: 180px;
+  z-index: 200;
 }
 
 .toolbar-pill-ghost {
@@ -1627,6 +1686,7 @@ app-workspace-area .content-layout {
 }
 
 .content-layout {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 12px;
@@ -3645,44 +3705,66 @@ app-terminal-overview {
   word-break: break-word;
 }
 
-/* A short dock cannot accommodate two full metric rows. Keep every reading
-   visible by switching to a compact single-row monitor before cards collide. */
+/* A short dock still needs every reading. Keep the two-column monitor, but
+   compact its header and charts so the cards retain a real row height. */
 @media (max-height: 800px) {
+  .monitor-panel {
+    padding: 8px;
+  }
+
+  .monitor-panel .utility-panel-header {
+    margin-bottom: 6px;
+  }
+
+  .monitor-panel .utility-panel-subtitle {
+    display: none;
+  }
+
   .monitor-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: minmax(0, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 4px;
   }
 
   .metric-ring {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 4px;
-    padding: 6px 8px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
+    padding: 2px 6px;
+    overflow: hidden;
+    border-radius: 8px;
   }
 
   .metric-ring-chart {
-    width: 32px;
-    height: 32px;
+    width: 3px;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--metric-color);
   }
 
-  .metric-ring-chart::after {
-    inset: 5px;
-  }
+  .metric-ring-chart::after { display: none; }
 
   .metric-ring-copy {
     width: 100%;
-    gap: 1px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5px;
   }
 
   .metric-ring span {
-    font-size: 0.64rem;
+    flex: 0 0 auto;
+    font-size: 0.58rem;
   }
 
   .metric-ring strong {
-    font-size: 0.74rem;
-    line-height: 1.15;
+    min-width: 0;
+    max-width: none;
+    font-size: 0.64rem;
+    line-height: 1;
+    text-align: right;
+    white-space: nowrap;
   }
 }
 
@@ -4353,6 +4435,10 @@ app-terminal-overview {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .inspector-edge-toggle {
+    right: 10px;
+  }
+
   .inspector {
     position: absolute;
     z-index: 30;
@@ -4408,6 +4494,10 @@ app-terminal-overview {
   .app-left-rail-host {
     grid-column: 1;
     grid-row: 2;
+  }
+
+  .left-rail-toggle {
+    left: 10px;
   }
 
   .left-rail {

@@ -44,6 +44,16 @@ describe('AppPreferencesService', () => {
     expect(service.readInspectorPanelVisible()).toBeTrue();
   });
 
+  it('persists the left navigation sidebar visibility preference', () => {
+    expect(service.readLeftRailVisible()).toBeTrue();
+
+    service.writeLeftRailVisible(false);
+    expect(service.readLeftRailVisible()).toBeFalse();
+
+    service.writeLeftRailVisible(true);
+    expect(service.readLeftRailVisible()).toBeTrue();
+  });
+
   it('defaults new sessions to the focused terminal directory', () => {
     expect(service.readNewSessionStartMode()).toBe('focused-tab');
     expect(service.readNewSessionCustomPath()).toBe('');

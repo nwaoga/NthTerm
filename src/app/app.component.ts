@@ -63,6 +63,7 @@ export class AppComponent implements AfterViewInit {
 
   protected utilityPanelVisible = true;
   protected inspectorPanelVisible = true;
+  protected leftRailVisible = true;
   protected utilityPanelHeight = 280;
   protected settingsOpen = false;
   protected dockResizeActive = false;
@@ -128,6 +129,7 @@ export class AppComponent implements AfterViewInit {
   async ngAfterViewInit(): Promise<void> {
     this.utilityPanelVisible = this.preferences.readBottomPanelVisible();
     this.inspectorPanelPreference = this.preferences.readInspectorPanelVisible();
+    this.leftRailVisible = this.preferences.readLeftRailVisible();
     this.compactViewport = this.isCompactViewport();
     this.inspectorPanelVisible = this.inspectorPanelPreference && !this.compactViewport;
     this.utilityPanelHeight = this.preferences.readBottomPanelHeight();
@@ -196,6 +198,12 @@ export class AppComponent implements AfterViewInit {
       this.inspectorPanelPreference = visible;
       this.preferences.writeInspectorPanelVisible(visible);
     }
+    setTimeout(() => this.terminal.syncTerminalSize(), 0);
+  }
+
+  protected toggleLeftRailPreference(): void {
+    this.leftRailVisible = !this.leftRailVisible;
+    this.preferences.writeLeftRailVisible(this.leftRailVisible);
     setTimeout(() => this.terminal.syncTerminalSize(), 0);
   }
 

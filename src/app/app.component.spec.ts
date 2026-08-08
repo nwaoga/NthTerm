@@ -249,6 +249,32 @@ describe('AppComponent', () => {
     expect(fixture.nativeElement.querySelector('.content-layout.inspector-hidden')).not.toBeNull();
   });
 
+  it('hides and restores the navigation sidebar from its edge control while persisting the preference', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const preferences = TestBed.inject(AppPreferencesService);
+    spyOn(preferences, 'writeLeftRailVisible').and.callThrough();
+
+    fixture.nativeElement.querySelector('[aria-label="Hide navigation sidebar"]').click();
+    fixture.detectChanges();
+
+    expect((fixture.componentInstance as any).leftRailVisible).toBeFalse();
+    expect(fixture.nativeElement.querySelector('app-left-rail')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.app-shell.left-rail-hidden')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Show navigation sidebar"]')).not.toBeNull();
+    expect(preferences.writeLeftRailVisible).toHaveBeenCalledWith(false);
+
+    fixture.nativeElement.querySelector('[aria-label="Show navigation sidebar"]').click();
+    fixture.detectChanges();
+
+    expect((fixture.componentInstance as any).leftRailVisible).toBeTrue();
+    expect(fixture.nativeElement.querySelector('app-left-rail')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.left-rail-toggle')).not.toBeNull();
+  });
+
   it('collapses and restores the dock while persisting the active workspace preference', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();

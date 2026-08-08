@@ -1,4 +1,4 @@
-<main class="app-shell">
+<main class="app-shell" [class.left-rail-hidden]="!leftRailVisible">
   <app-shell-toolbar
     class="app-shell-toolbar-host"
     (createTerminalRequested)="onCreateTerminal($event)"
@@ -6,13 +6,33 @@
     (settingsRequested)="openSettings()"
   />
 
-  <app-left-rail
-    class="app-left-rail-host"
-    (newSessionRequested)="onNewSessionRequested()"
-    (workspaceSelected)="onWorkspaceSelected($event)"
-    (workspaceRenameCommitted)="onWorkspaceRenameCommitted($event)"
-    (workspaceDeleteRequested)="onWorkspaceDeleteRequested($event)"
-  />
+  <button
+    type="button"
+    class="left-rail-toggle"
+    [attr.aria-label]="leftRailVisible ? 'Hide navigation sidebar' : 'Show navigation sidebar'"
+    [attr.title]="leftRailVisible ? 'Hide navigation sidebar' : 'Show navigation sidebar'"
+    (click)="toggleLeftRailPreference()"
+  >
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="3" y="3.5" width="14" height="13" rx="1.8" stroke="currentColor" stroke-width="1.35" />
+      <path d="M7.5 3.5v13" stroke="currentColor" stroke-width="1.35" />
+      @if (leftRailVisible) {
+        <path d="m10.7 7.6-2.1 2.4 2.1 2.4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+      } @else {
+        <path d="m9.1 7.6 2.1 2.4-2.1 2.4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+      }
+    </svg>
+  </button>
+
+  @if (leftRailVisible) {
+    <app-left-rail
+      class="app-left-rail-host"
+      (newSessionRequested)="onNewSessionRequested()"
+      (workspaceSelected)="onWorkspaceSelected($event)"
+      (workspaceRenameCommitted)="onWorkspaceRenameCommitted($event)"
+      (workspaceDeleteRequested)="onWorkspaceDeleteRequested($event)"
+    />
+  }
 
   <section
     class="workspace-shell"

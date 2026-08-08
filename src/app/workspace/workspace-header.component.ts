@@ -68,20 +68,6 @@ import { TerminalStackIndicatorComponent } from './terminal-stack-indicator.comp
             </div>
           </div>
         }
-        @if (showInspectorRestore) {
-          <button
-            type="button"
-            class="inspector-restore-button"
-            aria-label="Show inspector"
-            title="Show inspector"
-            (click)="restoreInspector.emit()"
-          >
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <rect x="2.5" y="3" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" />
-              <path d="M9.5 3v10M5 6h2M5 8.5h2M5 11h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-            </svg>
-          </button>
-        }
       </div>
     </header>
   `,
@@ -94,14 +80,12 @@ export class WorkspaceHeaderComponent {
   @Input() total = 0;
   @Input() zoomLevel = 0;
   @Input() overviewActive = false;
-  @Input() showInspectorRestore = false;
 
   @Output() readonly previous = new EventEmitter<void>();
   @Output() readonly next = new EventEmitter<void>();
   @Output() readonly selectTerminal = new EventEmitter<string>();
   @Output() readonly setZoom = new EventEmitter<number>();
   @Output() readonly chromeWheel = new EventEmitter<-1 | 1>();
-  @Output() readonly restoreInspector = new EventEmitter<void>();
 
   protected onWheel(event: WheelEvent): void {
     if (this.total <= 1) {

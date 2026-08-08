@@ -560,12 +560,14 @@ describe('WorkspaceAreaComponent', () => {
     fixture.detectChanges();
 
     const hideButton = fixture.debugElement.query(By.css('[aria-label="Hide inspector"]'));
+    expect(hideButton.nativeElement.classList.contains('inspector-edge-toggle')).toBeTrue();
     hideButton.nativeElement.click();
 
     fixture.componentInstance.inspectorPanelVisible = false;
     fixture.detectChanges();
 
     const restoreButton = fixture.debugElement.query(By.css('[aria-label="Show inspector"]'));
+    expect(restoreButton.nativeElement.classList.contains('inspector-edge-toggle')).toBeTrue();
     restoreButton.nativeElement.click();
 
     expect(visibilityChanges).toEqual([false, true]);

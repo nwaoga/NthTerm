@@ -8,9 +8,8 @@
     <span>{{ ws.terminals.length }} terminals</span>
   </div>
   <div class="status-cluster">
-    <span>Ln 12, Col 1</span>
     <span>UTF-8</span>
-    <span>CRLF</span>
-    <span>PowerShell</span>
+    <span>{{ getLineEndingLabel() }}</span>
+    <span>{{ getFocusedShellLabel() }}</span>
   </div>
 </footer>

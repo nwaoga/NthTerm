@@ -15,6 +15,7 @@ const BOTTOM_PANEL_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.visible';
 const BOTTOM_PANEL_HEIGHT_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.height';
 const WORKSPACE_BOTTOM_PANEL_PREFERENCE_KEY = 'nthterm.preferences.bottomPanel.workspaces';
 const INSPECTOR_PANEL_PREFERENCE_KEY = 'nthterm.preferences.inspectorPanel.visible';
+const LEFT_RAIL_PREFERENCE_KEY = 'nthterm.preferences.leftRail.visible';
 const NEW_SESSION_START_MODE_PREFERENCE_KEY = 'nthterm.preferences.newSession.startMode';
 const NEW_SESSION_CUSTOM_PATH_PREFERENCE_KEY = 'nthterm.preferences.newSession.customPath';
 const DEFAULT_SHELL_PREFERENCE_KEY = 'nthterm.preferences.defaultShell';
@@ -71,6 +72,22 @@ export class AppPreferencesService {
   writeInspectorPanelVisible(visible: boolean): void {
     try {
       localStorage.setItem(INSPECTOR_PANEL_PREFERENCE_KEY, String(visible));
+    } catch {
+      // Preference persistence is best-effort only.
+    }
+  }
+
+  readLeftRailVisible(): boolean {
+    try {
+      return localStorage.getItem(LEFT_RAIL_PREFERENCE_KEY) !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  writeLeftRailVisible(visible: boolean): void {
+    try {
+      localStorage.setItem(LEFT_RAIL_PREFERENCE_KEY, String(visible));
     } catch {
       // Preference persistence is best-effort only.
     }
