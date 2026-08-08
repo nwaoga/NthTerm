@@ -196,3 +196,9 @@
 - `WorkspaceLayoutService` owns `viewMode` (`focus` | `overview`) and `zoomLevel` (0–1) as presentation state separate from PTY/process state. Continuous zoom can later map onto `zoomLevel` without forking the model.
 - Inactive xterm surfaces park off-screen at preserved dimensions; `TerminalSessionService` only FitAddon/PTY-resizes the interactive host.
 - Shortcuts: Ctrl/Cmd+[ / ] previous/next terminal, Ctrl/Cmd+1–9 / 0 jump, Ctrl/Cmd+\ toggle overview.
+
+## 2026-08-08
+- Landing-page download CTAs already pointed at `/releases/tag/v0.1.0-rc.2`, but CI only uploaded Actions artifacts (14-day retention) and never created a GitHub Release. That broke public downloads and made Mac smoke (#139) harder to pick up.
+- Decision: keep Electron Builder `"publish": null` (no electron-builder GitHub publish / no secrets). Publish unsigned Win/mac artifacts with `softprops/action-gh-release` from CI on `v*` tags, and provide `publish-release.yml` (`workflow_dispatch`) to backfill an existing tag from a prior artifact run id.
+- Future signed releases should stay on a separate protected path; the default tag publish remains intentionally unsigned.
+- #139 macOS smoke is automated on GitHub `macos-latest` via `scripts/smoke-macos.sh` instead of requiring a human Mac session for the packaged launch path. Quarantine xattr clear is the CI stand-in for Gatekeeper right-click Open. Focus/Overview interaction remains covered by #140 unit/component specs rather than brittle UI automation in the smoke script.

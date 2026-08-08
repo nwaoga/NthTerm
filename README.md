@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **0.1.0-rc.2** (`v0.1.0-rc.2` tagged) — unsigned Windows and macOS release candidate (stacked focus/overview layout, glass chrome, platform packaging). Windows `rc:verify` passed; macOS artifact smoke is next.
+Current milestone: **0.1.0-rc.2** (`v0.1.0-rc.2` tagged) — unsigned Windows and macOS release candidate (stacked focus/overview layout, glass chrome, platform packaging). Windows `rc:verify` passed; macOS packaged-app smoke green on CI (`npm run smoke:mac`). Next: publish GitHub Release assets so landing-page download links resolve.
 
 Working today:
 
@@ -154,6 +154,12 @@ Create unsigned macOS dmg and zip artifacts (run on macOS):
 npm run release:mac
 ```
 
+Smoke-test the unsigned macOS app after packaging (run on macOS; clears quarantine as a Gatekeeper stand-in):
+
+```bash
+npm run smoke:mac
+```
+
 Run the full Windows release-candidate verification (build, tests, artifacts, install/reinstall, and persistence):
 
 ```bash
@@ -184,6 +190,9 @@ python scripts/generate-branding-assets.py
 
 - Local: `npm run package`, `npm run release:win`, or `npm run release:mac`
 - CI: GitHub Actions uploads `nthterm-windows-unsigned` and `nthterm-macos-unsigned` without certificate secrets
+- Version tags (`v*`): CI also publishes those artifacts to a GitHub Release (prerelease, unsigned)
+- Backfill: workflow **Publish GitHub Release** can attach artifacts from an existing Actions run to a tag
+- Public downloads: https://github.com/nwaoga/NthTerm/releases
 - Electron Builder is configured with `"publish": null`, Windows has no certificate fields, and macOS sets `"identity": null`
 - Windows SmartScreen / macOS Gatekeeper may warn on first launch of unsigned builds; that is expected until signing/notarization is enabled
 

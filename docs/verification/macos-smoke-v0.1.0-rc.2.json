@@ -1,0 +1,12 @@
+{
+  "productName": "NthTerm",
+  "source": "dir:mac-arm64/NthTerm.app",
+  "appPath": "/Users/runner/work/NthTerm/NthTerm/release/mac-arm64/NthTerm.app",
+  "firstLaunchAlive": true,
+  "sqliteObserved": true,
+  "sqlitePath": "/Users/runner/Library/Application Support/NthTerm/nthterm.sqlite",
+  "shellOrPtyChildObserved": false,
+  "markerPreserved": true,
+  "quarantineCleared": true,
+  "gatekeeperNote": "Unsigned build; quarantine cleared as CI equivalent of Gatekeeper right-click Open"
+}

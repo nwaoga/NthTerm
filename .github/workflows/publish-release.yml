@@ -1,0 +1,72 @@
+name: Publish GitHub Release
+
+# Backfill or republish a GitHub Release from an existing CI artifact run
+# (for example v0.1.0-rc.2 before tag-triggered publish existed).
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag to attach the release to (must already exist)
+        required: true
+        default: v0.1.0-rc.2
+      workflow_run_id:
+        description: Actions run id that uploaded nthterm-*-unsigned artifacts
+        required: true
+        default: '30753822270'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    name: Attach CI artifacts to GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Windows artifacts from workflow run
+        uses: actions/download-artifact@v4
+        with:
+          name: nthterm-windows-unsigned
+          path: artifacts/windows
+          run-id: ${{ inputs.workflow_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download macOS artifacts from workflow run
+        uses: actions/download-artifact@v4
+        with:
+          name: nthterm-macos-unsigned
+          path: artifacts/macos
+          run-id: ${{ inputs.workflow_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify expected installer archives are present
+        run: |
+          set -euo pipefail
+          echo "Windows artifacts:"
+          ls -la artifacts/windows
+          echo "macOS artifacts:"
+          ls -la artifacts/macos
+          test -n "$(find artifacts/windows -maxdepth 1 -type f \( -name '*.exe' -o -name '*.zip' \) | head -n 1)"
+          test -n "$(find artifacts/macos -maxdepth 1 -type f \( -name '*.dmg' -o -name '*.zip' \) | head -n 1)"
+
+      - name: Publish unsigned release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: NthTerm ${{ inputs.tag }}
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            Unsigned release candidate build.
+
+            - Windows: SmartScreen may warn (no Authenticode signature yet)
+            - macOS: Gatekeeper will warn (no Apple notarization yet)
+            - Install over an existing copy to preserve local workspace data
+            - Assets sourced from Actions run `${{ inputs.workflow_run_id }}`
+          files: |
+            artifacts/windows/*
+            artifacts/macos/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
