@@ -1,4 +1,4 @@
-import { sanitizeTerminalInput } from './terminal-session.service';
+import { sanitizeTerminalInput, PREVIEW_REFRESH_INTERVAL_MS } from './terminal-session.service';
 import { NgZone } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
@@ -264,5 +264,44 @@ describe('TerminalSessionService', () => {
     expect(interactiveState.fitAddon.fit).toHaveBeenCalled();
     expect(parkState.fitAddon.fit).not.toHaveBeenCalled();
     expect(terminalBridge.resizeSession).toHaveBeenCalledWith('session-1', 100, 40);
+  });
+
+  it('throttles preview version bumps while still writing every data chunk', async () => {
+    let onData: ((event: { id: string; data: string }) => void) | undefined;
+    terminalBridge.onData.and.callFake((handler: (event: { id: string; data: string }) => void) => {
+      onData = handler;
+      return () => undefined;
+    });
+
+    await service.restoreTerminalSessions();
+    const state = (service as any).terminalSessions.get('terminal-1');
+    expect(state?.sessionId).toBe('session-1');
+    const writeSpy = spyOn(state.terminal, 'write');
+    const runSpy = spyOn(TestBed.inject(NgZone), 'run').and.callThrough();
+    const initialVersion = service.getPreviewVersion();
+
+    jasmine.clock().install();
+    try {
+      onData?.({ id: 'session-1', data: 'line-1\n' });
+      onData?.({ id: 'session-1', data: 'line-2\n' });
+      onData?.({ id: 'session-1', data: 'line-3\n' });
+
+      expect(writeSpy).toHaveBeenCalledTimes(3);
+      expect(utility.scanOutputForProblems).toHaveBeenCalledTimes(3);
+      expect(service.getPreviewVersion()).toBe(initialVersion);
+      expect(runSpy).not.toHaveBeenCalled();
+
+      jasmine.clock().tick(PREVIEW_REFRESH_INTERVAL_MS);
+      expect(service.getPreviewVersion()).toBe(initialVersion + 1);
+      expect(runSpy).toHaveBeenCalled();
+
+      runSpy.calls.reset();
+      onData?.({ id: 'session-1', data: 'line-4\n' });
+      jasmine.clock().tick(PREVIEW_REFRESH_INTERVAL_MS);
+      expect(service.getPreviewVersion()).toBe(initialVersion + 2);
+      expect(runSpy).toHaveBeenCalled();
+    } finally {
+      jasmine.clock().uninstall();
+    }
   });
 });

@@ -89,4 +89,19 @@ describe('WorkspaceLayoutService', () => {
     expect(service.getAdjacentTerminalId(1)).toBe('terminal-3');
     expect(service.getAdjacentTerminalId(-1)).toBe('terminal-1');
   });
+
+  it('steps across the overview grid with wrapping', () => {
+    workspace.getActiveTabTerminals.and.returnValue([
+      { id: 'terminal-1', name: 'One', cwd: 'C:\\a', shell: '', startupCommand: '', status: 'idle' },
+      { id: 'terminal-2', name: 'Two', cwd: 'C:\\b', shell: '', startupCommand: '', status: 'idle' },
+      { id: 'terminal-3', name: 'Three', cwd: 'C:\\c', shell: '', startupCommand: '', status: 'idle' },
+      { id: 'terminal-4', name: 'Four', cwd: 'C:\\d', shell: '', startupCommand: '', status: 'idle' },
+    ]);
+    service.setActiveTerminalId('terminal-1', false);
+    expect(service.getOverviewColumnCount()).toBe(2);
+    expect(service.getTerminalIdByStep(2)).toBe('terminal-3');
+    service.setActiveTerminalId('terminal-4', false);
+    expect(service.getTerminalIdByStep(-2)).toBe('terminal-2');
+    expect(service.getTerminalIdByStep(1)).toBe('terminal-1');
+  });
 });

@@ -317,12 +317,28 @@ export class WorkspaceAreaComponent implements AfterViewInit {
     await this.focusTerminal(nextId);
   }
 
+  protected async cycleTerminalByStep(step: number): Promise<void> {
+    const nextId = this.layout.getTerminalIdByStep(step);
+    if (!nextId) {
+      return;
+    }
+    await this.focusTerminal(nextId);
+  }
+
   protected onChromeWheel(offset: -1 | 1): void {
     void this.cycleTerminal(offset);
   }
 
   protected toggleOverview(): void {
     this.layout.toggleOverview();
+    void this.afterLayoutModeChange();
+  }
+
+  protected exitOverview(): void {
+    if (!this.layout.isOverviewMode()) {
+      return;
+    }
+    this.layout.enterFocus();
     void this.afterLayoutModeChange();
   }
 
@@ -369,8 +385,51 @@ export class WorkspaceAreaComponent implements AfterViewInit {
       typeof target?.matches === 'function'
         ? target.matches('input, textarea, select, [contenteditable="true"]')
         : false;
+    if (editingText) {
+      return;
+    }
+
     const withCtrl = event.ctrlKey || event.metaKey;
-    if (!withCtrl || editingText) {
+    const overview = this.layout.isOverviewMode();
+
+    if (event.key === 'Escape' && !withCtrl && !event.altKey && overview) {
+      event.preventDefault();
+      this.exitOverview();
+      return;
+    }
+
+    if (overview && !withCtrl && !event.altKey && !event.shiftKey) {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        void this.cycleTerminal(-1);
+        return;
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        void this.cycleTerminal(1);
+        return;
+      }
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        void this.cycleTerminalByStep(-this.layout.getOverviewColumnCount());
+        return;
+      }
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        void this.cycleTerminalByStep(this.layout.getOverviewColumnCount());
+        return;
+      }
+      if (event.key === 'Enter') {
+        const activeId = this.layout.activeTerminalId;
+        if (activeId) {
+          event.preventDefault();
+          void this.selectOverviewTerminal(activeId);
+        }
+        return;
+      }
+    }
+
+    if (!withCtrl) {
       return;
     }
 

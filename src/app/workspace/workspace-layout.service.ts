@@ -5,6 +5,7 @@ import {
   FOCUS_ZOOM_THRESHOLD,
   WorkspaceLayoutState,
   WorkspaceViewMode,
+  getOverviewColumnCount,
 } from './workspace-layout.models';
 
 @Injectable({ providedIn: 'root' })
@@ -138,12 +139,24 @@ export class WorkspaceLayoutService {
   }
 
   getAdjacentTerminalId(offset: -1 | 1): string | null {
+    return this.getTerminalIdByStep(offset);
+  }
+
+  /** Move by an arbitrary step with wrap (used for overview arrow-key grid navigation). */
+  getTerminalIdByStep(step: number): string | null {
     const terminals = this.workspace.getActiveTabTerminals();
-    if (terminals.length <= 1) {
+    if (terminals.length <= 1 || step === 0) {
       return null;
     }
     const currentIndex = this.getActiveTerminalIndex();
-    const nextIndex = (currentIndex + offset + terminals.length) % terminals.length;
+    let nextIndex = (currentIndex + step) % terminals.length;
+    if (nextIndex < 0) {
+      nextIndex += terminals.length;
+    }
     return terminals[nextIndex]?.id ?? null;
+  }
+
+  getOverviewColumnCount(): number {
+    return getOverviewColumnCount(this.getTerminalCount());
   }
 }

@@ -1,10 +1,19 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac`
-- [ ] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
+- [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac` _(pick up on Mac)_
+  - [ ] Pull latest `main`; use CI `v0.1.0-rc.2` macOS artifacts or `npm run release:mac`
+  - [ ] Open unsigned app (Gatekeeper expected)
+  - [ ] Smoke launch, multi-terminal Focus/Overview, PTY stay-alive, clean quit
+  - [ ] Record results and close ADO #139
 
 ## Done
+- [x] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
+  - [x] Escape exits overview; hide stack chrome for single terminal
+  - [x] Focus/Overview labels (was Zoom In/Out)
+  - [x] Overview arrow-key navigation + Enter to focus
+  - [x] Throttled ~4 Hz overview preview refresh
+  - [x] Architecture docs + regression specs; `build` / `test:ci` green
 - [x] [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141) Ship a minimal public landing page for RC launch
   - [x] One-page Cursor-inspired hero + pitch in `site/` with NthTerm midnight theme
   - [x] CSS product mocks: focus + overview (Frontend / Backend / Docker; Vite, API, compose, tests)

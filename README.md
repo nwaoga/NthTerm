@@ -72,10 +72,12 @@ Keyboard shortcuts:
 - `Ctrl+[` / `Ctrl+]` — previous / next terminal
 - `Ctrl+1`–`9` / `Ctrl+0` — jump to terminal 1–10
 - `Ctrl+\` — toggle terminal overview
+- `Esc` — leave overview and return to focus
+- Arrow keys — move among overview cards (`Enter` focuses)
 - `Ctrl+Shift+D` — add terminal
 - `Ctrl+J` — toggle workspace dock
 
-Workspaces hold up to 10 stacked terminals. Focus mode shows one interactive terminal; overview shows lightweight preview cards for the whole stack.
+Workspaces hold up to 10 stacked terminals. Focus mode shows one interactive terminal; overview shows lightweight preview cards for the whole stack. Stack navigation chrome hides when a workspace has only one terminal.
 
 The remaining release constraint is Authenticode signing. The RC is intentionally unsigned, so Windows SmartScreen warnings are expected until a certificate is available.
 

@@ -4,6 +4,7 @@ import { RuntimeTerminal } from '../models';
 import { AppPreferencesService } from '../preferences/app-preferences.service';
 import { resolveTerminalTheme } from '../terminal/terminal-theme.util';
 import { TerminalSessionService } from '../terminal/terminal-session.service';
+import { getOverviewColumnCount } from './workspace-layout.models';
 import { WorkspaceRuntimeService } from './workspace-runtime.service';
 import { TerminalPreviewCardComponent } from './terminal-preview-card.component';
 
@@ -63,11 +64,7 @@ export class TerminalOverviewComponent {
   private readonly preferences = inject(AppPreferencesService);
 
   protected get columnCount(): number {
-    const count = this.terminals.length;
-    if (count <= 1) return 1;
-    if (count <= 4) return 2;
-    if (count <= 6) return 3;
-    return 5;
+    return getOverviewColumnCount(this.terminals.length);
   }
 
   protected getTerminalForeground(terminal: RuntimeTerminal): string {

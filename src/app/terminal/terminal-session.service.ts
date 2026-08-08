@@ -1,4 +1,4 @@
-import { Injectable, NgZone, inject } from '@angular/core';
+import { Injectable, NgZone, inject, signal } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
@@ -11,6 +11,9 @@ import { UtilityPanelService } from '../utility-panel/utility-panel.service';
 import { AppPreferencesService } from '../preferences/app-preferences.service';
 import { resolveTerminalTheme, toXtermTheme } from './terminal-theme.util';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
+
+/** Overview / dock preview refresh cadence while parked terminals keep writing (~4 Hz). */
+export const PREVIEW_REFRESH_INTERVAL_MS = 250;
 
 interface TerminalState {
   terminalId: string;
@@ -46,9 +49,10 @@ export class TerminalSessionService {
   private removeExitListener?: () => void;
   private removeInfoListener?: () => void;
   private resizeDebounceId?: ReturnType<typeof setTimeout>;
+  private previewRefreshTimer?: ReturnType<typeof setTimeout>;
   private previewSessionInfo: RuntimeSessionInfo | null = null;
   private interactiveTerminalId = '';
-  private previewVersion = 0;
+  private readonly previewVersionState = signal(0);
 
   private readonly ngZone = inject(NgZone);
   private readonly changeDetectorRef = inject(ChangeDetectorRef, { optional: true });
@@ -90,9 +94,9 @@ export class TerminalSessionService {
     return this.interactiveTerminalId;
   }
 
-  /** Bumps when terminal output changes so overview cards can refresh. */
+  /** Bumps when terminal output changes so overview cards can refresh (throttled). */
   getPreviewVersion(): number {
-    return this.previewVersion;
+    return this.previewVersionState();
   }
 
   getBufferPreview(terminalId: string, maxLines = 8): string {
@@ -302,6 +306,8 @@ export class TerminalSessionService {
     this.removeDataListener = undefined;
     this.removeExitListener = undefined;
     clearTimeout(this.resizeDebounceId);
+    clearTimeout(this.previewRefreshTimer);
+    this.previewRefreshTimer = undefined;
   }
 
   private async ensureTerminalSession(
@@ -457,6 +463,21 @@ export class TerminalSessionService {
     }
   }
 
+  /** Coalesce overview/preview CD to ~4 Hz while xterm still receives every chunk immediately. */
+  private schedulePreviewRefresh(): void {
+    if (this.previewRefreshTimer !== undefined) {
+      return;
+    }
+
+    this.previewRefreshTimer = setTimeout(() => {
+      this.previewRefreshTimer = undefined;
+      this.ngZone.run(() => {
+        this.previewVersionState.update((version) => version + 1);
+        this.changeDetectorRef?.markForCheck();
+      });
+    }, PREVIEW_REFRESH_INTERVAL_MS);
+  }
+
   private registerTerminalListeners(): void {
     if (this.removeInfoListener || this.removeDataListener || this.removeExitListener) {
       return;
@@ -484,13 +505,12 @@ export class TerminalSessionService {
         return;
       }
 
-      this.ngZone.runOutsideAngular(() => state.terminal?.write(event.data));
-      this.previewVersion += 1;
-      this.ngZone.run(() => {
-        const source = this.workspace.workspaceName || 'Terminal';
+      const source = this.workspace.workspaceName || 'Terminal';
+      this.ngZone.runOutsideAngular(() => {
+        state.terminal?.write(event.data);
         this.utility.scanOutputForProblems(event.data, source);
-        this.changeDetectorRef?.markForCheck();
       });
+      this.schedulePreviewRefresh();
     });
 
     this.removeExitListener = this.terminalBridge.onExit((event) => {

@@ -311,7 +311,7 @@ describe('WorkspaceAreaComponent', () => {
     const fixture = TestBed.createComponent(WorkspaceAreaComponent);
     fixture.detectChanges();
 
-    fixture.debugElement.query(By.css('.workspace-zoom-button[aria-label="Zoom out to overview"]')).nativeElement.click();
+    fixture.debugElement.query(By.css('.workspace-zoom-button[aria-label="Overview mode"]')).nativeElement.click();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -353,6 +353,73 @@ describe('WorkspaceAreaComponent', () => {
     );
     fixture.detectChanges();
     expect(workspaceService.focusTerminal).toHaveBeenCalledWith('terminal-2');
+  });
+
+  it('exits overview with Escape and moves selection with arrow keys', async () => {
+    const terminals = Array.from({ length: 4 }, (_, index) => ({
+      ...runtimeTerminal,
+      id: `terminal-${index + 1}`,
+    }));
+    workspaceService.getActiveTabTerminals = () => terminals;
+    workspaceService.terminals = terminals;
+    workspaceService.focusTerminal.and.callFake(async (id: string) => {
+      workspaceService.focusedPaneId = id;
+      return terminals.find((terminal) => terminal.id === id) || null;
+    });
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: '\\', ctrlKey: true, bubbles: true })
+    );
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-terminal-overview')).not.toBeNull();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(workspaceService.focusTerminal).toHaveBeenCalledWith('terminal-2');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(workspaceService.focusTerminal).toHaveBeenCalledWith('terminal-4');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-terminal-overview')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-terminal-focus-view')).not.toBeNull();
+  });
+
+  it('hides stack navigation chrome when only one terminal is present', () => {
+    const terminals = [{ ...runtimeTerminal, id: 'terminal-1' }];
+    workspaceService.getActiveTabTerminals = () => terminals;
+    workspaceService.terminals = terminals;
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-terminal-navigation')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-terminal-stack-indicator')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.workspace-zoom-control')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-terminal-focus-view')).not.toBeNull();
+  });
+
+  it('labels the view mode control as Focus and Overview', () => {
+    const terminals = Array.from({ length: 2 }, (_, index) => ({
+      ...runtimeTerminal,
+      id: `terminal-${index + 1}`,
+    }));
+    workspaceService.getActiveTabTerminals = () => terminals;
+    workspaceService.terminals = terminals;
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Focus');
+    expect(text).toContain('Overview');
+    expect(fixture.nativeElement.querySelector('[aria-label="Focus mode"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Overview mode"]')).not.toBeNull();
   });
 
   it('labels terminal color controls separately from workspace chrome', () => {

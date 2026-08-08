@@ -44,7 +44,33 @@ Components should emit user intent and render service projections. Workspace, te
 
 `WorkspaceRuntimeService` is the renderer's source of truth for the selected workspace, workspace-owned terminals, focused terminal, names, shell resolution, session history, and persistence drafts.
 
-`workspace-snapshot.ts` normalizes legacy multi-tab and pane snapshots into the flat workspace-owned terminal model. Snapshot limit is ten terminals per workspace. Visual layout is a stacked focus/overview presentation (`WorkspaceLayoutService`) and is not a different persistence model: focus mode shows one interactive xterm; overview shows lightweight buffer previews. PTY processes stay alive across view changes; only the interactive host triggers FitAddon/PTY resize.
+`workspace-snapshot.ts` normalizes legacy multi-tab and pane snapshots into the flat workspace-owned terminal model. Snapshot limit is ten terminals per workspace.
+
+### Stacked focus / overview layout
+
+Visual layout is presentation state owned by `WorkspaceLayoutService` (`viewMode`: `focus` | `overview`, plus `zoomLevel` reserved for continuous zoom later). It is not a different persistence model and does not create or destroy PTYs.
+
+| Mode | Behavior |
+|------|----------|
+| Focus (default) | One interactive xterm host; other terminals park off-screen at preserved dimensions |
+| Overview | All terminals show lightweight buffer-preview cards; no mini-xterm hosts |
+
+Supporting UI:
+
+- `WorkspaceHeaderComponent` — workspace/terminal identity, prev/next, stack dots, Focus/Overview control
+- `TerminalFocusViewComponent` — interactive focus card + decorative stack layers when `total > 1`
+- `TerminalOverviewComponent` / `TerminalPreviewCardComponent` — responsive preview grid (`getOverviewColumnCount`)
+- Stack navigation chrome (nav, dots, Focus/Overview) is hidden when the workspace has only one terminal
+
+Keyboard (ignored while editing text fields):
+
+- `Ctrl/Cmd+\` — toggle overview/focus
+- `Esc` — leave overview and return to focus
+- Arrow keys in overview — move selection across the grid (`Enter` focuses the active card)
+- `Ctrl/Cmd+[` / `]` — previous / next terminal
+- `Ctrl/Cmd+1`–`9` / `0` — jump to terminal 1–10 (enters focus)
+
+PTY processes stay alive across view changes; only the interactive host triggers FitAddon/PTY resize.
 
 ### Terminal runtime
 
@@ -57,7 +83,9 @@ Components should emit user intent and render service projections. Workspace, te
 - one in-flight start promise
 - one command-input buffer
 
-Visible terminals attach to live hosts. Terminals removed from the workspace are disposed. `TerminalHostCoordinatorService` serializes host discovery and restore passes after Angular renders the latest layout.
+Visible terminals attach to live hosts. Inactive (and all overview) hosts use park markers; the focused interactive host uses `data-terminal-interactive="true"`. Surfaces move between park and focus via `reattachTerminalSession`. Terminals removed from the workspace are disposed. `TerminalHostCoordinatorService` serializes host discovery and restore passes after Angular renders the latest layout.
+
+PTY output always writes into xterm immediately (outside Angular). Overview/preview Change Detection is throttled to about 4 Hz (`PREVIEW_REFRESH_INTERVAL_MS = 250`) via a signal-backed `previewVersion`, so noisy parked terminals refresh cards without thrashing the renderer on every chunk. Problem scanning still runs per chunk outside the zone; UI refresh coalesces with the throttled preview bump.
 
 PTY creation is single-flight in both processes. The renderer coalesces overlapping starts per terminal; Electron uses `(webContentsId, terminalId)` to coalesce pending starts and reuse an existing running session. Disposal waits for an in-progress start so rapid close/switch operations cannot orphan a PTY.
 
@@ -103,8 +131,8 @@ Invalid saved directories fall back to the user home directory during launch nor
 | Area | Responsibility |
 |------|----------------|
 | `src/app/models/` | Shared renderer contracts |
-| `src/app/workspace/` | Workspace runtime, snapshots, stage component, host/layout behavior |
-| `src/app/terminal/` | xterm surfaces, PTY-session coordination, themes |
+| `src/app/workspace/` | Workspace runtime, snapshots, stacked focus/overview stage, layout service |
+| `src/app/terminal/` | xterm surfaces, PTY-session coordination, throttled buffer previews, themes |
 | `src/app/inspector/` | Inspector projections |
 | `src/app/utility-panel/` | Output, problems, search, command history |
 | `src/app/preferences/` | Machine-local UI preferences |

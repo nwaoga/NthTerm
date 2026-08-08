@@ -9,3 +9,17 @@ export interface WorkspaceLayoutState {
 }
 
 export const FOCUS_ZOOM_THRESHOLD = 0.5;
+
+/** Overview grid column count — keep in sync with terminal-overview layout. */
+export function getOverviewColumnCount(terminalCount: number): number {
+  if (terminalCount <= 1) {
+    return 1;
+  }
+  if (terminalCount <= 4) {
+    return 2;
+  }
+  if (terminalCount <= 6) {
+    return 3;
+  }
+  return 5;
+}
