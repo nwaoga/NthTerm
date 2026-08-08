@@ -72,13 +72,12 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 1. On GitHub Actions, run **Publish GitHub Release** (`workflow_dispatch`) with tag `v0.1.0-rc.2` and workflow run id `30753822270`.
 2. Confirm https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Windows + macOS files.
 
-**Then (Mac only): [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139)**
+**[#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) macOS smoke — automated on CI**
 
-1. Download macOS dmg/zip from the GitHub Release (fallback: CI artifacts or `npm run release:mac`).
-2. Open the unsigned app (Gatekeeper warning expected — right-click Open / allow exception).
-3. Smoke: launch, create/switch workspaces, start ≥2 terminals, toggle Focus/Overview (`Ctrl+\` / `Cmd+\`), confirm PTYs stay alive, quit cleanly.
-4. Note Application Support path persistence if reinstalling over an existing copy.
-5. Record results in ADO #139 + `ai/stories.md` / this plan; close #139 when green.
+1. `scripts/smoke-macos.sh` / `npm run smoke:mac` launches the unsigned packaged app on `macos-latest`.
+2. Clears quarantine (CI equivalent of Gatekeeper right-click Open), checks `~/Library/Application Support/NthTerm` + `nthterm.sqlite`, records PTY/shell children when observable, quits cleanly.
+3. CI uploads `release/macos-smoke-validation.json` with the macOS artifacts.
+4. Close ADO #139 when that job is green. Focus/Overview day-to-day UX remains covered by #140 specs.
 
 **Release target:** `0.1.0-rc.2` tagged (`v0.1.0-rc.2`); Windows `rc:verify` passed. Authenticode / Apple notarization deferred until certificates are available.
 

@@ -13,8 +13,8 @@
 - Prefer small incremental stories and commits.
 
 ## Current Prompt Focus
-- **Next (Mac):** #139 — smoke-test unsigned macOS dmg/zip from GitHub Release `v0.1.0-rc.2` (or CI artifacts / `npm run release:mac`). Gatekeeper warnings expected.
-- **Unblock downloads:** after merging release-publish CI, run workflow **Publish GitHub Release** with tag `v0.1.0-rc.2` and run id `30753822270` so landing-page links work.
+- **#139:** `npm run smoke:mac` runs on GitHub `macos-latest` after `release:mac` (quarantine clear = Gatekeeper stand-in). Close ADO when CI smoke JSON is green.
+- **Unblock downloads:** after merging, run workflow **Publish GitHub Release** with tag `v0.1.0-rc.2` and run id `30753822270` so landing-page links work.
 - #140 stacked polish is Closed (Escape, single-terminal chrome, Focus/Overview labels, overview arrows, throttled previews).
 - Landing page (#141) is live at `https://nwaoga.github.io/NthTerm/` from `site/` via GitHub Pages (static marketing page only — not the Angular app).
 - `v0.1.0-rc.2` is tagged; CI uploads unsigned Win/mac artifacts and (on `v*` tags) publishes a GitHub Release. Signing/notarization deferred.
