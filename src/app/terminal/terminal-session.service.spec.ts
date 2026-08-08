@@ -205,6 +205,33 @@ describe('TerminalSessionService', () => {
     expect(workspace.terminals[0].session?.sessionId).toBe('session-1');
   });
 
+  it('creates the PTY using the measured xterm dimensions', async () => {
+    const terminal = {
+      cols: 80,
+      rows: 24,
+      clear: () => undefined,
+      reset: () => undefined,
+    };
+    const state = {
+      terminalId: 'terminal-1',
+      terminal,
+      fitAddon: {
+        fit: () => {
+          terminal.cols = 108;
+          terminal.rows = 34;
+        },
+      },
+      info: null,
+      inputBuffer: '',
+    };
+
+    await (service as any).startTerminalSession(state, workspace.terminals[0]);
+
+    expect(terminalBridge.createSession).toHaveBeenCalledWith(
+      jasmine.objectContaining({ terminalId: 'terminal-1', cols: 108, rows: 34 })
+    );
+  });
+
   it('reattaches a terminal surface when focusing it again', async () => {
     const terminalOneHost = document.createElement('div');
     const terminalTwoHost = document.createElement('div');

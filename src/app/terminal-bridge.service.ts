@@ -32,6 +32,8 @@ interface TerminalApi {
     cwd?: string;
     workspaceName?: string;
     shell?: string;
+    cols?: number;
+    rows?: number;
   }): Promise<{ id: string }>;
   listWslDistros(): Promise<string[]>;
   writeTerminal(id: string, data: string): Promise<void>;
@@ -51,6 +53,8 @@ export class TerminalBridgeService {
     cwd?: string;
     workspaceName?: string;
     shell?: string;
+    cols?: number;
+    rows?: number;
   }): Promise<string> {
     const session = await this.getApi().createTerminal(options);
     return session.id;

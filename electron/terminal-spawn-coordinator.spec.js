@@ -7,6 +7,7 @@ const {
   DEFAULT_WINDOWS_SPAWN_DELAY_MS,
   isRetryableSpawnError,
 } = require('./terminal-spawn-coordinator');
+const { createWindowsSpawnOptions } = require('./terminal-spawn-coordinator');
 
 test('isRetryableSpawnError matches Windows PTY spawn failures', () => {
   assert.equal(isRetryableSpawnError(new Error('AttachConsole failed')), true);
@@ -115,4 +116,10 @@ test('spawnWithRetry retries retryable Windows spawn failures', async () => {
   const terminal = await coordinator.enqueueSpawn('bash', [], {});
   assert.equal(terminal.pid, 42);
   assert.equal(attempts, 2);
+});
+
+test('initial PTY dimensions are preserved in spawn options', () => {
+  const dimensions = { name: 'xterm-256color', cols: 108, rows: 34 };
+
+  assert.deepEqual(createWindowsSpawnOptions(dimensions), dimensions);
 });

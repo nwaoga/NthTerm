@@ -5,6 +5,7 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const angularJson = JSON.parse(fs.readFileSync(path.join(root, 'angular.json'), 'utf8'));
 
 const requiredAssets = [
   'build/icon.png',
@@ -47,6 +48,12 @@ test('electron-builder config wires Windows and macOS branding without signing s
   assert.equal(build.nsis.perMachine, false);
   assert.equal(build.nsis.oneClick, false);
   assert.equal(packageJson.scripts['release:mac'], 'npm run build && electron-builder --mac');
+});
+
+test('packaged renderer keeps its stylesheet as a normal file-protocol resource', () => {
+  const production = angularJson.projects.nthterm.architect.build.configurations.production;
+
+  assert.equal(production.optimization.styles.inlineCritical, false);
 });
 
 test('Windows installer validation script is present for Task 6 regression', () => {

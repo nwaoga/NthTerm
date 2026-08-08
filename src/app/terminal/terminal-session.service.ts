@@ -414,12 +414,17 @@ export class TerminalSessionService {
     }
     state.terminal.clear();
     state.terminal.reset();
+    state.fitAddon.fit();
+    const cols = Math.max(1, state.terminal.cols);
+    const rows = Math.max(1, state.terminal.rows);
 
     state.sessionId = await this.terminalBridge.createSession({
       terminalId: state.terminalId,
       cwd: targetDirectory,
       workspaceName: this.workspace.workspaceName,
       shell: runtimeTerminal.shell || '',
+      cols,
+      rows,
     });
     state.info = await this.terminalBridge.getSessionInfo(state.sessionId);
     this.workspace.updateTerminalStatus(state.terminalId, 'running');
