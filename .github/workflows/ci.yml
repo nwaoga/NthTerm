@@ -109,3 +109,46 @@ jobs:
             release/*.blockmap
           if-no-files-found: error
           retention-days: 14
+
+  publish-github-release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - windows-release
+      - macos-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nthterm-windows-unsigned
+          path: artifacts/windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nthterm-macos-unsigned
+          path: artifacts/macos
+
+      - name: Publish unsigned release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: NthTerm ${{ github.ref_name }}
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            Unsigned release candidate build.
+
+            - Windows: SmartScreen may warn (no Authenticode signature yet)
+            - macOS: Gatekeeper will warn (no Apple notarization yet)
+            - Install over an existing copy to preserve local workspace data
+          files: |
+            artifacts/windows/*
+            artifacts/macos/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

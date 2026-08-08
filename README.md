@@ -184,6 +184,9 @@ python scripts/generate-branding-assets.py
 
 - Local: `npm run package`, `npm run release:win`, or `npm run release:mac`
 - CI: GitHub Actions uploads `nthterm-windows-unsigned` and `nthterm-macos-unsigned` without certificate secrets
+- Version tags (`v*`): CI also publishes those artifacts to a GitHub Release (prerelease, unsigned)
+- Backfill: workflow **Publish GitHub Release** can attach artifacts from an existing Actions run to a tag
+- Public downloads: https://github.com/nwaoga/NthTerm/releases
 - Electron Builder is configured with `"publish": null`, Windows has no certificate fields, and macOS sets `"identity": null`
 - Windows SmartScreen / macOS Gatekeeper may warn on first launch of unsigned builds; that is expected until signing/notarization is enabled
 

@@ -74,4 +74,5 @@ test('RC verification contract keeps release metadata and validation entry point
 
   const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'ci.yml'), 'utf8');
   assert.match(workflow, /tags:\s*\r?\n\s*- 'v\*'/);
+  assert.match(workflow, /publish-github-release:/);
 });

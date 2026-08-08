@@ -2,10 +2,12 @@
 
 ## Backlog
 - [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac` _(pick up on Mac)_
-  - [ ] Pull latest `main`; use CI `v0.1.0-rc.2` macOS artifacts or `npm run release:mac`
+  - [ ] Prefer GitHub Release `v0.1.0-rc.2` macOS dmg/zip (after Publish GitHub Release backfill), else CI artifacts or `npm run release:mac`
   - [ ] Open unsigned app (Gatekeeper expected)
   - [ ] Smoke launch, multi-terminal Focus/Overview, PTY stay-alive, clean quit
   - [ ] Record results and close ADO #139
+- [ ] Publish GitHub Release for `v0.1.0-rc.2` via Actions workflow **Publish GitHub Release** (tag `v0.1.0-rc.2`, run id `30753822270`) so landing-page download links resolve
+  - [ ] Confirm https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Win + macOS assets
 
 ## Done
 - [x] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
