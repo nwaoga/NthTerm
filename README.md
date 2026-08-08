@@ -154,6 +154,12 @@ Create unsigned macOS dmg and zip artifacts (run on macOS):
 npm run release:mac
 ```
 
+Smoke-test the unsigned macOS app after packaging (run on macOS; clears quarantine as a Gatekeeper stand-in):
+
+```bash
+npm run smoke:mac
+```
+
 Run the full Windows release-candidate verification (build, tests, artifacts, install/reinstall, and persistence):
 
 ```bash

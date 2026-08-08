@@ -2,6 +2,7 @@
 
 - CI publishes unsigned Windows and macOS artifacts to a GitHub Release on version tags (`v*`).
 - Added a dispatchable **Publish GitHub Release** workflow to backfill a release from an existing Actions artifact run (for `v0.1.0-rc.2` and similar).
+- Added `npm run smoke:mac` and wired it into the macOS CI job for unsigned packaged-app smoke (#139).
 
 ## 0.1.0-rc.2 - 2026-08-02
 

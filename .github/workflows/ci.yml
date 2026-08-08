@@ -99,6 +99,11 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
+      - name: Smoke-test unsigned macOS app (#139)
+        # Clears quarantine (CI stand-in for Gatekeeper right-click Open), launches the
+        # packaged .app, checks Application Support persistence, and quits cleanly.
+        run: npm run smoke:mac
+
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -107,6 +112,7 @@ jobs:
             release/*.dmg
             release/*.zip
             release/*.blockmap
+            release/macos-smoke-validation.json
           if-no-files-found: error
           retention-days: 14
 
