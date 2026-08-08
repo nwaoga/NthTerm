@@ -13,7 +13,7 @@
 - Prefer small incremental stories and commits.
 
 ## Current Prompt Focus
-- **#139:** `npm run smoke:mac` runs on GitHub `macos-latest` after `release:mac` (quarantine clear = Gatekeeper stand-in). Close ADO when CI smoke JSON is green.
+- **#139:** Packaged macOS smoke is green on CI (`npm run smoke:mac` / run `31277571206`). Close the ADO work item in Azure DevOps when convenient.
 - **Unblock downloads:** after merging, run workflow **Publish GitHub Release** with tag `v0.1.0-rc.2` and run id `30753822270` so landing-page links work.
 - #140 stacked polish is Closed (Escape, single-terminal chrome, Focus/Overview labels, overview arrows, throttled previews).
 - Landing page (#141) is live at `https://nwaoga.github.io/NthTerm/` from `site/` via GitHub Pages (static marketing page only — not the Angular app).
@@ -25,10 +25,10 @@
 ## Handoff Summary
 - Product name: NthTerm
 - Themes: Midnight, Coffee, and White app chrome, with separate terminal color themes and ANSI palettes
-- Current milestone: `0.1.0-rc.2` tagged; Windows verify passed; #140/#141 Closed; **pick up #139 on Mac** after Release assets are public
+- Current milestone: `0.1.0-rc.2` tagged; Windows verify passed; #139/#140/#141 Closed in repo (close ADO #139 in Azure when convenient)
 - Public site: `https://nwaoga.github.io/NthTerm/` — GitHub Pages from `site/`; workflow `.github/workflows/pages.yml`
-- Backlog: publish Release assets for `v0.1.0-rc.2`, then #139 macOS smoke (signing deferred)
-- Mac smoke checklist: download Release dmg/zip → open unsigned app → multi-terminal Focus/Overview → PTYs alive → quit → close ADO #139
+- Backlog: publish Release assets for `v0.1.0-rc.2` (signing deferred)
+- Mac smoke evidence: `docs/verification/macos-smoke-v0.1.0-rc.2.json` from Actions run `31277571206`
 - Renderer: feature-oriented Angular shell with workspace-owned stable terminals, stacked focus/overview, compact inspector projections, and utility command history attributed by terminal ID
 - Electron: frameless window with Windows acrylic / macOS vibrancy chrome, queued Windows PTY lifecycle, stable-terminal start deduplication, platform-aware shells, and SQLite persistence
 - Upgrade policy for now: install newer build over existing install; AppData / Application Support preserved. `electron-updater` after code signing.

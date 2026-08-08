@@ -72,12 +72,12 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 1. On GitHub Actions, run **Publish GitHub Release** (`workflow_dispatch`) with tag `v0.1.0-rc.2` and workflow run id `30753822270`.
 2. Confirm https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Windows + macOS files.
 
-**[#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) macOS smoke — automated on CI**
+**[#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) macOS smoke — Done on CI (2026-08-08)**
 
 1. `scripts/smoke-macos.sh` / `npm run smoke:mac` launches the unsigned packaged app on `macos-latest`.
-2. Clears quarantine (CI equivalent of Gatekeeper right-click Open), checks `~/Library/Application Support/NthTerm` + `nthterm.sqlite`, records PTY/shell children when observable, quits cleanly.
-3. CI uploads `release/macos-smoke-validation.json` with the macOS artifacts.
-4. Close ADO #139 when that job is green. Focus/Overview day-to-day UX remains covered by #140 specs.
+2. Cleared quarantine (CI equivalent of Gatekeeper right-click Open), confirmed launch stayed alive, `nthterm.sqlite` + Application Support marker preserved, clean quit.
+3. Evidence: Actions run [31277571206](https://github.com/nwaoga/NthTerm/actions/runs/31277571206) and `docs/verification/macos-smoke-v0.1.0-rc.2.json`.
+4. Note: `shellOrPtyChildObserved` was false in headless CI (warning only). Focus/Overview day-to-day UX remains covered by #140 specs. Close the ADO work item in Azure DevOps when convenient.
 
 **Release target:** `0.1.0-rc.2` tagged (`v0.1.0-rc.2`); Windows `rc:verify` passed. Authenticode / Apple notarization deferred until certificates are available.
 
@@ -122,7 +122,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 1. ~~[#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138)~~ — Done. `0.1.0-rc.2` verified and tagged (`v0.1.0-rc.2`).
 2. Publish GitHub Release assets for `v0.1.0-rc.2` (dispatch **Publish GitHub Release**, run `30753822270`) so landing-page download links resolve.
-3. [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — **Next (Mac):** smoke-test unsigned macOS dmg/zip from that Release (`release:mac` / CI artifacts as fallback). Gatekeeper warnings expected.
+3. ~~[#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139)~~ — Done on CI (`smoke:mac` / run `31277571206`). Close ADO work item when convenient.
 4. ~~[#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140)~~ — Done. Stacked focus/overview day-to-day UX polish (Escape, single-terminal chrome, Focus/Overview labels, overview arrows, throttled previews).
 5. ~~[#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141)~~ — Done. Minimal RC landing page live at `https://nwaoga.github.io/NthTerm/` (GitHub Pages from `site/`).
 6. Keep Authenticode signing / Apple notarization deferred until certificates are available. Manual install-over upgrades until then. Add a later story for `electron-updater` after signing.

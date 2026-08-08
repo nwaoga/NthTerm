@@ -3,13 +3,14 @@
 ## Backlog
 - [ ] Publish GitHub Release for `v0.1.0-rc.2` via Actions workflow **Publish GitHub Release** (tag `v0.1.0-rc.2`, run id `30753822270`) so landing-page download links resolve
   - [ ] Confirm https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Win + macOS assets
-- [ ] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac` _(CI automation in progress)_
-  - [x] Add `scripts/smoke-macos.sh` + `npm run smoke:mac` (quarantine clear, launch, Application Support, quit)
-  - [x] Wire smoke into GitHub Actions `macos-release` job
-  - [ ] Confirm macOS CI smoke is green and attach `macos-smoke-validation.json`
-  - [ ] Record results and close ADO #139 (Focus/Overview keyboard UX already covered by #140 specs; packaged smoke covers launch/persistence/quit on `macos-latest`)
 
 ## Done
+- [x] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac`
+  - [x] Add `scripts/smoke-macos.sh` + `npm run smoke:mac` (quarantine clear, launch, Application Support, quit)
+  - [x] Wire smoke into GitHub Actions `macos-release` job
+  - [x] CI green on run [31277571206](https://github.com/nwaoga/NthTerm/actions/runs/31277571206): launch alive, `nthterm.sqlite` created, marker preserved, clean quit
+  - [x] Evidence: `docs/verification/macos-smoke-v0.1.0-rc.2.json` (shell/PTY child not observed in headless CI; Focus/Overview covered by #140 specs)
+  - [ ] Close ADO #139 in Azure DevOps (repo evidence complete)
 - [x] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
   - [x] Escape exits overview; hide stack chrome for single terminal
   - [x] Focus/Overview labels (was Zoom In/Out)
