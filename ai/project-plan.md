@@ -58,30 +58,34 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 **Last shipped:** [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) stacked focus/overview day-to-day UX polish.
 
-## Handover — 2026-08-08 (publish Release → Mac #139)
+## Handover — 2026-08-08 (merge PR → publish Release)
 
-- Closed [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) on Windows: Escape exits overview; hide stack chrome for a single terminal; Focus/Overview labels; overview arrow-key navigation; throttled ~4 Hz overview preview refresh; `ai/architecture.md` updated.
-- Verification: `npm run build` and `npm run test:ci` passed (38 Electron / 144 Angular).
-- Landing page (#141) remains live at `https://nwaoga.github.io/NthTerm/` but download CTAs pointed at a missing GitHub Release (artifacts were Actions-only).
-- CI now publishes GitHub Releases on `v*` tags; workflow **Publish GitHub Release** backfills from an existing artifact run.
+**Open PR:** https://github.com/nwaoga/NthTerm/pull/1 — `cursor/publish-rc-github-release-8c48` → `main`  
+**Milestone:** `0.1.0-rc.2` (`v0.1.0-rc.2` tagged). Windows `rc:verify` passed earlier; macOS packaged smoke green on CI.
+
+### Done this session
+- [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — unsigned macOS packaged-app smoke automated via `npm run smoke:mac` on GitHub `macos-latest` (quarantine clear = Gatekeeper stand-in). Evidence: [Actions run 31277571206](https://github.com/nwaoga/NthTerm/actions/runs/31277571206) + `docs/verification/macos-smoke-v0.1.0-rc.2.json`.
+- CI publishes GitHub Releases on `v*` tags; dispatchable **Publish GitHub Release** workflow backfills an existing tag from a prior artifact run.
+- Landing page (#141) live at `https://nwaoga.github.io/NthTerm/` (download CTAs still need the missing GitHub Release).
+- #140 stacked Focus/Overview polish already Closed earlier the same day.
+
+### Verification
+- Local: `npm run build` + `npm run test:ci` — **45** Electron / **144** Angular (accepted bundle-budget warning).
+- PR CI: macOS smoke step green on run `31277571206` (`firstLaunchAlive`, `sqliteObserved`, `markerPreserved`; `shellOrPtyChildObserved` false in headless CI — warning only).
+
+### Next (human / next agent)
+1. **Merge** https://github.com/nwaoga/NthTerm/pull/1
+2. **Publish Release assets:** Actions → **Publish GitHub Release** → tag `v0.1.0-rc.2`, workflow run id `30753822270`
+3. Confirm https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Windows + macOS files (landing-page downloads unblock)
+4. **Close ADO #139** in Azure DevOps (repo evidence complete)
+5. Keep signing / notarization / `electron-updater` deferred until certificates exist
+
+### Guardrails
 - Do **not** commit untracked `output/` (local chrome-capture junk).
-- Signing / notarization / `electron-updater` remain deferred.
+- Preserve compact inspector (Workspace | Terminal) and stacked focus/overview layout.
+- Keep new code in feature folders/services; do not grow god files.
 
-**Next after merge: publish `v0.1.0-rc.2` Release assets**
-
-1. On GitHub Actions, run **Publish GitHub Release** (`workflow_dispatch`) with tag `v0.1.0-rc.2` and workflow run id `30753822270`.
-2. Confirm https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Windows + macOS files.
-
-**[#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) macOS smoke — Done on CI (2026-08-08)**
-
-1. `scripts/smoke-macos.sh` / `npm run smoke:mac` launches the unsigned packaged app on `macos-latest`.
-2. Cleared quarantine (CI equivalent of Gatekeeper right-click Open), confirmed launch stayed alive, `nthterm.sqlite` + Application Support marker preserved, clean quit.
-3. Evidence: Actions run [31277571206](https://github.com/nwaoga/NthTerm/actions/runs/31277571206) and `docs/verification/macos-smoke-v0.1.0-rc.2.json`.
-4. Note: `shellOrPtyChildObserved` was false in headless CI (warning only). Focus/Overview day-to-day UX remains covered by #140 specs. Close the ADO work item in Azure DevOps when convenient.
-
-**Release target:** `0.1.0-rc.2` tagged (`v0.1.0-rc.2`); Windows `rc:verify` passed. Authenticode / Apple notarization deferred until certificates are available.
-
-**Reference design:** `repo/docs/target-ui-reference.png` (Phase 4 visual baseline).
+**Reference design:** `docs/target-ui-reference.png` (Phase 4 visual baseline).
 
 ---
 

@@ -1,8 +1,10 @@
 # NthTerm Stories
 
 ## Backlog
+- [ ] Merge PR https://github.com/nwaoga/NthTerm/pull/1 (`cursor/publish-rc-github-release-8c48`)
 - [ ] Publish GitHub Release for `v0.1.0-rc.2` via Actions workflow **Publish GitHub Release** (tag `v0.1.0-rc.2`, run id `30753822270`) so landing-page download links resolve
   - [ ] Confirm https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Win + macOS assets
+- [ ] Close ADO [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) in Azure DevOps (repo smoke evidence already green)
 
 ## Done
 - [x] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac`
@@ -10,7 +12,6 @@
   - [x] Wire smoke into GitHub Actions `macos-release` job
   - [x] CI green on run [31277571206](https://github.com/nwaoga/NthTerm/actions/runs/31277571206): launch alive, `nthterm.sqlite` created, marker preserved, clean quit
   - [x] Evidence: `docs/verification/macos-smoke-v0.1.0-rc.2.json` (shell/PTY child not observed in headless CI; Focus/Overview covered by #140 specs)
-  - [ ] Close ADO #139 in Azure DevOps (repo evidence complete)
 - [x] [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) Polish stacked focus/overview day-to-day usability
   - [x] Escape exits overview; hide stack chrome for single terminal
   - [x] Focus/Overview labels (was Zoom In/Out)
