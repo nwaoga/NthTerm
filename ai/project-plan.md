@@ -84,7 +84,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 **Reference design:** `docs/target-ui-reference.png` (Phase 4 visual baseline).
 
-**Landing shots (2026-08-09):** hero/showcase use `site/media/focus.png` and `site/media/overview.png` (Angular reference preview captures of stacked Focus/Overview).
+**Landing shots (2026-08-09):** hero/showcase use `site/media/focus.png` and `site/media/overview.png` (Studio Stack reference-preview captures of stacked Focus/Overview).
 
 ---
 
