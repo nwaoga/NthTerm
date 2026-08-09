@@ -38,15 +38,10 @@
       </nav>
     </header>
 
-    <main class="docs-main">
-      <header class="docs-hero">
-        <p class="docs-kicker">Docs</p>
-        <h1>How to use NthTerm</h1>
-        <p class="docs-lede">
-          Stack related terminals in one workspace — focus a live session, overview the whole set, and keep
-          metadata, dock tools, and shortcuts within reach.
-        </p>
-        <nav class="docs-toc" aria-label="On this page">
+    <main class="docs-shell">
+      <aside class="docs-sidenav" aria-label="Docs sections">
+        <p class="docs-sidenav-label">On this page</p>
+        <nav class="docs-sidenav-links">
           <a href="#install">Install</a>
           <a href="#workspace">Workspace</a>
           <a href="#terminals">Terminals</a>
@@ -56,201 +51,212 @@
           <a href="#shortcuts">Shortcuts</a>
           <a href="#unsigned">Unsigned RC</a>
         </nav>
-      </header>
+      </aside>
 
-      <section class="docs-section" id="install">
-        <h2>Install / download</h2>
-        <ol class="docs-steps">
-          <li>
-            Download the
-            <a href="https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2">v0.1.0-rc.2</a>
-            release candidate for your platform (Windows NSIS, or macOS dmg / zip).
-          </li>
-          <li>Run the installer or open the app from the archive.</li>
-          <li>
-            On first launch, expect an unsigned-app warning (SmartScreen on Windows, Gatekeeper on macOS). See
-            <a href="#unsigned">Unsigned RC</a>.
-          </li>
-          <li>Install over an existing copy when upgrading — workspace data in AppData stays put.</li>
-        </ol>
-      </section>
+      <div class="docs-content">
+        <header class="docs-hero">
+          <p class="docs-kicker">Docs</p>
+          <h1>How to use NthTerm</h1>
+          <p class="docs-lede">
+            Stack related terminals in one workspace — focus a live session, overview the whole set, and keep
+            metadata, dock tools, and shortcuts within reach.
+          </p>
+        </header>
 
-      <section class="docs-section" id="workspace">
-        <h2>Create a workspace</h2>
-        <p>
-          Workspaces group related terminals (for example a fictional <strong>Studio Stack</strong>: API, UI,
-          database, and compose).
-        </p>
-        <ol class="docs-steps">
-          <li>In the left rail, choose <strong>New Workspace</strong>.</li>
-          <li>Name it and set a working directory when prompted.</li>
-          <li>Switch workspaces from the rail anytime — each restores its own terminals and layout.</li>
-          <li>Rename or delete from the sessions sidebar when you are done with a workspace.</li>
-        </ol>
-        <p class="docs-note">
-          NthTerm restores the last active workspace on launch. Invalid saved directories fall back to your home
-          directory.
-        </p>
-      </section>
+        <section class="docs-section" id="install">
+          <h2>Install / download</h2>
+          <ol class="docs-steps">
+            <li>
+              Download the
+              <a href="https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2">v0.1.0-rc.2</a>
+              release candidate for your platform (Windows NSIS, or macOS dmg / zip).
+            </li>
+            <li>Run the installer or open the app from the archive.</li>
+            <li>
+              On first launch, expect an unsigned-app warning (SmartScreen on Windows, Gatekeeper on macOS). See
+              <a href="#unsigned">Unsigned RC</a>.
+            </li>
+            <li>Install over an existing copy when upgrading — workspace data in AppData stays put.</li>
+          </ol>
+        </section>
 
-      <section class="docs-section" id="terminals">
-        <h2>Add terminals</h2>
-        <p>
-          Each workspace holds up to <strong>10</strong> stacked terminals. Inactive sessions stay parked with
-          live PTYs so output keeps flowing while you focus elsewhere.
-        </p>
-        <ul class="docs-list">
-          <li><strong>Add Terminal</strong> in the toolbar — or <kbd>Ctrl+T</kbd> / <kbd>Ctrl+Shift+D</kbd>.</li>
-          <li>Pick a shell (app default, workspace profile, or an installed WSL distro on Windows).</li>
-          <li>Rename terminals so command history stays attributed after renames.</li>
-          <li>Close the focused terminal with <kbd>Ctrl+W</kbd> (live processes get a close warning).</li>
-        </ul>
-      </section>
+        <section class="docs-section" id="workspace">
+          <h2>Create a workspace</h2>
+          <p>
+            Workspaces group related terminals (for example a fictional <strong>Studio Stack</strong>: API, UI,
+            database, and compose).
+          </p>
+          <ol class="docs-steps">
+            <li>In the left rail, choose <strong>New Workspace</strong>.</li>
+            <li>Name it and set a working directory when prompted.</li>
+            <li>Switch workspaces from the rail anytime — each restores its own terminals and layout.</li>
+            <li>Rename or delete from the sessions sidebar when you are done with a workspace.</li>
+          </ol>
+          <p class="docs-note">
+            NthTerm restores the last active workspace on launch. Invalid saved directories fall back to your home
+            directory.
+          </p>
+        </section>
 
-      <section class="docs-section" id="focus-overview">
-        <h2>Focus vs Overview</h2>
-        <div class="docs-two-col">
-          <div class="docs-card">
-            <h3>Focus</h3>
-            <p>
-              One interactive terminal fills the stage. Use this when you need full input — for example debugging
-              an API while other stack members keep running behind you.
-            </p>
+        <section class="docs-section" id="terminals">
+          <h2>Add terminals</h2>
+          <p>
+            Each workspace holds up to <strong>10</strong> stacked terminals. Inactive sessions stay parked with
+            live PTYs so output keeps flowing while you focus elsewhere.
+          </p>
+          <ul class="docs-list">
+            <li><strong>Add Terminal</strong> in the toolbar — or <kbd>Ctrl+T</kbd> / <kbd>Ctrl+Shift+D</kbd>.</li>
+            <li>Pick a shell (app default, workspace profile, or an installed WSL distro on Windows).</li>
+            <li>Rename terminals so command history stays attributed after renames.</li>
+            <li>Close the focused terminal with <kbd>Ctrl+W</kbd> (live processes get a close warning).</li>
+          </ul>
+        </section>
+
+        <section class="docs-section" id="focus-overview">
+          <h2>Focus vs Overview</h2>
+          <div class="docs-two-col">
+            <div class="docs-card">
+              <h3>Focus</h3>
+              <p>
+                One interactive terminal fills the stage. Use this when you need full input — for example debugging
+                an API while other stack members keep running behind you.
+              </p>
+            </div>
+            <div class="docs-card">
+              <h3>Overview</h3>
+              <p>
+                Preview cards for the whole stack (up to 10). Arrow keys move between cards; <kbd>Enter</kbd>
+                focuses the selected terminal. Stack navigation chrome hides when a workspace has only one
+                terminal.
+              </p>
+            </div>
           </div>
-          <div class="docs-card">
-            <h3>Overview</h3>
-            <p>
-              Preview cards for the whole stack (up to 10). Arrow keys move between cards; <kbd>Enter</kbd>
-              focuses the selected terminal. Stack navigation chrome hides when a workspace has only one
-              terminal.
-            </p>
+          <ul class="docs-list">
+            <li>Toggle with the Focus / Overview control, or <kbd>Ctrl+\</kbd>.</li>
+            <li><kbd>Esc</kbd> leaves Overview and returns to Focus.</li>
+            <li>Cycle terminals: <kbd>Ctrl+Tab</kbd>, <kbd>Ctrl+[</kbd> / <kbd>Ctrl+]</kbd>, or jump with <kbd>Ctrl+1</kbd>–<kbd>9</kbd> / <kbd>Ctrl+0</kbd>.</li>
+          </ul>
+        </section>
+
+        <section class="docs-section" id="inspector">
+          <h2>Inspector</h2>
+          <p>
+            The right rail shows compact facts for the active workspace or the focused terminal — status, shell
+            profile, directory, and restart / stop / kill actions for the live session under focus.
+          </p>
+          <ul class="docs-list">
+            <li>Switch between <strong>Workspace</strong> and <strong>Terminal</strong> views in the inspector header.</li>
+            <li>Hide or show the rail from Appearance preferences; the preference persists locally.</li>
+            <li>In compact windows the inspector becomes an on-demand overlay so the terminal keeps width.</li>
+          </ul>
+        </section>
+
+        <section class="docs-section" id="dock">
+          <h2>Workspace dock</h2>
+          <p>
+            The bottom dock is a shared review surface: output, problems, search, command history, plus system
+            monitor and session environment when you need them.
+          </p>
+          <ul class="docs-list">
+            <li>Toggle the dock with <kbd>Ctrl+J</kbd> (visibility and height are remembered per workspace).</li>
+            <li>Visibility defaults on; turn the utility panels off in Appearance if you want a quieter shell.</li>
+            <li>Resize the dock; height stays capped relative to the viewport in compact layouts.</li>
+          </ul>
+        </section>
+
+        <section class="docs-section" id="shortcuts">
+          <h2>Keyboard shortcuts</h2>
+          <div class="docs-table-wrap">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th scope="col">Shortcut</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><kbd>Ctrl+Shift+P</kbd></td>
+                  <td>Command palette</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl+Shift+F</kbd></td>
+                  <td>Global workspace search</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl+T</kbd> / <kbd>Ctrl+Shift+D</kbd></td>
+                  <td>New / add terminal</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl+W</kbd></td>
+                  <td>Close focused terminal</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl+Tab</kbd> / <kbd>Ctrl+Shift+Tab</kbd></td>
+                  <td>Cycle terminals</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl+Alt+Left</kbd> / <kbd>Ctrl+Alt+Right</kbd></td>
+                  <td>Cycle terminals</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl+[</kbd> / <kbd>Ctrl+]</kbd></td>
+                  <td>Previous / next terminal</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl+1</kbd>–<kbd>9</kbd> / <kbd>Ctrl+0</kbd></td>
+                  <td>Jump to terminal 1–10</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl+\</kbd></td>
+                  <td>Toggle terminal overview</td>
+                </tr>
+                <tr>
+                  <td><kbd>Esc</kbd></td>
+                  <td>Leave overview → focus</td>
+                </tr>
+                <tr>
+                  <td>Arrow keys + <kbd>Enter</kbd></td>
+                  <td>Move among overview cards; focus selection</td>
+                </tr>
+                <tr>
+                  <td><kbd>Ctrl+J</kbd></td>
+                  <td>Toggle workspace dock</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-        <ul class="docs-list">
-          <li>Toggle with the Focus / Overview control, or <kbd>Ctrl+\</kbd>.</li>
-          <li><kbd>Esc</kbd> leaves Overview and returns to Focus.</li>
-          <li>Cycle terminals: <kbd>Ctrl+Tab</kbd>, <kbd>Ctrl+[</kbd> / <kbd>Ctrl+]</kbd>, or jump with <kbd>Ctrl+1</kbd>–<kbd>9</kbd> / <kbd>Ctrl+0</kbd>.</li>
-        </ul>
-      </section>
+          <p class="docs-note">
+            On macOS, use <kbd>Cmd</kbd> in place of <kbd>Ctrl</kbd> where the desktop shell maps accelerators to
+            the platform modifier.
+          </p>
+        </section>
 
-      <section class="docs-section" id="inspector">
-        <h2>Inspector</h2>
-        <p>
-          The right rail shows compact facts for the active workspace or the focused terminal — status, shell
-          profile, directory, and restart / stop / kill actions for the live session under focus.
-        </p>
-        <ul class="docs-list">
-          <li>Switch between <strong>Workspace</strong> and <strong>Terminal</strong> views in the inspector header.</li>
-          <li>Hide or show the rail from Appearance preferences; the preference persists locally.</li>
-          <li>In compact windows the inspector becomes an on-demand overlay so the terminal keeps width.</li>
-        </ul>
-      </section>
-
-      <section class="docs-section" id="dock">
-        <h2>Workspace dock</h2>
-        <p>
-          The bottom dock is a shared review surface: output, problems, search, command history, plus system
-          monitor and session environment when you need them.
-        </p>
-        <ul class="docs-list">
-          <li>Toggle the dock with <kbd>Ctrl+J</kbd> (visibility and height are remembered per workspace).</li>
-          <li>Visibility defaults on; turn the utility panels off in Appearance if you want a quieter shell.</li>
-          <li>Resize the dock; height stays capped relative to the viewport in compact layouts.</li>
-        </ul>
-      </section>
-
-      <section class="docs-section" id="shortcuts">
-        <h2>Keyboard shortcuts</h2>
-        <div class="docs-table-wrap">
-          <table class="docs-table">
-            <thead>
-              <tr>
-                <th scope="col">Shortcut</th>
-                <th scope="col">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><kbd>Ctrl+Shift+P</kbd></td>
-                <td>Command palette</td>
-              </tr>
-              <tr>
-                <td><kbd>Ctrl+Shift+F</kbd></td>
-                <td>Global workspace search</td>
-              </tr>
-              <tr>
-                <td><kbd>Ctrl+T</kbd> / <kbd>Ctrl+Shift+D</kbd></td>
-                <td>New / add terminal</td>
-              </tr>
-              <tr>
-                <td><kbd>Ctrl+W</kbd></td>
-                <td>Close focused terminal</td>
-              </tr>
-              <tr>
-                <td><kbd>Ctrl+Tab</kbd> / <kbd>Ctrl+Shift+Tab</kbd></td>
-                <td>Cycle terminals</td>
-              </tr>
-              <tr>
-                <td><kbd>Ctrl+Alt+Left</kbd> / <kbd>Ctrl+Alt+Right</kbd></td>
-                <td>Cycle terminals</td>
-              </tr>
-              <tr>
-                <td><kbd>Ctrl+[</kbd> / <kbd>Ctrl+]</kbd></td>
-                <td>Previous / next terminal</td>
-              </tr>
-              <tr>
-                <td><kbd>Ctrl+1</kbd>–<kbd>9</kbd> / <kbd>Ctrl+0</kbd></td>
-                <td>Jump to terminal 1–10</td>
-              </tr>
-              <tr>
-                <td><kbd>Ctrl+\</kbd></td>
-                <td>Toggle terminal overview</td>
-              </tr>
-              <tr>
-                <td><kbd>Esc</kbd></td>
-                <td>Leave overview → focus</td>
-              </tr>
-              <tr>
-                <td>Arrow keys + <kbd>Enter</kbd></td>
-                <td>Move among overview cards; focus selection</td>
-              </tr>
-              <tr>
-                <td><kbd>Ctrl+J</kbd></td>
-                <td>Toggle workspace dock</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="docs-note">
-          On macOS, use <kbd>Cmd</kbd> in place of <kbd>Ctrl</kbd> where the desktop shell maps accelerators to
-          the platform modifier.
-        </p>
-      </section>
-
-      <section class="docs-section" id="unsigned">
-        <h2>Unsigned RC note</h2>
-        <p>
-          <strong>0.1.0-rc.2</strong> is intentionally unsigned. Windows SmartScreen and macOS Gatekeeper may
-          warn on first launch until Authenticode signing and Apple notarization are enabled.
-        </p>
-        <ul class="docs-list">
-          <li>
-            <strong>Windows:</strong> Choose “More info” → “Run anyway” when SmartScreen blocks the installer or
-            app.
-          </li>
-          <li>
-            <strong>macOS:</strong> Open from Finder and confirm, or clear quarantine for a local smoke path as
-            documented in the repo README (<code>npm run smoke:mac</code>).
-          </li>
-          <li>This is expected for the public RC — not a corrupted download.</li>
-        </ul>
-        <p class="docs-cta-line">
-          <a class="btn btn-primary" href="https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2"
-            >Download RC</a
-          >
-          <a class="btn btn-ghost" href="./index.html">← Back to home</a>
-        </p>
-      </section>
+        <section class="docs-section" id="unsigned">
+          <h2>Unsigned RC note</h2>
+          <p>
+            <strong>0.1.0-rc.2</strong> is intentionally unsigned. Windows SmartScreen and macOS Gatekeeper may
+            warn on first launch until Authenticode signing and Apple notarization are enabled.
+          </p>
+          <ul class="docs-list">
+            <li>
+              <strong>Windows:</strong> Choose “More info” → “Run anyway” when SmartScreen blocks the installer or
+              app.
+            </li>
+            <li>
+              <strong>macOS:</strong> Open from Finder and confirm, or clear quarantine for a local smoke path as
+              documented in the repo README (<code>npm run smoke:mac</code>).
+            </li>
+            <li>This is expected for the public RC — not a corrupted download.</li>
+          </ul>
+          <p class="docs-cta-line">
+            <a class="btn btn-primary" href="https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2"
+              >Download RC</a
+            >
+            <a class="btn btn-ghost" href="./index.html">← Back to home</a>
+          </p>
+        </section>
+      </div>
     </main>
 
     <footer class="footer">

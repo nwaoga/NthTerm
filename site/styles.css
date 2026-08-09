@@ -1165,15 +1165,70 @@ a {
 }
 
 /* —— Docs page —— */
-.docs-main {
-  max-width: 760px;
+.docs-shell {
+  --docs-sidenav: 200px;
+  display: grid;
+  grid-template-columns: var(--docs-sidenav) minmax(0, 760px);
+  gap: 40px;
+  justify-content: center;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 48px 24px 72px;
+  align-items: start;
+}
+
+.docs-sidenav {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  padding: 4px 0 0;
+  animation: rise 700ms var(--ease) both;
+}
+
+.docs-sidenav-label {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.docs-sidenav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.docs-sidenav-links a {
+  display: block;
+  padding: 7px 0 7px 14px;
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+
+.docs-sidenav-links a:hover {
+  color: var(--text);
+}
+
+.docs-sidenav-links a:focus-visible {
+  color: var(--text);
+  border-left-color: rgba(189, 111, 255, 0.75);
+  outline: none;
+}
+
+.docs-content {
+  min-width: 0;
 }
 
 .docs-hero {
-  margin-bottom: 48px;
-  animation: rise 700ms var(--ease) both;
+  margin-bottom: 36px;
+  animation: rise 700ms 40ms var(--ease) both;
 }
 
 .docs-kicker {
@@ -1199,21 +1254,6 @@ a {
   color: #c5d0e2;
   font-size: 1.1rem;
   line-height: 1.5;
-}
-
-.docs-toc {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-.docs-toc a:hover {
-  color: var(--text);
 }
 
 .topnav a[aria-current="page"] {
@@ -1395,6 +1435,53 @@ kbd {
 @media (max-width: 900px) {
   .topnav a:not(.topnav-cta) {
     display: none;
+  }
+
+  .docs-shell {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 32px;
+  }
+
+  .docs-sidenav {
+    position: sticky;
+    top: 64px;
+    z-index: 5;
+    margin: 0 -24px;
+    padding: 10px 24px 12px;
+    background: linear-gradient(180deg, rgba(7, 10, 18, 0.96), rgba(7, 10, 18, 0.88));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
+  }
+
+  .docs-sidenav-label {
+    display: none;
+  }
+
+  .docs-sidenav-links {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+    border-left: 0;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+  }
+
+  .docs-sidenav-links a {
+    flex: 0 0 auto;
+    margin-left: 0;
+    padding: 6px 12px;
+    border-left: 0;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(16, 22, 37, 0.55);
+    white-space: nowrap;
+    font-size: 0.82rem;
+  }
+
+  .docs-sidenav-links a:focus-visible {
+    border-color: rgba(189, 111, 255, 0.55);
   }
 
   .docs-two-col {
