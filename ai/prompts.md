@@ -14,7 +14,7 @@
 
 ## Current Prompt Focus
 - **Milestone complete:** `0.1.0-rc.2` is tagged, verified, and published. Landing-page download links resolve.
-- Landing page uses real Focus/Overview product shots from `site/media/` (Angular reference preview captures); feature triad still uses CSS mini-mocks.
+- Landing page uses real Focus/Overview product shots from `site/media/` (Angular reference preview — Studio Stack demo); feature triad still uses CSS mini-mocks.
 - #138/#139/#140/#141 Closed (ADO + repo). PR #1 and cloud setup PR #2 merged to `main`.
 - Public RC page: `https://nwaoga.github.io/NthTerm/` (`site/` via GitHub Pages — static marketing only, not the Angular app).
 - Release: https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 (unsigned Win + macOS assets).

@@ -23,9 +23,9 @@ describe('WorkspaceAreaComponent', () => {
   };
 
   const workspaceService = {
-    selectedWorkspace: 'Cloud POS',
+    selectedWorkspace: 'Studio Stack',
     selectedWorkspaceId: 'workspace-1',
-    workspaceName: 'Cloud POS',
+    workspaceName: 'Studio Stack',
     terminals: [runtimeTerminal],
     layoutMode: 'grid-2',
     paneResizeMode: null,
@@ -88,7 +88,7 @@ describe('WorkspaceAreaComponent', () => {
       { value: 'cmd', label: 'Command Prompt' },
       { value: 'wsl:Ubuntu', label: 'WSL: Ubuntu' },
     ],
-    getCommandHistorySource: () => 'Cloud POS • API Server',
+    getCommandHistorySource: () => 'Studio Stack • API Server',
   };
 
   const terminalService = {
@@ -144,7 +144,7 @@ describe('WorkspaceAreaComponent', () => {
             { label: 'Recovery', value: 'Live session' },
           ]
         : [
-            { label: 'Workspace', value: 'Cloud POS' },
+            { label: 'Workspace', value: 'Studio Stack' },
             { label: 'Directory', value: 'C:/repo' },
             { label: 'Shell Profile', value: 'PowerShell' },
             { label: 'Terminals', value: '1' },

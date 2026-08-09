@@ -31,11 +31,11 @@ describe('ReferenceReviewContentService', () => {
     system = TestBed.inject(SystemMonitorService);
   });
 
-  it('seeds the full Cloud POS review state for preview mode', () => {
+  it('seeds the full Studio Stack review state for preview mode', () => {
     service.applyFullPreviewState(workspace, utility, system, terminal);
 
     expect(workspace.previewMode).toBeTrue();
-    expect(workspace.workspaceName).toBe('Cloud POS');
+    expect(workspace.workspaceName).toBe('Studio Stack');
     expect(workspace.terminals.length).toBe(4);
     expect(workspace.sessionHistory.length).toBe(2);
     expect(workspace.recoverySnapshot.lastStopReason).toBe('Clean restore');

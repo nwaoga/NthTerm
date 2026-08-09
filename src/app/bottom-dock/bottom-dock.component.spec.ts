@@ -93,7 +93,7 @@ describe('BottomDockComponent', () => {
             getSearchResultGroups: () => [
               {
                 label: 'Workspaces',
-                items: [{ id: 'ws-1', title: 'Cloud POS', detail: 'Workspace match' }],
+                items: [{ id: 'ws-1', title: 'Studio Stack', detail: 'Workspace match' }],
               },
             ],
             executeSearchResult: async () => undefined,
@@ -159,7 +159,7 @@ describe('BottomDockComponent', () => {
 
     expect(text).toContain('Workspace Search');
     expect(text).toContain('1 matches for "cloud"');
-    expect(text).toContain('Cloud POS');
+    expect(text).toContain('Studio Stack');
   });
 
   it('renders command history entries on the command history panel', () => {

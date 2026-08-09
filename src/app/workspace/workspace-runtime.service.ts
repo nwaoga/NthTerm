@@ -757,7 +757,7 @@ export class WorkspaceRuntimeService {
           return 'main • 7192';
         case 'npm start':
           return 'main • 4200';
-        case 'docker exec -it cloudpos-db psql -U postgres':
+        case 'docker exec -it studio-db psql -U postgres':
           return 'local • 5432';
         case 'docker compose ps':
           return 'up • 4 containers';
@@ -801,7 +801,7 @@ export class WorkspaceRuntimeService {
     switch (terminal.id) {
       case 'terminal-1':
         return [
-          'PS C:\\Projects\\CloudPOS\\Api> dotnet run',
+          'PS C:\\Projects\\StudioStack\\Api> dotnet run',
           'info: Microsoft.Hosting.Lifetime[14]',
           '      Now listening on: https://localhost:7192',
           'info: Microsoft.Hosting.Lifetime[0]',
@@ -809,21 +809,21 @@ export class WorkspaceRuntimeService {
         ].join('\n');
       case 'terminal-2':
         return [
-          'PS C:\\Projects\\CloudPOS\\Angular> npm start',
+          'PS C:\\Projects\\StudioStack\\Angular> npm start',
           '> ng serve',
           '** Angular Live Development Server is listening on localhost:4200 **',
         ].join('\n');
       case 'terminal-3':
         return [
-          'PS C:\\> docker exec -it cloudpos-db psql -U postgres',
+          'PS C:\\> docker exec -it studio-db psql -U postgres',
           'postgres=# \\dt',
           '(4 rows)',
         ].join('\n');
       case 'terminal-4':
         return [
-          'PS C:\\Projects\\CloudPOS> docker compose ps',
-          'api       cloudpos-api       Up 4 mins   0.0.0.0:5192->5192',
-          'angular   cloudpos-angular   Up 4 mins   0.0.0.0:4200->4200',
+          'PS C:\\Projects\\StudioStack> docker compose ps',
+          'api       studio-api       Up 4 mins   0.0.0.0:5192->5192',
+          'angular   studio-angular   Up 4 mins   0.0.0.0:4200->4200',
         ].join('\n');
       default:
         return `PS ${terminal.cwd}>`;
@@ -838,37 +838,37 @@ export class WorkspaceRuntimeService {
     this.previewMode = true;
     this.status = 'Reference preview mode';
     this.workspaces = [
-      { id: 'ws-cloud-pos', name: 'Cloud POS', icon: 'cloud', accent: 'violet' },
+      { id: 'ws-studio-stack', name: 'Studio Stack', icon: 'cloud', accent: 'violet' },
       { id: 'ws-moment-trace', name: 'MomentTrace', icon: 'spark', accent: 'slate' },
       { id: 'ws-gcse-tutor', name: 'GCSE Tutor', icon: 'cap', accent: 'slate' },
       { id: 'ws-infrastructure', name: 'Infrastructure', icon: 'server', accent: 'slate' },
       { id: 'ws-personal', name: 'Personal', icon: 'person', accent: 'slate' },
     ];
-    this.selectedWorkspaceId = 'ws-cloud-pos';
+    this.selectedWorkspaceId = 'ws-studio-stack';
 
     const previewTerminals = [
       {
         id: 'terminal-1',
         name: 'API',
-        cwd: 'C:\\Projects\\CloudPOS\\Api',
+        cwd: 'C:\\Projects\\StudioStack\\Api',
         startupCommand: 'dotnet run',
       },
       {
         id: 'terminal-2',
         name: 'Angular',
-        cwd: 'C:\\Projects\\CloudPOS\\Angular',
+        cwd: 'C:\\Projects\\StudioStack\\Angular',
         startupCommand: 'npm start',
       },
       {
         id: 'terminal-3',
         name: 'Database',
         cwd: 'C:\\',
-        startupCommand: 'docker exec -it cloudpos-db psql -U postgres',
+        startupCommand: 'docker exec -it studio-db psql -U postgres',
       },
       {
         id: 'terminal-4',
         name: 'Docker',
-        cwd: 'C:\\Projects\\CloudPOS',
+        cwd: 'C:\\Projects\\StudioStack',
         startupCommand: 'docker compose ps',
       },
     ].map((item) => ({
@@ -882,9 +882,9 @@ export class WorkspaceRuntimeService {
     }));
 
     const workspace: SavedWorkspace = {
-      id: 'ws-cloud-pos',
-      name: 'Cloud POS',
-      cwd: 'C:\\Projects\\CloudPOS\\Api',
+      id: 'ws-studio-stack',
+      name: 'Studio Stack',
+      cwd: 'C:\\Projects\\StudioStack\\Api',
       shell: 'powershell',
       templateId: 'full-stack',
       icon: 'cloud',

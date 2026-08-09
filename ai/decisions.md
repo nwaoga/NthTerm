@@ -69,13 +69,13 @@
 - Pane layout snapshot entries now carry lightweight per-pane session metadata so workspace persistence records PID/status/timestamps per pane without introducing a separate session table yet.
 
 ## 2026-07-02
-- `#115` reference review content now lives in `ReferenceReviewContentService`, centralizing the Cloud POS sessions, dock logs, problems, telemetry, session history, recovery metadata, environment variables, and live-session preview context used for screenshot-ready reviews.
+- `#115` reference review content now lives in `ReferenceReviewContentService`, centralizing the Studio Stack sessions, dock logs, problems, telemetry, session history, recovery metadata, environment variables, and live-session preview context used for screenshot-ready reviews.
 - Preview and supplemental Electron seed paths both reuse the same reference content service so browser and desktop demos stay aligned.
 - `#114` bottom dock alignment now keeps the Output tab split between application logs and a persistent system monitor, with conic-gradient ring gauges, memory totals, and download/upload network formatting aligned to the reference.
 - Preview output lines omit timestamp prefixes so the dock reads like the reference service log stream during design reviews.
 - `#114` follow-up polish adds a dedicated workspace-dock header and denser panel summaries so the bottom band reads like a composed review surface instead of a plain tabbed utility tray.
 - Output, problems, search, and command-history entries now share a more consistent card language, while the system monitor keeps the same telemetry data but presents it with stronger reference-like emphasis.
-- `#111` center workspace composition now uses a staged workspace surface with tab strip metadata, tone-aware terminal cards, running-state pills, pane meta lines, and preview-mode terminal content aligned to the reference Cloud POS layout.
+- `#111` center workspace composition now uses a staged workspace surface with tab strip metadata, tone-aware terminal cards, running-state pills, pane meta lines, and preview-mode terminal content aligned to the reference Studio Stack layout.
 - Pane status/meta presentation moved into `WorkspaceRuntimeService` so the center grid stays data-driven instead of hard-coding per-tab strings in the template.
 - Terminal input is sanitized in the renderer before forwarding to the PTY so focus-reporting and bracketed-paste control sequences do not pollute command history or swallow typed commands.
 - Preview seeding and live workspace startup now follow separate paths so a real restored workspace does not remain stuck in preview mode after launch.

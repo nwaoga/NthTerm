@@ -17,8 +17,8 @@ describe('ShellToolbarComponent', () => {
         {
           provide: WorkspaceRuntimeService,
           useValue: {
-            selectedWorkspace: 'Cloud POS',
-            workspaceName: 'Cloud POS',
+            selectedWorkspace: 'Studio Stack',
+            workspaceName: 'Studio Stack',
             layoutMode: 'grid-2x2',
             terminals: activeTerminals,
             getActiveTabTerminals: () => activeTerminals,
@@ -123,7 +123,7 @@ describe('ShellToolbarComponent', () => {
 
     expect(summary).toContain('1/10 terminal');
     expect(context).toContain('Workspace');
-    expect(context).toContain('Cloud POS');
+    expect(context).toContain('Studio Stack');
     expect(context).toContain('1/10 terminal');
     expect(context).not.toContain('Tab');
   });

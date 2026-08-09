@@ -7,7 +7,7 @@ import { LeftRailComponent } from './left-rail.component';
 describe('LeftRailComponent', () => {
   const workspaceService = {
     workspaces: [
-      { id: 'ws-1', name: 'Cloud POS', icon: 'cloud', accent: 'violet' },
+      { id: 'ws-1', name: 'Studio Stack', icon: 'cloud', accent: 'violet' },
       { id: 'ws-2', name: 'MomentTrace', icon: 'spark', accent: 'blue' },
     ],
     editingWorkspaceId: null,

@@ -9,7 +9,7 @@ describe('InspectorPresenterService', () => {
   const workspaceService = {
     previewMode: false,
     workingDirectory: 'C:/repo',
-    workspaceName: 'Cloud POS',
+    workspaceName: 'Studio Stack',
     activeWorkspace: { templateId: 'api' },
     layoutMode: 'grid-2',
     focusedPaneId: 'pane-1',
@@ -77,7 +77,7 @@ describe('InspectorPresenterService', () => {
     const items = service.getInspectorItems();
     const summary = service.getInspectorSummaryItems();
 
-    expect(items[0]).toEqual({ label: 'Workspace', value: 'Cloud POS' });
+    expect(items[0]).toEqual({ label: 'Workspace', value: 'Studio Stack' });
     expect(items.find((item) => item.label === 'Terminals')?.value).toBe('1');
     expect(items.find((item) => item.label === 'Last Saved')?.value).toBe(
       'ts:2026-07-01T08:15:00.000Z'
@@ -93,7 +93,7 @@ describe('InspectorPresenterService', () => {
     const items = service.getInspectorItems();
     const summary = service.getInspectorSummaryItems();
 
-    expect(items[0]).toEqual({ label: 'Workspace', value: 'Cloud POS' });
+    expect(items[0]).toEqual({ label: 'Workspace', value: 'Studio Stack' });
     expect(items.find((item) => item.label === 'Shell Profile')?.value).toBe('PowerShell');
     expect(items.find((item) => item.label === 'Last Saved')?.value).toBe(
       'ts:2026-07-01T08:15:00.000Z'

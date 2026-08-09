@@ -17,7 +17,7 @@ describe('CommandPaletteService', () => {
     workspace = TestBed.inject(WorkspaceRuntimeService);
     utility = TestBed.inject(UtilityPanelService);
 
-    workspace.workspaces = [{ id: 'ws-1', name: 'Cloud POS', icon: 'cloud', accent: 'violet' }];
+    workspace.workspaces = [{ id: 'ws-1', name: 'Studio Stack', icon: 'cloud', accent: 'violet' }];
     workspace.terminals = [
       {
         id: 'terminal-1',
@@ -47,7 +47,7 @@ describe('CommandPaletteService', () => {
   });
 
   it('builds search result groups for workspaces, terminals, and commands', () => {
-    utility.searchQuery = 'cloud';
+    utility.searchQuery = 'studio';
     const groups = service.getSearchResultGroups();
     expect(groups.some((group) => group.label === 'Workspaces')).toBeTrue();
 
