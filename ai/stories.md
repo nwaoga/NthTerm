@@ -1,13 +1,15 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Merge PR https://github.com/nwaoga/NthTerm/pull/1 (`cursor/publish-rc-github-release-8c48`)
-- [ ] Publish GitHub Release for `v0.1.0-rc.2` via Actions workflow **Publish GitHub Release** (tag `v0.1.0-rc.2`, run id `30753822270`) so landing-page download links resolve
-  - [ ] Confirm https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Win + macOS assets
-- [ ] Close ADO [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) in Azure DevOps (repo smoke evidence already green)
+- [ ] Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist
 
 ## Done
-- [x] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac`
+- [x] Landing page real Focus/Overview screenshots (2026-08-09)
+  - [x] Capture Cloud POS stacked Focus + Overview from Angular reference preview (`site/media/focus.png`, `site/media/overview.png`)
+  - [x] Replace hero and showcase CSS mocks in `site/index.html` with product shots; feature triad mini-mocks kept
+- [x] Publish GitHub Release for `v0.1.0-rc.2` (PR #1 merged; **Publish GitHub Release** run [31278290064](https://github.com/nwaoga/NthTerm/actions/runs/31278290064) from artifact run `30753822270`)
+  - [x] https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Win + macOS assets; landing-page download CTAs resolve
+- [x] [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Smoke-test unsigned macOS dmg/zip from `release:mac` (ADO Closed 2026-08-09)
   - [x] Add `scripts/smoke-macos.sh` + `npm run smoke:mac` (quarantine clear, launch, Application Support, quit)
   - [x] Wire smoke into GitHub Actions `macos-release` job
   - [x] CI green on run [31277571206](https://github.com/nwaoga/NthTerm/actions/runs/31277571206): launch alive, `nthterm.sqlite` created, marker preserved, clean quit

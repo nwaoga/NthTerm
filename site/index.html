@@ -56,80 +56,14 @@
 
         <div class="hero-stage" aria-label="NthTerm product preview">
           <div class="hero-glow" aria-hidden="true"></div>
-          <div class="app-shell-mock" role="img" aria-label="NthTerm focus mode with stacked terminals">
-            <div class="mock-toolbar-leading">
-              <div class="mock-badge">N</div>
-              <div class="mock-brand-copy">
-                <span class="mock-brand-label">Workspace Shell</span>
-                <strong class="mock-brand-title">NthTerm</strong>
-              </div>
-            </div>
-
-            <div class="mock-toolbar-main">
-              <div class="mock-workspace-chip">
-                <span class="mock-chip-part">
-                  <span class="mock-chip-label">Workspace</span>
-                  <strong>Backend</strong>
-                </span>
-                <span class="mock-chip-badge">4 terminals</span>
-              </div>
-              <span class="mock-pill">Add Terminal</span>
-            </div>
-
-            <aside class="mock-rail">
-              <div class="mock-rail-head">
-                <p class="mock-rail-title">Workspaces</p>
-                <span class="mock-create">+ New Workspace</span>
-              </div>
-              <div class="mock-session">
-                <span class="mock-session-icon spark"></span>
-                <span>Frontend</span>
-              </div>
-              <div class="mock-session active">
-                <span class="mock-session-icon server"></span>
-                <span>Backend</span>
-              </div>
-              <div class="mock-session">
-                <span class="mock-session-icon cloud"></span>
-                <span>Docker</span>
-              </div>
-            </aside>
-
-            <section class="mock-main">
-              <header class="mock-stack-header">
-                <div class="mock-stack-copy">
-                  <p class="mock-rail-title">Backend</p>
-                  <strong>api · go run</strong>
-                </div>
-                <div class="mock-dots" aria-hidden="true">
-                  <span></span><span class="on"></span><span></span><span></span>
-                </div>
-                <div class="mock-zoom">
-                  <div class="mock-zoom-segment">
-                    <span class="active">In</span>
-                    <span>Out</span>
-                  </div>
-                </div>
-              </header>
-
-              <div class="mock-focus">
-                <div class="mock-stack-layer layer-2"></div>
-                <div class="mock-stack-layer layer-1"></div>
-                <article class="mock-focus-card">
-                  <div class="mock-focus-card-header">
-                    <strong>api · go run</strong>
-                    <span class="mock-running">Running</span>
-                  </div>
-                  <div class="mock-terminal">
-                    <pre><code><span class="prompt">~/repos/api$</span> go run ./cmd/server
-<span class="dim">INFO  listening on :8080</span>
-<span class="ok">ready · health check ok</span>
-<span class="prompt">~/repos/api$</span> <span class="cursor">▋</span></code></pre>
-                  </div>
-                </article>
-              </div>
-            </section>
-          </div>
+          <figure class="product-shot">
+            <img
+              src="./media/focus.png"
+              width="1440"
+              height="920"
+              alt="NthTerm focus mode with a stacked terminal workspace"
+            />
+          </figure>
         </div>
       </section>
 
@@ -143,121 +77,14 @@
           </p>
         </div>
 
-        <div class="app-shell-mock overview-shell" role="img" aria-label="NthTerm overview with four terminals">
-          <div class="mock-toolbar-leading">
-            <div class="mock-badge">N</div>
-            <div class="mock-brand-copy">
-              <span class="mock-brand-label">Workspace Shell</span>
-              <strong class="mock-brand-title">NthTerm</strong>
-            </div>
-          </div>
-
-          <div class="mock-toolbar-main">
-            <div class="mock-workspace-chip">
-              <span class="mock-chip-part">
-                <span class="mock-chip-label">Workspace</span>
-                <strong>Frontend</strong>
-              </span>
-              <span class="mock-chip-badge">4 terminals</span>
-            </div>
-            <span class="mock-pill">Add Terminal</span>
-          </div>
-
-          <aside class="mock-rail">
-            <div class="mock-rail-head">
-              <p class="mock-rail-title">Workspaces</p>
-              <span class="mock-create">+ New Workspace</span>
-            </div>
-            <div class="mock-session active">
-              <span class="mock-session-icon spark"></span>
-              <span>Frontend</span>
-            </div>
-            <div class="mock-session">
-              <span class="mock-session-icon server"></span>
-              <span>Backend</span>
-            </div>
-            <div class="mock-session">
-              <span class="mock-session-icon cloud"></span>
-              <span>Docker</span>
-            </div>
-          </aside>
-
-          <section class="mock-main">
-            <header class="mock-stack-header">
-              <div class="mock-stack-copy">
-                <p class="mock-rail-title">Frontend</p>
-                <strong>Overview · 4 terminals</strong>
-              </div>
-              <div class="mock-dots" aria-hidden="true">
-                <span class="on"></span><span></span><span></span><span></span>
-              </div>
-              <div class="mock-zoom">
-                <div class="mock-zoom-segment">
-                  <span>In</span>
-                  <span class="active">Out</span>
-                </div>
-              </div>
-            </header>
-
-            <div class="mock-overview-grid">
-              <article class="mock-preview-card active">
-                <header class="mock-preview-head">
-                  <span class="mock-preview-num">1</span>
-                  <div class="mock-preview-meta">
-                    <strong>web · vite</strong>
-                    <span>pnpm dev · localhost:5173</span>
-                  </div>
-                  <span class="mock-running">Running</span>
-                </header>
-                <pre class="mock-preview-buffer"><code><span class="prompt">~/web$</span> pnpm dev
-<span class="ok">VITE v6 ready in 312 ms</span>
-<span class="dim">➜  Local:   http://localhost:5173/</span></code></pre>
-              </article>
-
-              <article class="mock-preview-card">
-                <header class="mock-preview-head">
-                  <span class="mock-preview-num">2</span>
-                  <div class="mock-preview-meta">
-                    <strong>api · go run</strong>
-                    <span>listening · :8080</span>
-                  </div>
-                  <span class="mock-running">Running</span>
-                </header>
-                <pre class="mock-preview-buffer"><code><span class="prompt">~/api$</span> go run ./cmd/server
-<span class="dim">INFO  listening on :8080</span>
-<span class="ok">ready · health check ok</span></code></pre>
-              </article>
-
-              <article class="mock-preview-card">
-                <header class="mock-preview-head">
-                  <span class="mock-preview-num">3</span>
-                  <div class="mock-preview-meta">
-                    <strong>docker compose</strong>
-                    <span>postgres · redis · mailhog</span>
-                  </div>
-                  <span class="mock-running">Running</span>
-                </header>
-                <pre class="mock-preview-buffer"><code><span class="dim">postgres-1  | database system is ready</span>
-<span class="dim">redis-1     | Ready to accept connections</span>
-<span class="prompt">$</span> <span class="cursor">▋</span></code></pre>
-              </article>
-
-              <article class="mock-preview-card">
-                <header class="mock-preview-head">
-                  <span class="mock-preview-num">4</span>
-                  <div class="mock-preview-meta">
-                    <strong>tests · vitest</strong>
-                    <span>watch mode · 42 passed</span>
-                  </div>
-                  <span class="mock-running">Running</span>
-                </header>
-                <pre class="mock-preview-buffer"><code><span class="prompt">~/web$</span> pnpm test
-<span class="ok"> ✓  src/auth.spec.ts  (12)</span>
-<span class="dim">Test Files  4 passed (4)</span></code></pre>
-              </article>
-            </div>
-          </section>
-        </div>
+        <figure class="product-shot showcase-shot">
+          <img
+            src="./media/overview.png"
+            width="1440"
+            height="920"
+            alt="NthTerm overview with four stacked terminal preview cards"
+          />
+        </figure>
       </section>
 
       <section class="section features" id="features">

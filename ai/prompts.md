@@ -13,11 +13,12 @@
 - Prefer small incremental stories and commits.
 
 ## Current Prompt Focus
-- **Next:** merge PR #1, then dispatch **Publish GitHub Release** (`v0.1.0-rc.2` / run `30753822270`) so landing-page download links resolve.
-- Close ADO #139 in Azure DevOps when convenient (repo smoke evidence is already green).
-- #139/#140/#141 Closed in repo; #138 RC2 tagged earlier.
-- Landing page live at `https://nwaoga.github.io/NthTerm/` from `site/` via GitHub Pages (static marketing page only — not the Angular app).
-- `v0.1.0-rc.2` tagged; CI uploads unsigned Win/mac artifacts, runs `smoke:mac` on macOS jobs, and (on `v*` tags) publishes a GitHub Release. Signing/notarization deferred.
+- **Milestone complete:** `0.1.0-rc.2` is tagged, verified, and published. Landing-page download links resolve.
+- Landing page uses real Focus/Overview product shots from `site/media/` (Angular reference preview captures); feature triad still uses CSS mini-mocks.
+- #138/#139/#140/#141 Closed (ADO + repo). PR #1 and cloud setup PR #2 merged to `main`.
+- Public RC page: `https://nwaoga.github.io/NthTerm/` (`site/` via GitHub Pages — static marketing only, not the Angular app).
+- Release: https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 (unsigned Win + macOS assets).
+- **Deferred:** Authenticode / Apple notarization / `electron-updater` until certificates exist.
 - Preserve the compact inspector hierarchy (Workspace | Terminal) and stacked focus/overview layout.
 - Renderer refactor is complete; keep new code in feature folders/services and do not grow god files.
 - Ignore untracked `output/` chrome-capture junk; do not commit it.
@@ -25,10 +26,9 @@
 ## Handoff Summary
 - Product name: NthTerm
 - Themes: Midnight, Coffee, and White app chrome, with separate terminal color themes and ANSI palettes
-- Current milestone: `0.1.0-rc.2` tagged; Windows verify passed; macOS packaged smoke green on CI
-- Open PR: https://github.com/nwaoga/NthTerm/pull/1 (`cursor/publish-rc-github-release-8c48`) — release publish + #139 smoke automation
-- Public site: `https://nwaoga.github.io/NthTerm/` — GitHub Pages from `site/`; workflow `.github/workflows/pages.yml`
-- Backlog: merge PR → publish Release assets for `v0.1.0-rc.2` → close ADO #139 (signing deferred)
+- Current milestone: `0.1.0-rc.2` published; Windows verify passed; macOS packaged smoke green on CI; GitHub Release live
+- Public site: `https://nwaoga.github.io/NthTerm/` — GitHub Pages from `site/` (`media/focus.png`, `media/overview.png`); workflow `.github/workflows/pages.yml`
+- Backlog: signing / notarization / auto-update only (no open RC publish items)
 - Mac smoke evidence: `docs/verification/macos-smoke-v0.1.0-rc.2.json` from Actions run `31277571206`
 - Local verify bar: `npm run build` + `npm run test:ci` (45 Electron / 144 Angular)
 - Renderer: feature-oriented Angular shell with workspace-owned stable terminals, stacked focus/overview, compact inspector projections, and utility command history attributed by terminal ID

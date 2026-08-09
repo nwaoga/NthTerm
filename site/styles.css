@@ -220,9 +220,29 @@ a {
   z-index: 0;
 }
 
-.hero-stage .app-shell-mock {
+.product-shot {
   position: relative;
   z-index: 1;
+  margin: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 12, 22, 0.72);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(184, 111, 255, 0.08);
+  overflow: hidden;
+}
+
+.product-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+.showcase-shot {
+  max-width: 1040px;
+  margin: 0 auto;
 }
 
 .trust-line {
@@ -264,7 +284,7 @@ a {
   line-height: 1.5;
 }
 
-.showcase .app-shell-mock {
+.showcase-shot {
   max-width: 1040px;
   margin: 0 auto;
 }

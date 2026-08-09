@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **0.1.0-rc.2** (`v0.1.0-rc.2` tagged) — unsigned Windows and macOS release candidate (stacked focus/overview layout, glass chrome, platform packaging). Windows `rc:verify` passed; macOS packaged-app smoke green on CI (`npm run smoke:mac`). Next: publish GitHub Release assets so landing-page download links resolve.
+Current milestone: **0.1.0-rc.2** (`v0.1.0-rc.2` tagged and published) — unsigned Windows and macOS release candidate (stacked focus/overview layout, glass chrome, platform packaging). Windows `rc:verify` passed; macOS packaged-app smoke green on CI (`npm run smoke:mac`). Downloads: [GitHub Release](https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2) and [landing page](https://nwaoga.github.io/NthTerm/). Signing / notarization deferred.
 
 Working today:
 

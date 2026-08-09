@@ -16,9 +16,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-08-08)
+## Current State (2026-08-09)
 
-**Phase:** RC1 usability polish complete. Feature roadmap and unsigned Windows packaging track are complete. Public RC landing page shipped. Stacked UX polish (#140) shipped.
+**Phase:** `0.1.0-rc.2` published. Feature roadmap, unsigned Win/mac packaging, public landing page, stacked UX polish, and macOS smoke automation are complete.
 
 **Working today:**
 - Public RC marketing page at `https://nwaoga.github.io/NthTerm/` (static `site/`, GitHub Pages)
@@ -56,29 +56,26 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140) stacked focus/overview day-to-day UX polish.
+**Last shipped:** GitHub Release `v0.1.0-rc.2` published; ADO [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Closed.
 
-## Handover — 2026-08-08 (merge PR → publish Release)
+## Handover — 2026-08-09 (RC2 published)
 
-**Open PR:** https://github.com/nwaoga/NthTerm/pull/1 — `cursor/publish-rc-github-release-8c48` → `main`  
-**Milestone:** `0.1.0-rc.2` (`v0.1.0-rc.2` tagged). Windows `rc:verify` passed earlier; macOS packaged smoke green on CI.
+**Milestone:** `0.1.0-rc.2` tagged and published. Windows `rc:verify` passed; macOS packaged smoke green on CI; landing-page downloads resolve.
 
-### Done this session
-- [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) — unsigned macOS packaged-app smoke automated via `npm run smoke:mac` on GitHub `macos-latest` (quarantine clear = Gatekeeper stand-in). Evidence: [Actions run 31277571206](https://github.com/nwaoga/NthTerm/actions/runs/31277571206) + `docs/verification/macos-smoke-v0.1.0-rc.2.json`.
-- CI publishes GitHub Releases on `v*` tags; dispatchable **Publish GitHub Release** workflow backfills an existing tag from a prior artifact run.
-- Landing page (#141) live at `https://nwaoga.github.io/NthTerm/` (download CTAs still need the missing GitHub Release).
-- #140 stacked Focus/Overview polish already Closed earlier the same day.
+### Done
+- Merged PR #1 (`cursor/publish-rc-github-release-8c48`) and cloud setup PR #2.
+- Published https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 via **Publish GitHub Release** run [31278290064](https://github.com/nwaoga/NthTerm/actions/runs/31278290064) (assets from artifact run `30753822270`) — Win + macOS dmg/zip/exe present.
+- Closed ADO [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) (smoke evidence: [Actions run 31277571206](https://github.com/nwaoga/NthTerm/actions/runs/31277571206) + `docs/verification/macos-smoke-v0.1.0-rc.2.json`).
+- Landing page (#141) live at `https://nwaoga.github.io/NthTerm/` with working Release download CTAs.
+- #140 stacked Focus/Overview polish Closed earlier.
 
 ### Verification
 - Local: `npm run build` + `npm run test:ci` — **45** Electron / **144** Angular (accepted bundle-budget warning).
-- PR CI: macOS smoke step green on run `31277571206` (`firstLaunchAlive`, `sqliteObserved`, `markerPreserved`; `shellOrPtyChildObserved` false in headless CI — warning only).
+- CI: macOS smoke green on run `31277571206` (`firstLaunchAlive`, `sqliteObserved`, `markerPreserved`; `shellOrPtyChildObserved` false in headless CI — warning only).
 
-### Next (human / next agent)
-1. **Merge** https://github.com/nwaoga/NthTerm/pull/1
-2. **Publish Release assets:** Actions → **Publish GitHub Release** → tag `v0.1.0-rc.2`, workflow run id `30753822270`
-3. Confirm https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 lists Windows + macOS files (landing-page downloads unblock)
-4. **Close ADO #139** in Azure DevOps (repo evidence complete)
-5. Keep signing / notarization / `electron-updater` deferred until certificates exist
+### Next (when ready)
+1. Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist
+2. Otherwise: pick the next product story from day-to-day use
 
 ### Guardrails
 - Do **not** commit untracked `output/` (local chrome-capture junk).
@@ -86,6 +83,8 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Keep new code in feature folders/services; do not grow god files.
 
 **Reference design:** `docs/target-ui-reference.png` (Phase 4 visual baseline).
+
+**Landing shots (2026-08-09):** hero/showcase use `site/media/focus.png` and `site/media/overview.png` (Angular reference preview captures of stacked Focus/Overview).
 
 ---
 
@@ -125,10 +124,10 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 ## Next Release Gate
 
 1. ~~[#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138)~~ — Done. `0.1.0-rc.2` verified and tagged (`v0.1.0-rc.2`).
-2. Publish GitHub Release assets for `v0.1.0-rc.2` (dispatch **Publish GitHub Release**, run `30753822270`) so landing-page download links resolve.
-3. ~~[#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139)~~ — Done on CI (`smoke:mac` / run `31277571206`). Close ADO work item when convenient.
-4. ~~[#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140)~~ — Done. Stacked focus/overview day-to-day UX polish (Escape, single-terminal chrome, Focus/Overview labels, overview arrows, throttled previews).
-5. ~~[#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141)~~ — Done. Minimal RC landing page live at `https://nwaoga.github.io/NthTerm/` (GitHub Pages from `site/`).
+2. ~~Publish GitHub Release assets for `v0.1.0-rc.2`~~ — Done (run [31278290064](https://github.com/nwaoga/NthTerm/actions/runs/31278290064); https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2).
+3. ~~[#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139)~~ — Done. CI smoke + ADO Closed (2026-08-09).
+4. ~~[#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140)~~ — Done. Stacked focus/overview day-to-day UX polish.
+5. ~~[#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141)~~ — Done. Landing page live at `https://nwaoga.github.io/NthTerm/`.
 6. Keep Authenticode signing / Apple notarization deferred until certificates are available. Manual install-over upgrades until then. Add a later story for `electron-updater` after signing.
 
 ### Stacked polish (#140)
@@ -151,21 +150,19 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 **Shipped**
 - Brand-first hero + short SWE-facing pitch (frontend / backend / Docker stack)
-- CSS product mocks: stacked focus view + 4-card overview (Vite, Go API, compose, Vitest)
-- Feature triad: Focus, Workspaces, Stacked PTYs
+- Real product shots: Focus (`site/media/focus.png`) + Overview (`site/media/overview.png`) from Angular reference preview
+- Feature triad mini-mocks: Focus, Workspaces, Stacked PTYs
 - Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.2`
 - Unsigned build callout (SmartScreen / Gatekeeper)
 - GitHub + Issues + Releases footer links
 - Visual language: midnight/purple glass; Cursor-like sparse page rhythm
 - Published via GitHub Actions → GitHub Pages (`site/`); repo `homepage` set to Pages URL
 
-**Optional later**
-- Swap CSS mocks for real product screenshots when available
-
 **Out of scope (first slice)**
 - Blog, newsletter, analytics suite, account/auth, auto-update pitch beyond “install over existing”
+- Live Electron acrylic chrome in marketing shots (browser reference preview used instead)
 
-Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141).
+Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141).
 
 ## Historical Delivery Tracks
 
