@@ -8,6 +8,20 @@ import { TerminalStackIndicatorComponent } from './terminal-stack-indicator.comp
   imports: [TerminalNavigationComponent, TerminalStackIndicatorComponent],
   template: `
     <header class="workspace-stack-header" (wheel)="onWheel($event)">
+      @if (showLeftRailRestore) {
+        <button
+          type="button"
+          class="left-rail-restore-button"
+          aria-label="Show workspaces rail"
+          title="Show workspaces rail"
+          (click)="restoreLeftRail.emit()"
+        >
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <rect x="2.5" y="3" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" />
+            <path d="M6.5 3v10M8 6h2M8 8.5h2M8 11h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+          </svg>
+        </button>
+      }
       <div class="workspace-stack-header-copy">
         <p class="rail-title">{{ workspaceName || 'Workspace' }}</p>
         <strong class="workspace-stack-terminal-name">{{ terminalName || 'No terminal' }}</strong>
@@ -95,6 +109,7 @@ export class WorkspaceHeaderComponent {
   @Input() zoomLevel = 0;
   @Input() overviewActive = false;
   @Input() showInspectorRestore = false;
+  @Input() showLeftRailRestore = false;
 
   @Output() readonly previous = new EventEmitter<void>();
   @Output() readonly next = new EventEmitter<void>();
@@ -102,6 +117,7 @@ export class WorkspaceHeaderComponent {
   @Output() readonly setZoom = new EventEmitter<number>();
   @Output() readonly chromeWheel = new EventEmitter<-1 | 1>();
   @Output() readonly restoreInspector = new EventEmitter<void>();
+  @Output() readonly restoreLeftRail = new EventEmitter<void>();
 
   protected onWheel(event: WheelEvent): void {
     if (this.total <= 1) {

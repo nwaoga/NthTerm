@@ -61,8 +61,9 @@ export class AppComponent implements AfterViewInit {
   @ViewChild(CommandPaletteComponent) private commandPalette?: CommandPaletteComponent;
   @ViewChild('bottomDock') private bottomDock?: BottomDockComponent;
 
-  protected utilityPanelVisible = true;
-  protected inspectorPanelVisible = true;
+  protected utilityPanelVisible = false;
+  protected inspectorPanelVisible = false;
+  protected leftRailVisible = false;
   protected utilityPanelHeight = 280;
   protected settingsOpen = false;
   protected dockResizeActive = false;
@@ -110,6 +111,7 @@ export class AppComponent implements AfterViewInit {
         this.inspector.activeTab = tab;
       },
       setInspectorVisible: (visible) => this.setInspectorPanelPreference(visible),
+      setLeftRailVisible: (visible) => this.setLeftRailPreference(visible),
       openCommandPalette: () => this.openCommandPalette(),
       openGlobalSearch: () => this.openGlobalSearch(),
       selectWorkspace: (id) => this.onWorkspaceSelected(id),
@@ -128,6 +130,7 @@ export class AppComponent implements AfterViewInit {
   async ngAfterViewInit(): Promise<void> {
     this.utilityPanelVisible = this.preferences.readBottomPanelVisible();
     this.inspectorPanelPreference = this.preferences.readInspectorPanelVisible();
+    this.leftRailVisible = this.preferences.readLeftRailVisible();
     this.compactViewport = this.isCompactViewport();
     this.inspectorPanelVisible = this.inspectorPanelPreference && !this.compactViewport;
     this.utilityPanelHeight = this.preferences.readBottomPanelHeight();
@@ -196,6 +199,12 @@ export class AppComponent implements AfterViewInit {
       this.inspectorPanelPreference = visible;
       this.preferences.writeInspectorPanelVisible(visible);
     }
+    setTimeout(() => this.terminal.syncTerminalSize(), 0);
+  }
+
+  protected setLeftRailPreference(visible: boolean): void {
+    this.leftRailVisible = visible;
+    this.preferences.writeLeftRailVisible(visible);
     setTimeout(() => this.terminal.syncTerminalSize(), 0);
   }
 

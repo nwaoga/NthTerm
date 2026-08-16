@@ -209,6 +209,9 @@ describe('AppComponent', () => {
       value: 900,
     });
 
+    (fixture.componentInstance as any).setUtilityPanelPreference(true);
+    fixture.detectChanges();
+
     const handle: HTMLDivElement | null = fixture.nativeElement.querySelector('.dock-resize-handle');
     expect(handle).not.toBeNull();
 
@@ -232,6 +235,25 @@ describe('AppComponent', () => {
     expect(workspaceShell?.style.getPropertyValue('--dock-height')).toBe(`${expectedHeight}px`);
   });
 
+  it('starts with both rails and the dock collapsed when no visibility preference is stored', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance as any;
+    expect(component.leftRailVisible).toBeFalse();
+    expect(component.inspectorPanelVisible).toBeFalse();
+    expect(component.utilityPanelVisible).toBeFalse();
+    expect(fixture.nativeElement.querySelector('.app-shell.left-rail-hidden')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-left-rail')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Show workspaces rail"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.content-layout.inspector-hidden')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Show inspector"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Show workspace dock"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-bottom-dock')).toBeNull();
+  });
+
   it('persists inspector panel visibility changes from the workspace area', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -241,12 +263,49 @@ describe('AppComponent', () => {
     spyOn(preferences, 'writeInspectorPanelVisible').and.callThrough();
 
     const component = fixture.componentInstance as any;
+    component.setInspectorPanelPreference(true);
+    fixture.detectChanges();
+    expect(component.inspectorPanelVisible).toBeTrue();
+    expect(preferences.writeInspectorPanelVisible).toHaveBeenCalledWith(true);
+
     component.setInspectorPanelPreference(false);
     fixture.detectChanges();
 
     expect(component.inspectorPanelVisible).toBeFalse();
     expect(preferences.writeInspectorPanelVisible).toHaveBeenCalledWith(false);
     expect(fixture.nativeElement.querySelector('.content-layout.inspector-hidden')).not.toBeNull();
+  });
+
+  it('persists left rail visibility changes and restores from the stage button', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const preferences = TestBed.inject(AppPreferencesService);
+    spyOn(preferences, 'writeLeftRailVisible').and.callThrough();
+
+    const component = fixture.componentInstance as any;
+    expect(component.leftRailVisible).toBeFalse();
+    expect(fixture.nativeElement.querySelector('[aria-label="Show workspaces rail"]')).not.toBeNull();
+
+    fixture.nativeElement.querySelector('[aria-label="Show workspaces rail"]').click();
+    fixture.detectChanges();
+
+    expect(component.leftRailVisible).toBeTrue();
+    expect(preferences.writeLeftRailVisible).toHaveBeenCalledWith(true);
+    expect(fixture.nativeElement.querySelector('app-left-rail')).not.toBeNull();
+
+    const hideButton = fixture.nativeElement.querySelector('[aria-label="Hide workspaces rail"]');
+    expect(hideButton).not.toBeNull();
+    hideButton.click();
+    fixture.detectChanges();
+
+    expect(component.leftRailVisible).toBeFalse();
+    expect(preferences.writeLeftRailVisible).toHaveBeenCalledWith(false);
+    expect(fixture.nativeElement.querySelector('.app-shell.left-rail-hidden')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-left-rail')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Show workspaces rail"]')).not.toBeNull();
   });
 
   it('collapses and restores the dock while persisting the active workspace preference', async () => {
@@ -258,9 +317,6 @@ describe('AppComponent', () => {
     const preferences = TestBed.inject(AppPreferencesService);
     spyOn(preferences, 'writeWorkspaceBottomPanelVisible').and.callThrough();
 
-    fixture.nativeElement.querySelector('[aria-label="Hide workspace dock"]').click();
-    fixture.detectChanges();
-
     expect((fixture.componentInstance as any).utilityPanelVisible).toBeFalse();
     expect(fixture.nativeElement.querySelector('[aria-label="Show workspace dock"]')).not.toBeNull();
 
@@ -268,6 +324,16 @@ describe('AppComponent', () => {
     fixture.detectChanges();
 
     expect((fixture.componentInstance as any).utilityPanelVisible).toBeTrue();
+    expect(preferences.writeWorkspaceBottomPanelVisible).toHaveBeenCalledWith(
+      (fixture.componentInstance as any).ws.selectedWorkspaceId,
+      true
+    );
+
+    fixture.nativeElement.querySelector('[aria-label="Hide workspace dock"]').click();
+    fixture.detectChanges();
+
+    expect((fixture.componentInstance as any).utilityPanelVisible).toBeFalse();
+    expect(fixture.nativeElement.querySelector('[aria-label="Show workspace dock"]')).not.toBeNull();
     expect(preferences.writeWorkspaceBottomPanelVisible).toHaveBeenCalledWith(
       (fixture.componentInstance as any).ws.selectedWorkspaceId,
       false

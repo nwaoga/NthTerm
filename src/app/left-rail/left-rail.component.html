@@ -1,7 +1,21 @@
 <aside class="left-rail">
   <section class="rail-section">
     <div class="rail-section-header">
-      <p class="rail-title">Workspaces</p>
+      <div class="left-rail-header">
+        <p class="rail-title">Workspaces</p>
+        <button
+          type="button"
+          class="left-rail-toggle-button"
+          aria-label="Hide workspaces rail"
+          title="Hide workspaces rail"
+          (click)="collapseRail()"
+        >
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <rect x="2.5" y="3" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" />
+            <path d="M6.5 3v10M8.8 8h2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
       <button type="button" class="rail-create-button" (click)="createBlankWorkspace()">
         <span class="rail-create-icon" aria-hidden="true">
           <svg viewBox="0 0 16 16" fill="none">

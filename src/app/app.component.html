@@ -1,4 +1,4 @@
-<main class="app-shell">
+<main class="app-shell" [class.left-rail-hidden]="!leftRailVisible">
   <app-shell-toolbar
     class="app-shell-toolbar-host"
     (createTerminalRequested)="onCreateTerminal($event)"
@@ -6,13 +6,16 @@
     (settingsRequested)="openSettings()"
   />
 
-  <app-left-rail
-    class="app-left-rail-host"
-    (newSessionRequested)="onNewSessionRequested()"
-    (workspaceSelected)="onWorkspaceSelected($event)"
-    (workspaceRenameCommitted)="onWorkspaceRenameCommitted($event)"
-    (workspaceDeleteRequested)="onWorkspaceDeleteRequested($event)"
-  />
+  @if (leftRailVisible) {
+    <app-left-rail
+      class="app-left-rail-host"
+      (newSessionRequested)="onNewSessionRequested()"
+      (workspaceSelected)="onWorkspaceSelected($event)"
+      (workspaceRenameCommitted)="onWorkspaceRenameCommitted($event)"
+      (workspaceDeleteRequested)="onWorkspaceDeleteRequested($event)"
+      (collapseRequested)="setLeftRailPreference(false)"
+    />
+  }
 
   <section
     class="workspace-shell"
@@ -22,7 +25,11 @@
   >
     <app-workspace-area
       [inspectorPanelVisible]="inspectorPanelVisible"
+      [leftRailVisible]="leftRailVisible"
+      [utilityPanelVisible]="utilityPanelVisible"
       (inspectorPanelVisibleChange)="setInspectorPanelPreference($event)"
+      (leftRailVisibleChange)="setLeftRailPreference($event)"
+      (utilityPanelVisibleChange)="setUtilityPanelPreference($event)"
     />
 
     @if (utilityPanelVisible) {
@@ -34,13 +41,6 @@
         (mousedown)="startUtilityPanelResize($event)"
       ></div>
       <app-bottom-dock #bottomDock (utilityTabChange)="onUtilityTabChange($event)" (collapseRequested)="setUtilityPanelPreference(false)" />
-    } @else {
-      <button type="button" class="dock-restore-button" aria-label="Show workspace dock" title="Show workspace dock (Ctrl+J)" (click)="setUtilityPanelPreference(true)">
-        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <rect x="2.5" y="3" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3" />
-          <path d="M2.5 9.5h11M6 7l2-2 2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </button>
     }
 
     <app-status-bar />

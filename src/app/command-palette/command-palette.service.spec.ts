@@ -72,6 +72,7 @@ describe('CommandPaletteService', () => {
       openUtilityPanel: () => undefined,
       setInspectorTab: () => undefined,
       setInspectorVisible: () => undefined,
+      setLeftRailVisible: () => undefined,
       openCommandPalette: () => undefined,
       openGlobalSearch: () => undefined,
       selectWorkspace: async () => undefined,
@@ -105,6 +106,7 @@ describe('CommandPaletteService', () => {
       openUtilityPanel: () => undefined,
       setInspectorTab: () => undefined,
       setInspectorVisible: () => undefined,
+      setLeftRailVisible: () => undefined,
       openCommandPalette: () => undefined,
       openGlobalSearch,
       selectWorkspace: async () => undefined,
@@ -139,6 +141,7 @@ describe('CommandPaletteService', () => {
       openUtilityPanel: () => undefined,
       setInspectorTab,
       setInspectorVisible,
+      setLeftRailVisible: () => undefined,
       openCommandPalette: () => undefined,
       openGlobalSearch: () => undefined,
       selectWorkspace: async () => undefined,
@@ -182,5 +185,47 @@ describe('CommandPaletteService', () => {
     expect(setInspectorVisible).toHaveBeenCalledWith(true);
     expect(setInspectorTab).toHaveBeenCalledWith('workspace');
     expect(setInspectorTab).toHaveBeenCalledWith('terminal');
+  });
+
+  it('dispatches left rail visibility actions', async () => {
+    const setLeftRailVisible = jasmine.createSpy('setLeftRailVisible');
+    const dispatcher: PaletteActionDispatcher = {
+      saveWorkspace: async () => undefined,
+      restoreWorkspace: async () => undefined,
+      createTerminal: async () => undefined,
+      relaunchTerminal: async () => undefined,
+      interruptTerminal: async () => undefined,
+      killTerminal: async () => undefined,
+      openUtilityPanel: () => undefined,
+      setInspectorTab: () => undefined,
+      setInspectorVisible: () => undefined,
+      setLeftRailVisible,
+      openCommandPalette: () => undefined,
+      openGlobalSearch: () => undefined,
+      selectWorkspace: async () => undefined,
+      createWorkspace: async () => undefined,
+      rerunCommand: async () => undefined,
+      focusPane: async () => undefined,
+      appendOutput: () => undefined,
+    };
+
+    service.setDispatcher(dispatcher);
+    await service.executeEntry({
+      id: 'hide-left-rail',
+      kind: 'action',
+      group: 'View',
+      label: 'Hide Workspaces Rail',
+      detail: '',
+    });
+    await service.executeEntry({
+      id: 'show-left-rail',
+      kind: 'action',
+      group: 'View',
+      label: 'Show Workspaces Rail',
+      detail: '',
+    });
+
+    expect(setLeftRailVisible).toHaveBeenCalledWith(false);
+    expect(setLeftRailVisible).toHaveBeenCalledWith(true);
   });
 });

@@ -22,6 +22,8 @@ describe('AppPreferencesService', () => {
   });
 
   it('keeps dock visibility and height preferences per workspace', () => {
+    expect(service.readBottomPanelVisible()).toBeFalse();
+
     service.writeWorkspaceBottomPanelVisible('workspace-1', false);
     service.writeWorkspaceBottomPanelHeight('workspace-1', 360);
     service.writeWorkspaceBottomPanelVisible('workspace-2', true);
@@ -32,16 +34,37 @@ describe('AppPreferencesService', () => {
     expect(service.readWorkspaceBottomPanelVisible('workspace-2')).toBeTrue();
     expect(service.readWorkspaceBottomPanelHeight('workspace-2')).toBe(220);
     expect(service.readWorkspaceBottomPanelHeight('missing', 300)).toBe(300);
+    expect(service.readWorkspaceBottomPanelVisible('missing')).toBeFalse();
+  });
+
+  it('persists the bottom panel visibility preference', () => {
+    expect(service.readBottomPanelVisible()).toBeFalse();
+
+    service.writeBottomPanelVisible(true);
+    expect(service.readBottomPanelVisible()).toBeTrue();
+
+    service.writeBottomPanelVisible(false);
+    expect(service.readBottomPanelVisible()).toBeFalse();
   });
 
   it('persists the inspector panel visibility preference', () => {
-    expect(service.readInspectorPanelVisible()).toBeTrue();
-
-    service.writeInspectorPanelVisible(false);
     expect(service.readInspectorPanelVisible()).toBeFalse();
 
     service.writeInspectorPanelVisible(true);
     expect(service.readInspectorPanelVisible()).toBeTrue();
+
+    service.writeInspectorPanelVisible(false);
+    expect(service.readInspectorPanelVisible()).toBeFalse();
+  });
+
+  it('persists the left rail visibility preference', () => {
+    expect(service.readLeftRailVisible()).toBeFalse();
+
+    service.writeLeftRailVisible(true);
+    expect(service.readLeftRailVisible()).toBeTrue();
+
+    service.writeLeftRailVisible(false);
+    expect(service.readLeftRailVisible()).toBeFalse();
   });
 
   it('defaults new sessions to the focused terminal directory', () => {

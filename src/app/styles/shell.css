@@ -525,6 +525,14 @@ input {
   background: var(--shell-bg-base);
 }
 
+.app-shell.left-rail-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell.left-rail-hidden .workspace-shell {
+  grid-column: 1;
+}
+
 /* macOS applies Electron's under-window vibrancy behind the web contents. A
    solid canvas and lower-blur controls preserve the intended depth without
    washing out the whole shell. */
@@ -630,6 +638,38 @@ app-root[data-host-platform='darwin'] .status-bar {
 .rail-section-header {
   display: grid;
   gap: 8px;
+}
+
+.left-rail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.left-rail-toggle-button,
+.left-rail-restore-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--shell-border);
+  border-radius: 10px;
+  color: var(--shell-text-muted);
+  background: var(--shell-chip-bg);
+}
+
+.left-rail-toggle-button:hover,
+.left-rail-restore-button:hover {
+  border-color: var(--shell-accent-soft);
+  color: var(--shell-text-strong);
+}
+
+.left-rail-toggle-button svg,
+.left-rail-restore-button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .rail-section-spacer {
@@ -1420,20 +1460,26 @@ app-workspace-area .content-layout {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 1px solid var(--shell-border);
-  border-radius: 7px;
-  background: var(--shell-card-action-bg);
-  color: var(--shell-card-action-fg);
+  border-radius: 10px;
+  background: var(--shell-chip-bg);
+  color: var(--shell-text-muted);
 }
 
 .dock-restore-button {
   position: absolute;
   z-index: 20;
-  right: 12px;
-  bottom: 42px;
+  right: 0;
+  bottom: 0;
+}
+
+.dock-restore-button:hover,
+.dock-collapse-button:hover {
+  border-color: var(--shell-accent-soft);
+  color: var(--shell-text-strong);
 }
 
 .dock-restore-button svg,
@@ -1854,6 +1900,10 @@ app-workspace-area .content-layout {
 .terminal-park-host {
   width: var(--park-width, 960px);
   height: var(--park-height, 540px);
+}
+
+.left-rail-restore-button {
+  flex: 0 0 auto;
 }
 
 .workspace-stack-header {
@@ -2352,6 +2402,12 @@ app-terminal-overview {
   position: absolute;
   top: 0;
   right: 0;
+}
+
+.workspace-empty-left-rail-restore {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .workspace-empty-state .empty-pane-card {
@@ -4085,14 +4141,6 @@ app-terminal-overview {
   transform: translateY(-50%);
 }
 
-.dot {
-  width: 11px;
-  height: 11px;
-  border-radius: var(--shell-radius-pill);
-  background: var(--shell-success);
-  box-shadow: 0 0 0 4px var(--shell-success-soft);
-}
-
 .command-palette-backdrop {
   position: fixed;
   inset: 0;
@@ -4400,6 +4448,10 @@ app-terminal-overview {
     grid-template-rows: auto auto minmax(0, 1fr);
   }
 
+  .app-shell.left-rail-hidden {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
   .app-shell-toolbar-host {
     grid-column: 1;
     grid-row: 1;
@@ -4418,6 +4470,10 @@ app-terminal-overview {
   .workspace-shell {
     grid-column: 1;
     grid-row: 3;
+  }
+
+  .app-shell.left-rail-hidden .workspace-shell {
+    grid-row: 2;
   }
 
   .pane-grid {

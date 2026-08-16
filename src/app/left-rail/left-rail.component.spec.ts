@@ -83,4 +83,19 @@ describe('LeftRailComponent', () => {
 
     expect(newSessionSpy).toHaveBeenCalled();
   });
+
+  it('emits collapse when the hide workspaces rail button is clicked', () => {
+    const fixture = TestBed.createComponent(LeftRailComponent);
+    const component = fixture.componentInstance;
+    const collapseSpy = jasmine.createSpy('collapseRequested');
+
+    component.collapseRequested.subscribe(collapseSpy);
+    fixture.detectChanges();
+
+    const hideButton = fixture.debugElement.query(By.css('[aria-label="Hide workspaces rail"]'));
+    expect(hideButton).not.toBeNull();
+    hideButton.nativeElement.click();
+
+    expect(collapseSpy).toHaveBeenCalled();
+  });
 });

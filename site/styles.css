@@ -1185,13 +1185,82 @@ a {
   animation: rise 700ms var(--ease) both;
 }
 
-.docs-sidenav-label {
+.docs-sidenav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0 0 12px;
+}
+
+.docs-sidenav-label {
+  margin: 0;
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.docs-sidenav-toggle,
+.docs-sidenav-restore {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.docs-sidenav-toggle {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.docs-sidenav-toggle:hover,
+.docs-sidenav-restore:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.docs-sidenav-toggle:focus-visible,
+.docs-sidenav-restore:focus-visible {
+  outline: none;
+  color: var(--text);
+  border-color: rgba(189, 111, 255, 0.55);
+}
+
+.docs-sidenav-restore {
+  position: sticky;
+  top: 88px;
+  z-index: 4;
+  align-self: start;
+  justify-self: start;
+  grid-column: 1 / -1;
+  width: fit-content;
+  margin: 0 0 8px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: rgba(16, 22, 37, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.docs-shell--nav-hidden {
+  grid-template-columns: minmax(0, 760px);
+}
+
+.docs-shell--nav-hidden .docs-sidenav-restore {
+  display: inline-flex;
 }
 
 .docs-sidenav-links {
@@ -1454,8 +1523,18 @@ kbd {
     backdrop-filter: blur(10px);
   }
 
+  .docs-sidenav-head {
+    margin: 0 0 8px;
+  }
+
   .docs-sidenav-label {
-    display: none;
+    font-size: 0.68rem;
+  }
+
+  .docs-sidenav-restore {
+    top: 64px;
+    z-index: 5;
+    margin: 0 0 4px;
   }
 
   .docs-sidenav-links {

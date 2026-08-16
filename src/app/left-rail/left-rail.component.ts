@@ -14,6 +14,7 @@ export class LeftRailComponent {
   @Output() readonly workspaceSelected = new EventEmitter<string>();
   @Output() readonly workspaceRenameCommitted = new EventEmitter<string>();
   @Output() readonly workspaceDeleteRequested = new EventEmitter<WorkspaceListItem>();
+  @Output() readonly collapseRequested = new EventEmitter<void>();
 
   protected readonly ws = inject(WorkspaceRuntimeService);
 
@@ -42,6 +43,10 @@ export class LeftRailComponent {
 
   protected createBlankWorkspace(): void {
     this.newSessionRequested.emit();
+  }
+
+  protected collapseRail(): void {
+    this.collapseRequested.emit();
   }
 
   protected isWorkspaceActive(workspace: WorkspaceListItem): boolean {

@@ -138,6 +138,8 @@ export class CommandPaletteService {
       { id: 'inspector-terminal', kind: 'action', group: 'View', label: 'Show Terminal Inspector', detail: 'Focus live PTY metadata and terminal settings in the right rail' },
       { id: 'hide-inspector', kind: 'action', group: 'View', label: 'Hide Inspector', detail: 'Collapse the right inspector rail' },
       { id: 'show-inspector', kind: 'action', group: 'View', label: 'Show Inspector', detail: 'Restore the right inspector rail' },
+      { id: 'hide-left-rail', kind: 'action', group: 'View', label: 'Hide Workspaces Rail', detail: 'Collapse the left workspaces rail' },
+      { id: 'show-left-rail', kind: 'action', group: 'View', label: 'Show Workspaces Rail', detail: 'Restore the left workspaces rail' },
       { id: 'open-palette', kind: 'action', group: 'Navigation', label: 'Open Command Palette', detail: 'Show workspace commands and search', shortcut: 'Ctrl+Shift+P' },
     ];
   }
@@ -297,6 +299,12 @@ export class CommandPaletteService {
         break;
       case 'show-inspector':
         dispatcher.setInspectorVisible(true);
+        break;
+      case 'hide-left-rail':
+        dispatcher.setLeftRailVisible(false);
+        break;
+      case 'show-left-rail':
+        dispatcher.setLeftRailVisible(true);
         break;
       case 'open-palette':
         dispatcher.openCommandPalette();

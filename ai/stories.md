@@ -5,6 +5,7 @@
 
 ## Done
 - [x] Public “How to use” docs page on GitHub Pages (`site/docs.html`) — install/RC, workspaces, Focus/Overview, inspector, dock, shortcuts, unsigned note; linked from landing nav/footer (2026-08-09)
+  - [x] Sticky “On this page” sidenav is hideable (persists in `localStorage`) with restore control (2026-08-11)
 - [x] Landing page real Focus/Overview screenshots (2026-08-09)
   - [x] Capture Studio Stack Focus + Overview from Angular reference preview (`site/media/focus.png`, `site/media/overview.png`)
   - [x] Replace hero and showcase CSS mocks in `site/index.html` with product shots; feature triad mini-mocks kept

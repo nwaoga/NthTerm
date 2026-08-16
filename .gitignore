@@ -34,6 +34,9 @@ yarn-error.log*
 /.ng/
 /.angular-cli.json
 
+# Local capture / agent output
+/output
+
 # Miscellaneous
 .sass-cache/
 /connect.lock

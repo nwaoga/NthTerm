@@ -573,6 +573,23 @@ describe('WorkspaceAreaComponent', () => {
     expect(fixture.nativeElement.querySelector('.inspector')).toBeNull();
   });
 
+  it('restores the left rail and dock from stage-aligned buttons', () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    const leftRailChanges: boolean[] = [];
+    const dockChanges: boolean[] = [];
+    fixture.componentInstance.leftRailVisible = false;
+    fixture.componentInstance.utilityPanelVisible = false;
+    fixture.componentInstance.leftRailVisibleChange.subscribe((visible) => leftRailChanges.push(visible));
+    fixture.componentInstance.utilityPanelVisibleChange.subscribe((visible) => dockChanges.push(visible));
+    fixture.detectChanges();
+
+    fixture.debugElement.query(By.css('[aria-label="Show workspaces rail"]')).nativeElement.click();
+    fixture.debugElement.query(By.css('[aria-label="Show workspace dock"]')).nativeElement.click();
+
+    expect(leftRailChanges).toEqual([true]);
+    expect(dockChanges).toEqual([true]);
+  });
+
   it('removes a terminal from the focused card', async () => {
     const confirmSpy = spyOn(window, 'confirm').and.returnValue(true);
     const fixture = TestBed.createComponent(WorkspaceAreaComponent);

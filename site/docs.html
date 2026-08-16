@@ -38,10 +38,22 @@
       </nav>
     </header>
 
-    <main class="docs-shell">
-      <aside class="docs-sidenav" aria-label="Docs sections">
-        <p class="docs-sidenav-label">On this page</p>
-        <nav class="docs-sidenav-links">
+    <main class="docs-shell" id="docs-shell">
+      <aside class="docs-sidenav" id="docs-sidenav" aria-label="Docs sections">
+        <div class="docs-sidenav-head">
+          <p class="docs-sidenav-label" id="docs-sidenav-label">On this page</p>
+          <button
+            type="button"
+            class="docs-sidenav-toggle"
+            id="docs-sidenav-hide"
+            aria-controls="docs-sidenav-panel"
+            aria-expanded="true"
+            aria-label="Hide page navigation"
+          >
+            Hide
+          </button>
+        </div>
+        <nav class="docs-sidenav-links" id="docs-sidenav-panel" aria-labelledby="docs-sidenav-label">
           <a href="#install">Install</a>
           <a href="#workspace">Workspace</a>
           <a href="#terminals">Terminals</a>
@@ -52,6 +64,18 @@
           <a href="#unsigned">Unsigned RC</a>
         </nav>
       </aside>
+
+      <button
+        type="button"
+        class="docs-sidenav-restore"
+        id="docs-sidenav-show"
+        hidden
+        aria-controls="docs-sidenav-panel"
+        aria-expanded="false"
+        aria-label="Show page navigation"
+      >
+        On this page
+      </button>
 
       <div class="docs-content">
         <header class="docs-hero">
@@ -271,5 +295,53 @@
         <a href="https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2">Releases</a>
       </div>
     </footer>
+
+    <script>
+      (function () {
+        var STORAGE_KEY = "nthterm-docs-sidenav-visible";
+        var shell = document.getElementById("docs-shell");
+        var sidenav = document.getElementById("docs-sidenav");
+        var hideBtn = document.getElementById("docs-sidenav-hide");
+        var showBtn = document.getElementById("docs-sidenav-show");
+        if (!shell || !sidenav || !hideBtn || !showBtn) return;
+
+        function readStoredVisible() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (raw === "0") return false;
+            if (raw === "1") return true;
+          } catch (_) {}
+          return true;
+        }
+
+        function writeStoredVisible(visible) {
+          try {
+            localStorage.setItem(STORAGE_KEY, visible ? "1" : "0");
+          } catch (_) {}
+        }
+
+        function setSidenavVisible(visible, options) {
+          var focus = options && options.focus;
+          shell.classList.toggle("docs-shell--nav-hidden", !visible);
+          sidenav.hidden = !visible;
+          showBtn.hidden = visible;
+          hideBtn.setAttribute("aria-expanded", visible ? "true" : "false");
+          showBtn.setAttribute("aria-expanded", visible ? "true" : "false");
+          writeStoredVisible(visible);
+          if (focus) {
+            (visible ? hideBtn : showBtn).focus();
+          }
+        }
+
+        hideBtn.addEventListener("click", function () {
+          setSidenavVisible(false, { focus: true });
+        });
+        showBtn.addEventListener("click", function () {
+          setSidenavVisible(true, { focus: true });
+        });
+
+        setSidenavVisible(readStoredVisible(), { focus: false });
+      })();
+    </script>
   </body>
 </html>

@@ -30,6 +30,7 @@ export interface PaletteActionDispatcher {
   openUtilityPanel(tab: import('./utility.models').UtilityPanelId): void;
   setInspectorTab(tab: import('./inspector.models').InspectorMode): void;
   setInspectorVisible(visible: boolean): void;
+  setLeftRailVisible(visible: boolean): void;
   openCommandPalette(): void;
   openGlobalSearch(): void;
   selectWorkspace(workspaceId: string): Promise<void>;

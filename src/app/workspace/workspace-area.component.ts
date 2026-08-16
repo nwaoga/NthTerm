@@ -53,8 +53,12 @@ export class WorkspaceAreaComponent implements AfterViewInit {
   @ViewChild(TerminalFocusViewComponent) private focusView?: TerminalFocusViewComponent;
 
   @Input() inspectorPanelVisible = true;
+  @Input() leftRailVisible = true;
+  @Input() utilityPanelVisible = true;
   @Output() readonly terminalSyncRequested = new EventEmitter<void>();
   @Output() readonly inspectorPanelVisibleChange = new EventEmitter<boolean>();
+  @Output() readonly leftRailVisibleChange = new EventEmitter<boolean>();
+  @Output() readonly utilityPanelVisibleChange = new EventEmitter<boolean>();
 
   protected terminalContextMenu: { terminalId: string; x: number; y: number } | null = null;
   protected parkWidth = DEFAULT_PARK_WIDTH;
@@ -364,6 +368,14 @@ export class WorkspaceAreaComponent implements AfterViewInit {
 
   protected setInspectorPanelVisible(visible: boolean): void {
     this.inspectorPanelVisibleChange.emit(visible);
+  }
+
+  protected restoreLeftRail(): void {
+    this.leftRailVisibleChange.emit(true);
+  }
+
+  protected restoreDock(): void {
+    this.utilityPanelVisibleChange.emit(true);
   }
 
   protected async relaunchTerminal(): Promise<void> {
