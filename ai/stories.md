@@ -4,6 +4,11 @@
 - [ ] Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist
 
 ## Done
+- [x] [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156) Collapse workspace chrome by default and hide the workspaces rail (ADO Closed 2026-08-16; `51f04c9`)
+  - [x] Hideable left Workspaces rail with persisted preference and palette actions
+  - [x] Inspector, left rail, and dock default hidden unless preference is `'true'`
+  - [x] Stage-aligned restore controls; status bar is workspace name + terminal count
+  - [x] Hideable docs sidenav; `/output` gitignored
 - [x] Public “How to use” docs page on GitHub Pages (`site/docs.html`) — install/RC, workspaces, Focus/Overview, inspector, dock, shortcuts, unsigned note; linked from landing nav/footer (2026-08-09)
   - [x] Sticky “On this page” sidenav is hideable (persists in `localStorage`) with restore control (2026-08-11)
 - [x] Landing page real Focus/Overview screenshots (2026-08-09)

@@ -16,9 +16,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-08-09)
+## Current State (2026-08-16)
 
-**Phase:** `0.1.0-rc.2` published. Feature roadmap, unsigned Win/mac packaging, public landing page, stacked UX polish, and macOS smoke automation are complete.
+**Phase:** `0.1.0-rc.2` published. Feature roadmap, unsigned Win/mac packaging, public landing page, stacked UX polish, macOS smoke automation, and post-RC2 collapsed workspace chrome are complete.
 
 **Working today:**
 - Public RC marketing page at `https://nwaoga.github.io/NthTerm/` (static `site/`, GitHub Pages)
@@ -39,7 +39,10 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Electron Builder packaging configuration for local unpacked builds and Windows release artifacts
 - Release branding assets (app icon + NSIS installer chrome) with documented unsigned-vs-signed signing path
 - Unsigned NSIS install/reinstall validated on Windows with AppData persistence preserved
-- Right inspector rail can be hidden/restored with a persisted local preference and command palette actions
+- Right inspector rail and left Workspaces rail can be hidden/restored with persisted local preferences and command palette actions
+- Fresh launches start with inspector, workspaces rail, and bottom dock collapsed unless the user previously showed them
+- Status bar shows workspace name and terminal count only (placeholder editor chrome removed)
+- Restore controls for hidden rails/dock sit inside the terminal stage, aligned with the inspector restore pattern
 - Active workspace shell profile controls default shell creation before falling back to the app default
 - Windows builds discover installed WSL distributions and expose them as selectable shell profiles
 - Compact windows preserve the terminal workspace through condensed toolbar controls, viewport-aware dock sizing, and an on-demand inspector overlay
@@ -56,7 +59,38 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** GitHub Release `v0.1.0-rc.2` published; ADO [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139) Closed.
+**Last shipped:** Post-RC2 chrome polish on `main` (`51f04c9`); ADO [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156) Closed.
+
+## Handover — 2026-08-16 (collapsed chrome)
+
+**Milestone:** `0.1.0-rc.2` remains the published release. Shell chrome now starts collapsed so the terminal stage is the default view.
+
+### Done
+- Hideable left Workspaces rail (preference `nthterm.preferences.leftRail.visible`, in-rail hide, stage restore, palette Hide/Show Workspaces Rail).
+- Inspector, left rail, and bottom dock default **hidden** unless stored preference is `'true'`.
+- Status bar stripped to workspace name + terminal count.
+- Restore buttons live inside the terminal stage (left restore in stack header / empty state; dock restore bottom-right of stage body).
+- Docs “On this page” sidenav is hideable with restore + `localStorage`.
+- `/output` added to `.gitignore`.
+- Closed ADO [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156).
+
+### Verification
+- Local: `npm run build` + `npm run test:ci` — **45** Electron / **152** Angular (accepted bundle-budget warning).
+
+### Next (when ready)
+1. Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist
+2. Otherwise: pick the next product story from day-to-day use
+
+### Guardrails
+- `output/` is gitignored; do not force-add capture junk.
+- Preserve compact inspector (Workspace | Terminal) and stacked focus/overview layout.
+- Keep new code in feature folders/services; do not grow god files.
+
+**Reference design:** `docs/target-ui-reference.png` (Phase 4 visual baseline).
+
+**Landing shots (2026-08-09):** hero/showcase use `site/media/focus.png` and `site/media/overview.png` (Studio Stack reference-preview captures of stacked Focus/Overview).
+
+---
 
 ## Handover — 2026-08-09 (RC2 published)
 
@@ -129,6 +163,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 4. ~~[#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140)~~ — Done. Stacked focus/overview day-to-day UX polish.
 5. ~~[#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141)~~ — Done. Landing page live at `https://nwaoga.github.io/NthTerm/`.
 6. Keep Authenticode signing / Apple notarization deferred until certificates are available. Manual install-over upgrades until then. Add a later story for `electron-updater` after signing.
+7. ~~[#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156)~~ — Done. Collapsed workspace chrome, hideable workspaces rail, status-bar cleanup (`51f04c9`).
 
 ### Stacked polish (#140)
 
@@ -162,7 +197,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Blog, newsletter, analytics suite, account/auth, auto-update pitch beyond “install over existing”
 - Live Electron acrylic chrome in marketing shots (browser reference preview used instead)
 
-Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141).
+Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141), [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156).
 
 ## Historical Delivery Tracks
 

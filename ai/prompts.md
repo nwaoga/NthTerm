@@ -15,13 +15,13 @@
 ## Current Prompt Focus
 - **Milestone complete:** `0.1.0-rc.2` is tagged, verified, and published. Landing-page download links resolve.
 - Landing page uses real Focus/Overview product shots from `site/media/` (Angular reference preview — Studio Stack demo); feature triad still uses CSS mini-mocks.
-- #138/#139/#140/#141 Closed (ADO + repo). PR #1 and cloud setup PR #2 merged to `main`.
+- #138/#139/#140/#141/#156 Closed (ADO + repo). PR #1 and cloud setup PR #2 merged to `main`. Post-RC2 chrome: rails/dock start collapsed (`51f04c9`).
 - Public RC page: `https://nwaoga.github.io/NthTerm/` (`site/` via GitHub Pages — static marketing only, not the Angular app).
 - Release: https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.2 (unsigned Win + macOS assets).
 - **Deferred:** Authenticode / Apple notarization / `electron-updater` until certificates exist.
 - Preserve the compact inspector hierarchy (Workspace | Terminal) and stacked focus/overview layout.
 - Renderer refactor is complete; keep new code in feature folders/services and do not grow god files.
-- Ignore untracked `output/` chrome-capture junk; do not commit it.
+- `output/` is gitignored; do not force-add capture junk.
 
 ## Handoff Summary
 - Product name: NthTerm
@@ -30,7 +30,7 @@
 - Public site: `https://nwaoga.github.io/NthTerm/` — GitHub Pages from `site/` (`media/focus.png`, `media/overview.png`); workflow `.github/workflows/pages.yml`
 - Backlog: signing / notarization / auto-update only (no open RC publish items)
 - Mac smoke evidence: `docs/verification/macos-smoke-v0.1.0-rc.2.json` from Actions run `31277571206`
-- Local verify bar: `npm run build` + `npm run test:ci` (45 Electron / 144 Angular)
+- Local verify bar: `npm run build` + `npm run test:ci` (45 Electron / 152 Angular)
 - Renderer: feature-oriented Angular shell with workspace-owned stable terminals, stacked focus/overview, compact inspector projections, and utility command history attributed by terminal ID
 - Electron: frameless window with Windows acrylic / macOS vibrancy chrome, queued Windows PTY lifecycle, stable-terminal start deduplication, platform-aware shells, and SQLite persistence
 - Upgrade policy for now: install newer build over existing install; AppData / Application Support preserved. `electron-updater` after code signing.
