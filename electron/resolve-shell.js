@@ -38,7 +38,16 @@ function getWindowsPowerShell() {
 }
 
 function getWindowsBash(pathExistsFn = pathExists) {
-  const roots = [process.env.ProgramFiles, process.env['ProgramFiles(x86)']].filter(Boolean);
+  const roots = [
+    ...new Set(
+      [
+        process.env.ProgramFiles,
+        process.env['ProgramFiles(x86)'],
+        'C:\\Program Files',
+        'C:\\Program Files (x86)',
+      ].filter(Boolean)
+    ),
+  ];
   const relativePaths = [
     ['Git', 'bin', 'bash.exe'],
     ['Git', 'usr', 'bin', 'bash.exe'],

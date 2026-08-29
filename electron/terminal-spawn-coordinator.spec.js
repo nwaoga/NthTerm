@@ -121,9 +121,10 @@ test('spawnWithRetry retries retryable Windows spawn failures', async () => {
 test('initial PTY dimensions are preserved in spawn options', () => {
   const dimensions = { name: 'xterm-256color', cols: 108, rows: 34 };
 
-  assert.deepEqual(createWindowsSpawnOptions(dimensions), {
+  assert.deepEqual(createWindowsSpawnOptions(dimensions, 'win32'), {
     ...dimensions,
     useConpty: true,
     conptyInheritCursor: false,
   });
+  assert.deepEqual(createWindowsSpawnOptions(dimensions, 'linux'), dimensions);
 });

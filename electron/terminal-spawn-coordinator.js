@@ -91,8 +91,8 @@ class TerminalSpawnCoordinator {
   }
 }
 
-function createWindowsSpawnOptions(baseOptions) {
-  if (process.platform !== 'win32') {
+function createWindowsSpawnOptions(baseOptions, platform = process.platform) {
+  if (platform !== 'win32') {
     return baseOptions;
   }
 
