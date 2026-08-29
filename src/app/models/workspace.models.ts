@@ -122,6 +122,24 @@ export function isWorkspaceShellProfile(value: string | null | undefined): value
   return value === 'system' || isShellId(value);
 }
 
+export function getOsDefaultShellLabel(platform: HostPlatformId = 'win32'): string {
+  if (platform === 'darwin') {
+    return 'Zsh';
+  }
+  if (platform === 'linux') {
+    return 'Bash';
+  }
+  return 'PowerShell';
+}
+
+export function formatInheritedShellLabel(baseLabel: string, resolvedLabel: string): string {
+  const resolved = resolvedLabel.trim();
+  if (!resolved || resolved === baseLabel) {
+    return baseLabel;
+  }
+  return `${baseLabel} (${resolved})`;
+}
+
 export function buildShellOptions(
   wslDistros: string[] = [],
   platform: HostPlatformId = 'win32'
@@ -142,12 +160,18 @@ export function buildShellOptions(
         }))
       : [];
 
-  return [...shells, ...wslOptions];
+  const osDefault = getOsDefaultShellLabel(platform);
+  return [...shells, ...wslOptions].map((option) =>
+    option.value === ''
+      ? { ...option, label: formatInheritedShellLabel('System Default', osDefault) }
+      : option
+  );
 }
 
 export function buildWorkspaceShellProfileOptions(
   wslDistros: string[] = [],
-  platform: HostPlatformId = 'win32'
+  platform: HostPlatformId = 'win32',
+  appDefaultShell: string = ''
 ): WorkspaceShellProfileOption[] {
   const profiles = WORKSPACE_SHELL_PROFILE_OPTIONS.filter((option) => {
     if (platform === 'win32') {
@@ -165,7 +189,35 @@ export function buildWorkspaceShellProfileOptions(
         }))
       : [];
 
-  return [...profiles, ...wslOptions];
+  const osDefault = getOsDefaultShellLabel(platform);
+  const appDefault = resolveConcreteShellLabel(appDefaultShell, wslDistros, platform);
+
+  return [...profiles, ...wslOptions].map((option) => {
+    if (option.value === 'system') {
+      return { ...option, label: formatInheritedShellLabel('System Default', osDefault) };
+    }
+    if (option.value === '') {
+      return { ...option, label: formatInheritedShellLabel('Use App Default', appDefault) };
+    }
+    return option;
+  });
+}
+
+function resolveConcreteShellLabel(
+  shell: string,
+  wslDistros: string[] = [],
+  platform: HostPlatformId = 'win32'
+): string {
+  if (!shell || shell === 'system') {
+    return getOsDefaultShellLabel(platform);
+  }
+
+  const builtin = SHELL_OPTIONS.find((option) => option.value === shell);
+  if (builtin) {
+    return builtin.label;
+  }
+
+  return resolveWslLabel(shell, wslDistros) || getOsDefaultShellLabel(platform);
 }
 
 function resolveWslLabel(shell: string, wslDistros: string[] = []): string | undefined {
@@ -185,24 +237,53 @@ function resolveWslLabel(shell: string, wslDistros: string[] = []): string | und
 }
 
 /** Label lookup for persisted shells, including Windows-only values when running on macOS/Linux. */
-export function resolveShellOptionLabel(shell: string, wslDistros: string[] = []): string {
+export function resolveShellOptionLabel(
+  shell: string,
+  wslDistros: string[] = [],
+  platform: HostPlatformId = 'win32'
+): string {
+  if (!shell) {
+    return formatInheritedShellLabel('System Default', getOsDefaultShellLabel(platform));
+  }
+
   const builtin = SHELL_OPTIONS.find((option) => option.value === shell);
   if (builtin) {
     return builtin.label;
   }
 
-  return resolveWslLabel(shell, wslDistros) || 'System Default';
+  return (
+    resolveWslLabel(shell, wslDistros) ||
+    formatInheritedShellLabel('System Default', getOsDefaultShellLabel(platform))
+  );
 }
 
 /** Label lookup for persisted workspace profiles across host platforms. */
 export function resolveWorkspaceShellProfileLabel(
   profile: string,
-  wslDistros: string[] = []
+  wslDistros: string[] = [],
+  platform: HostPlatformId = 'win32',
+  appDefaultShell: string = ''
 ): string {
+  if (profile === 'system') {
+    return formatInheritedShellLabel('System Default', getOsDefaultShellLabel(platform));
+  }
+  if (!profile) {
+    return formatInheritedShellLabel(
+      'Use App Default',
+      resolveConcreteShellLabel(appDefaultShell, wslDistros, platform)
+    );
+  }
+
   const builtin = WORKSPACE_SHELL_PROFILE_OPTIONS.find((option) => option.value === profile);
   if (builtin) {
     return builtin.label;
   }
 
-  return resolveWslLabel(profile, wslDistros) || 'Use App Default';
+  return (
+    resolveWslLabel(profile, wslDistros) ||
+    formatInheritedShellLabel(
+      'Use App Default',
+      resolveConcreteShellLabel(appDefaultShell, wslDistros, platform)
+    )
+  );
 }

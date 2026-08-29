@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { AppPreferencesService } from './app-preferences.service';
+import { AppPreferencesService, windowTransparencyToSurfaceAlpha, windowTransparencyToTerminalOpacity } from './app-preferences.service';
 
 describe('AppPreferencesService', () => {
   let service: AppPreferencesService;
@@ -106,6 +106,21 @@ describe('AppPreferencesService', () => {
       cursor: '#abcdef',
     });
     expect(service.readSystemTheme()).toBe('white');
+  });
+
+  it('persists and clamps window transparency', () => {
+    expect(service.readWindowTransparency()).toBe(0);
+
+    service.writeWindowTransparency(45);
+    expect(service.readWindowTransparency()).toBe(45);
+
+    expect(service.writeWindowTransparency(200)).toBe(80);
+    expect(service.readWindowTransparency()).toBe(80);
+    expect(service.writeWindowTransparency(-10)).toBe(0);
+    expect(windowTransparencyToSurfaceAlpha(40)).toBe(0.6);
+    expect(windowTransparencyToSurfaceAlpha(0)).toBe(1);
+    expect(windowTransparencyToTerminalOpacity(0)).toBe(1);
+    expect(windowTransparencyToTerminalOpacity(40)).toBe(0.36);
   });
 
   it('persists the terminal ansi palette preference', () => {

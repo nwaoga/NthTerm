@@ -31,4 +31,22 @@ describe('platform shell option builders', () => {
     expect(resolveWorkspaceShellProfileLabel('cmd')).toBe('Command Prompt');
     expect(resolveWorkspaceShellProfileLabel('wsl:Debian', ['Debian'])).toBe('WSL: Debian');
   });
+
+  it('annotates inherited defaults with the resolved shell', () => {
+    expect(buildShellOptions([], 'win32').find((option) => option.value === '')?.label).toBe(
+      'System Default (PowerShell)'
+    );
+    expect(buildShellOptions([], 'linux').find((option) => option.value === '')?.label).toBe(
+      'System Default (Bash)'
+    );
+    expect(
+      buildWorkspaceShellProfileOptions([], 'win32', 'cmd').find((option) => option.value === '')?.label
+    ).toBe('Use App Default (Command Prompt)');
+    expect(
+      buildWorkspaceShellProfileOptions([], 'darwin').find((option) => option.value === 'system')?.label
+    ).toBe('System Default (Zsh)');
+    expect(resolveWorkspaceShellProfileLabel('system', [], 'win32')).toBe('System Default (PowerShell)');
+    expect(resolveWorkspaceShellProfileLabel('', [], 'win32', 'bash')).toBe('Use App Default (Bash)');
+    expect(resolveShellOptionLabel('')).toBe('System Default (PowerShell)');
+  });
 });

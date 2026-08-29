@@ -4,6 +4,7 @@ import { WorkspaceRuntimeService } from './workspace-runtime.service';
 import { SavedWorkspace, WorkspaceBridgeService } from '../workspace-bridge.service';
 import { RuntimeTerminal } from '../models';
 import { MAX_TERMINALS_PER_WORKSPACE } from './workspace-snapshot';
+import { AppPreferencesService } from '../preferences/app-preferences.service';
 
 function makeTerminal(overrides: Partial<RuntimeTerminal> & { id: string }): RuntimeTerminal {
   return {
@@ -109,6 +110,12 @@ describe('WorkspaceRuntimeService', () => {
         {
           provide: WorkspaceBridgeService,
           useValue: workspaceBridge,
+        },
+        {
+          provide: AppPreferencesService,
+          useValue: {
+            readDefaultShell: () => '',
+          },
         },
       ],
     });
@@ -377,6 +384,10 @@ describe('WorkspaceRuntimeService', () => {
       expect(service.getWorkspaceShellProfileOptions().map((option) => option.label)).toContain(
         'WSL: Debian'
       );
+      expect(service.getWorkspaceShellProfileOptions().map((option) => option.label)).toContain(
+        'System Default (PowerShell)'
+      );
+      expect(service.getShellOptions().map((option) => option.label)).toContain('System Default (PowerShell)');
       expect(service.getWorkspaceShellProfileLabel()).toBe('WSL: Ubuntu');
       expect(service.resolveNewTerminalShell(undefined, 'powershell')).toBe('wsl:Ubuntu');
     } finally {

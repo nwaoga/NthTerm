@@ -37,6 +37,25 @@ function getWindowsPowerShell() {
   return { file: 'powershell.exe', args: ['-NoLogo'] };
 }
 
+function getWindowsBash(pathExistsFn = pathExists) {
+  const roots = [process.env.ProgramFiles, process.env['ProgramFiles(x86)']].filter(Boolean);
+  const relativePaths = [
+    ['Git', 'bin', 'bash.exe'],
+    ['Git', 'usr', 'bin', 'bash.exe'],
+  ];
+
+  for (const root of roots) {
+    for (const relativePath of relativePaths) {
+      const candidate = path.join(root, ...relativePath);
+      if (pathExistsFn(candidate)) {
+        return { file: candidate, args: ['--login', '-i'] };
+      }
+    }
+  }
+
+  return { file: 'bash.exe', args: [] };
+}
+
 function resolveShell(preference, options = {}) {
   const platform = options.platform || process.platform;
   const normalized = (preference || '').trim();
@@ -64,9 +83,7 @@ function resolveShell(preference, options = {}) {
   }
 
   if (normalizedLower === 'bash' || normalizedLower === 'bash.exe') {
-    return platform === 'win32'
-      ? { file: 'bash.exe', args: [] }
-      : { file: '/bin/bash', args: [] };
+    return platform === 'win32' ? getWindowsBash(options.pathExists) : { file: '/bin/bash', args: [] };
   }
 
   if (normalizedLower === 'zsh' || normalizedLower === 'zsh.exe') {
@@ -99,6 +116,7 @@ function getDefaultShell(platform = process.platform) {
 module.exports = {
   getDefaultShell,
   getPowerShell7Path,
+  getWindowsBash,
   getWindowsPowerShell,
   pathExists,
   resolveShell,

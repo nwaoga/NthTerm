@@ -22,11 +22,15 @@ const DEFAULT_SHELL_PREFERENCE_KEY = 'nthterm.preferences.defaultShell';
 const DEFAULT_TERMINAL_THEME_PREFERENCE_KEY = 'nthterm.preferences.defaultTerminalTheme';
 const TERMINAL_ANSI_PALETTE_PREFERENCE_KEY = 'nthterm.preferences.terminalAnsiPalette';
 const SYSTEM_THEME_PREFERENCE_KEY = 'nthterm.preferences.systemTheme';
+const WINDOW_TRANSPARENCY_PREFERENCE_KEY = 'nthterm.preferences.windowTransparency';
 
 export type DefaultShellPreference = WorkspaceShellId;
 const DEFAULT_BOTTOM_PANEL_HEIGHT = 280;
 const MIN_BOTTOM_PANEL_HEIGHT = 160;
 const MAX_BOTTOM_PANEL_HEIGHT = 520;
+export const MIN_WINDOW_TRANSPARENCY = 0;
+export const MAX_WINDOW_TRANSPARENCY = 80;
+const DEFAULT_WINDOW_TRANSPARENCY = 0;
 
 export type NewSessionStartMode = 'focused-tab' | 'home' | 'custom';
 
@@ -245,6 +249,26 @@ export class AppPreferencesService {
     }
   }
 
+  readWindowTransparency(): number {
+    try {
+      const raw = localStorage.getItem(WINDOW_TRANSPARENCY_PREFERENCE_KEY);
+      const parsed = raw ? Number.parseInt(raw, 10) : DEFAULT_WINDOW_TRANSPARENCY;
+      return clampWindowTransparency(parsed);
+    } catch {
+      return DEFAULT_WINDOW_TRANSPARENCY;
+    }
+  }
+
+  writeWindowTransparency(value: number): number {
+    const next = clampWindowTransparency(value);
+    try {
+      localStorage.setItem(WINDOW_TRANSPARENCY_PREFERENCE_KEY, String(next));
+    } catch {
+      // Preference persistence is best-effort only.
+    }
+    return next;
+  }
+
   private isSystemTheme(value: string | null): value is SystemThemeId {
     return value === 'midnight' || value === 'coffee' || value === 'white';
   }
@@ -287,4 +311,21 @@ export class AppPreferencesService {
   private isNewSessionStartMode(value: string | null): value is NewSessionStartMode {
     return value === 'focused-tab' || value === 'home' || value === 'custom';
   }
+}
+
+export function clampWindowTransparency(value: number): number {
+  if (!Number.isFinite(value)) {
+    return MIN_WINDOW_TRANSPARENCY;
+  }
+  return Math.min(MAX_WINDOW_TRANSPARENCY, Math.max(MIN_WINDOW_TRANSPARENCY, Math.round(value)));
+}
+
+export function windowTransparencyToSurfaceAlpha(transparency: number): number {
+  return Math.max(0, 1 - clampWindowTransparency(transparency) / 100);
+}
+
+/** xterm 6 paints an opaque canvas, so fade the whole surface instead of cell alpha. */
+export function windowTransparencyToTerminalOpacity(transparency: number): number {
+  const remaining = windowTransparencyToSurfaceAlpha(transparency);
+  return Math.max(0.12, Number((remaining * remaining).toFixed(4)));
 }

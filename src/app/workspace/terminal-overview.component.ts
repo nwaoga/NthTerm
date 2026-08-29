@@ -4,7 +4,7 @@ import { RuntimeTerminal } from '../models';
 import { AppPreferencesService } from '../preferences/app-preferences.service';
 import { resolveTerminalTheme } from '../terminal/terminal-theme.util';
 import { TerminalSessionService } from '../terminal/terminal-session.service';
-import { getOverviewColumnCount } from './workspace-layout.models';
+import { getOverviewColumnCount, getOverviewRowCount } from './workspace-layout.models';
 import { WorkspaceRuntimeService } from './workspace-runtime.service';
 import { TerminalPreviewCardComponent } from './terminal-preview-card.component';
 
@@ -16,6 +16,7 @@ import { TerminalPreviewCardComponent } from './terminal-preview-card.component'
       class="terminal-overview"
       [attr.data-terminal-count]="terminals.length"
       [style.--overview-columns]="columnCount"
+      [style.--overview-rows]="rowCount"
       aria-label="Terminal overview"
     >
       <div class="terminal-overview-grid">
@@ -65,6 +66,10 @@ export class TerminalOverviewComponent {
 
   protected get columnCount(): number {
     return getOverviewColumnCount(this.terminals.length);
+  }
+
+  protected get rowCount(): number {
+    return getOverviewRowCount(this.terminals.length);
   }
 
   protected getTerminalForeground(terminal: RuntimeTerminal): string {

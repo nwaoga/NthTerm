@@ -46,6 +46,23 @@
               }
             </select>
           </label>
+          <label class="preference-field">
+            <span class="preference-label">Window transparency {{ windowTransparency }}%</span>
+            <input
+              class="preference-range"
+              type="range"
+              min="0"
+              max="80"
+              step="1"
+              [ngModel]="windowTransparency"
+              (ngModelChange)="setWindowTransparency($event)"
+              aria-valuemin="0"
+              aria-valuemax="80"
+              [attr.aria-valuenow]="windowTransparency"
+              aria-label="Window transparency"
+            />
+            <p class="preference-hint">See the desktop behind the whole window, including the terminal. Slide up for more glass.</p>
+          </label>
         </section>
 
         <section class="preference-section" aria-labelledby="settings-terminal-appearance">

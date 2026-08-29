@@ -59,6 +59,7 @@
     [defaultTerminalForeground]="defaultTerminalForeground"
     [defaultTerminalBackground]="defaultTerminalBackground"
     [terminalAnsiPalette]="terminalAnsiPalette"
+    [windowTransparency]="windowTransparency"
     [shellOptions]="ws.getShellOptions()"
     (closed)="closeSettings()"
     (utilityPanelPreferenceChange)="setUtilityPanelPreference($event)"
@@ -69,5 +70,6 @@
     (defaultTerminalForegroundChange)="setDefaultTerminalForeground($event)"
     (defaultTerminalBackgroundChange)="setDefaultTerminalBackground($event)"
     (terminalAnsiPaletteChange)="setTerminalAnsiPalette($event)"
+    (windowTransparencyChange)="setWindowTransparency($event)"
   />
 </main>

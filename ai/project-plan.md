@@ -16,9 +16,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-08-16)
+## Current State (2026-08-29)
 
-**Phase:** `0.1.0-rc.2` published. Feature roadmap, unsigned Win/mac packaging, public landing page, stacked UX polish, macOS smoke automation, and post-RC2 collapsed workspace chrome are complete.
+**Phase:** `0.1.0-rc.2` published. Feature roadmap, unsigned Win/mac packaging, public landing page, stacked UX polish, macOS smoke automation, post-RC2 collapsed chrome, inspector shell apply-on-change, fill-stage Overview tiling, and window transparency are on `main`.
 
 **Working today:**
 - Public RC marketing page at `https://nwaoga.github.io/NthTerm/` (static `site/`, GitHub Pages)
@@ -34,6 +34,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Toolbar cleanup: workspace actions left-aligned; search/dock shortcut buttons removed
 - Animated terminal focus mode with visible peer previews and `Ctrl+Shift+Enter` restore
 - Stacked focus/overview terminal layout (≤10) with `Ctrl+\` overview toggle and compact stack navigation
+- Overview fills the stage with an equal-cell tiling grid (`ceil(sqrt(n))`): 2-up split, 3-up 2×2 with an empty cell, cards resize with the window
+- Changing the inspector shell restarts that PTY immediately; Windows Bash prefers Git Bash when installed
+- Settings window-transparency slider (0–80%) thins CSS glass and Electron native window opacity so chrome and terminals show the desktop together
 - Bottom dock resize keeps output and system monitor panels aligned
 - Frameless desktop window with per-theme Windows title bar overlay
 - Electron Builder packaging configuration for local unpacked builds and Windows release artifacts
@@ -59,7 +62,37 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** Post-RC2 chrome polish on `main` (`51f04c9`); ADO [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156) Closed.
+**Last shipped:** Inspector shell apply + fill-stage Overview + window transparency on `main`; ADO [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172), [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173), and [#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174) Closed.
+
+## Handover — 2026-08-29 (shell apply, overview tiling, transparency)
+
+**Milestone:** `0.1.0-rc.2` remains the published GitHub release. Day-to-day polish since collapsed chrome is on `main` and not tagged yet.
+
+### Done
+- Inspector Terminal Settings shell change relaunches the focused session instead of waiting for Restart ([#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172)).
+- Windows `bash` resolves to Git Bash (`Git\bin\bash.exe` `--login -i`) when present; otherwise `bash.exe` on PATH. Avoids `System32\bash.exe` WSL launcher.
+- Overview fills the workspace stage: 1 full, 2 split 50/50, 3 → 2×2 with empty fourth cell, then `ceil(sqrt(n))` ([#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173)).
+- Preview cards use equal `1fr` rows/columns so they resize with the NthTerm window. Compact-width overrides that collapsed the grid were removed.
+- Shell dropdowns label OS default as **System Default (PowerShell)** on Windows and inherited app default as **Use App Default (…)**.
+- Settings **Window transparency** slider persists, drives CSS glass, clears the Electron fill, drops Windows acrylic while sliding, and sets native window opacity so the terminal matches chrome ([#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174)). xterm.js 6 still paints an opaque canvas; HWND opacity is the see-through path.
+
+### Verification
+- `npm run build` (accepted bundle-budget warning) and `npm run test:ci` (Electron + 167 Angular).
+- Live Electron: inspector Bash → Git Bash; Overview tiles fill the stage; transparency slider shows the desktop through chrome and the terminal.
+
+### Next (when ready)
+1. Cut a beta from current `main` (e.g. `0.1.0-beta.1`), run `rc:verify`, tag, publish unsigned Win/mac assets.
+2. Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist.
+3. Otherwise: pick the next product story from day-to-day use (landing screenshot refresh for collapsed chrome + tiling Overview + glass is a good follow-on).
+
+### Guardrails
+- `output/` is gitignored; do not force-add capture junk.
+- Preserve compact inspector (Workspace | Terminal), stacked focus/overview, and fill-stage Overview tiling.
+- Keep new code in feature folders/services; do not grow god files.
+- Do not map Windows Bash to `System32\bash.exe` when Git Bash is installed.
+- Do not rely on xterm `allowTransparency` for glass; Electron `setOpacity` plus a clear `#00000000` window background is required.
+
+**Reference design:** `docs/target-ui-reference.png` (Phase 4 visual baseline).
 
 ## Handover — 2026-08-16 (collapsed chrome)
 
@@ -164,6 +197,8 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 5. ~~[#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141)~~ — Done. Landing page live at `https://nwaoga.github.io/NthTerm/`.
 6. Keep Authenticode signing / Apple notarization deferred until certificates are available. Manual install-over upgrades until then. Add a later story for `electron-updater` after signing.
 7. ~~[#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156)~~ — Done. Collapsed workspace chrome, hideable workspaces rail, status-bar cleanup (`51f04c9`).
+8. ~~[#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172)~~ — Done. Inspector shell change restarts the PTY; Windows Bash prefers Git Bash.
+9. ~~[#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173)~~ — Done. Fill-stage Overview tiling grid that resizes with the window.
 
 ### Stacked polish (#140)
 
@@ -197,7 +232,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Blog, newsletter, analytics suite, account/auth, auto-update pitch beyond “install over existing”
 - Live Electron acrylic chrome in marketing shots (browser reference preview used instead)
 
-Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141), [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156).
+Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141), [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156), [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172), [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173).
 
 ## Historical Delivery Tracks
 

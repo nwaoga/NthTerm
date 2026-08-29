@@ -20,6 +20,7 @@ import {
   resolveWorkspaceShellProfileLabel,
 } from '../models';
 import { resolveHostPlatform } from '../platform/host-platform';
+import { AppPreferencesService } from '../preferences/app-preferences.service';
 import {
   MAX_TERMINALS_PER_WORKSPACE,
   createTerminalDraft,
@@ -30,6 +31,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class WorkspaceRuntimeService {
+  private readonly preferences = inject(AppPreferencesService);
   status = 'Loading workspace...';
   workspaceName = '';
   workingDirectory = '';
@@ -140,7 +142,7 @@ export class WorkspaceRuntimeService {
 
   getFocusedTerminalShellLabel(): string {
     const shell = this.getFocusedTerminal()?.shell || '';
-    return resolveShellOptionLabel(shell, this.wslDistros);
+    return resolveShellOptionLabel(shell, this.wslDistros, resolveHostPlatform());
   }
 
   /** @deprecated Use getFocusedTerminalShellLabel */
@@ -149,7 +151,12 @@ export class WorkspaceRuntimeService {
   }
 
   getWorkspaceShellProfileLabel(): string {
-    return resolveWorkspaceShellProfileLabel(this.workspaceShellProfile, this.wslDistros);
+    return resolveWorkspaceShellProfileLabel(
+      this.workspaceShellProfile,
+      this.wslDistros,
+      resolveHostPlatform(),
+      this.preferences.readDefaultShell()
+    );
   }
 
   setWslDistros(distros: string[]): void {
@@ -161,7 +168,11 @@ export class WorkspaceRuntimeService {
   }
 
   getWorkspaceShellProfileOptions() {
-    return buildWorkspaceShellProfileOptions(this.wslDistros, resolveHostPlatform());
+    return buildWorkspaceShellProfileOptions(
+      this.wslDistros,
+      resolveHostPlatform(),
+      this.preferences.readDefaultShell()
+    );
   }
 
   resolveNewTerminalShell(explicitShell: ShellId | undefined, appDefaultShell: ShellId): ShellId {
@@ -701,9 +712,9 @@ export class WorkspaceRuntimeService {
       return customName;
     }
 
-    const shellLabel = resolveShellOptionLabel(terminal.shell, this.wslDistros);
+    const shellLabel = resolveShellOptionLabel(terminal.shell, this.wslDistros, resolveHostPlatform());
     const matchingTerminals = this.terminals.filter(
-      (item) => resolveShellOptionLabel(item.shell, this.wslDistros) === shellLabel
+      (item) => resolveShellOptionLabel(item.shell, this.wslDistros, resolveHostPlatform()) === shellLabel
     );
     if (matchingTerminals.length === 1) {
       return shellLabel;

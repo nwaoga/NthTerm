@@ -478,8 +478,12 @@ export class WorkspaceAreaComponent implements AfterViewInit {
   }
 
   protected setFocusedTerminalShell(shell: string): void {
+    const current = this.getFocusedTerminal()?.shell || '';
     this.ws.updateFocusedTerminalShell(shell);
     void this.ws.persistWorkspaceState();
+    if (current !== shell) {
+      void this.terminal.relaunchTerminal();
+    }
   }
 
   protected setFocusedTerminalName(name: string): void {

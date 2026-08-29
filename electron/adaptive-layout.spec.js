@@ -44,6 +44,8 @@ test('stacked focus layout parks inactive terminals and avoids a peer thumbnail 
   assert.match(shellCss, /\.terminal-session-park \{/);
   assert.match(shellCss, /\.terminal-focus-view \{/);
   assert.match(shellCss, /\.terminal-overview-grid \{/);
+  assert.match(shellCss, /grid-template-rows: repeat\(var\(--overview-rows, 1\), minmax\(0, 1fr\)\)/);
+  assert.match(shellCss, /align-content: stretch;/);
   assert.match(shellCss, /\.terminal-stack-layers \{/);
   assert.doesNotMatch(shellCss, /\.pane-grid\.pane-grid-zoomed \.zoom-peer-3/);
 });
@@ -64,7 +66,10 @@ test('shell chrome uses frosted glass tokens with reduced-transparency fallback'
   assert.match(shellCss, /\.left-rail \{[\s\S]*?backdrop-filter: var\(--shell-glass-filter\);/);
   assert.match(shellCss, /\.workspace-stage-body \{[\s\S]*?backdrop-filter: var\(--shell-glass-filter\);/);
   assert.match(shellCss, /\.terminal-host \{[\s\S]*?backdrop-filter: none;/);
-  assert.match(shellCss, /\.app-shell \{[\s\S]*?background:\s*var\(--shell-bg-base\);/);
+  assert.match(shellCss, /--shell-fill-mix:/);
+  assert.match(shellCss, /color-mix\(in srgb, var\(--shell-bg-base\) var\(--shell-fill-mix\), transparent\)/);
+  assert.match(mainSource, /app:set-window-transparency/);
+  assert.match(mainSource, /applyNativeWindowTransparency/);
   assert.match(shellCss, /\.left-rail \{[\s\S]*?background:\s*var\(--shell-rail-bg\);/);
   assert.match(shellCss, /--shell-rail-bg:\s*rgba\(/);
   assert.doesNotMatch(shellCss, /--shell-rail-bg:\s*linear-gradient/);
@@ -82,6 +87,7 @@ test('shell chrome uses frosted glass tokens with reduced-transparency fallback'
 
 test('Windows window uses acrylic glass material with a clear background', () => {
   assert.match(windowChromeSource, /backgroundMaterial:\s*'acrylic'/);
+  assert.match(windowChromeSource, /transparent:\s*true/);
   assert.match(mainSource, /window\.setBackgroundColor\('#00000000'\)/);
   assert.match(mainSource, /createBrowserWindowOptions/);
   assert.match(shellCss, /\.shell-toolbar\.mac-titlebar \{[\s\S]*?padding-left:\s*calc\(var\(--shell-traffic-lights-inset\)/);
@@ -135,9 +141,19 @@ test('terminal surfaces suppress accidental horizontal xterm scroll tracks', () 
   );
 });
 
-test('xterm viewport remainder uses the active terminal theme instead of black', () => {
+test('xterm surface fades with window transparency because the canvas is opaque', () => {
   assert.match(
     shellCss,
-    /\.terminal-host \.xterm,\s*\.terminal-host \.xterm-viewport \{\s*background-color: var\(--terminal-surface-bg, #0d1320\) !important;/
+    /\.terminal-host \{[\s\S]*?background: transparent;/
   );
+  assert.match(
+    shellCss,
+    /\.terminal-host \.xterm \{[\s\S]*?opacity: var\(--shell-terminal-surface-opacity, 1\);/
+  );
+  assert.match(shellCss, /--shell-terminal-surface-opacity:/);
+  assert.match(
+    shellCss,
+    /\.workspace-stage-body::before \{[\s\S]*?opacity: calc\(\(100 - var\(--shell-window-transparency\)\) \/ 100\);/
+  );
+  assert.doesNotMatch(shellCss, /\.terminal-focus-card::before \{/);
 });

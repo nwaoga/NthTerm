@@ -4,6 +4,17 @@
 - [ ] Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist
 
 ## Done
+- [x] [#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174) Window transparency slider including the terminal surface (ADO Closed 2026-08-29)
+  - [x] Settings 0–80% slider persisted as `nthterm.preferences.windowTransparency`
+  - [x] CSS glass + clear Electron background; Windows acrylic off while sliding
+  - [x] Native `BrowserWindow.setOpacity` so xterm’s opaque canvas still shows the desktop
+- [x] [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173) Fill-stage Overview tiling grid that resizes with the window (ADO Closed 2026-08-29)
+  - [x] 1 full / 2 split 50/50 / 3 → 2×2 with empty cell; further counts `ceil(sqrt(n))`
+  - [x] Equal `1fr` rows and columns so cards grow/shrink with the window
+  - [x] Removed compact-width column collapse that fought the tiling
+- [x] [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172) Apply inspector shell changes immediately and prefer Git Bash on Windows (ADO Closed 2026-08-29)
+  - [x] Changing Terminal Settings shell relaunches the focused PTY
+  - [x] Windows Bash uses Git Bash when installed; otherwise `bash.exe` on PATH
 - [x] [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156) Collapse workspace chrome by default and hide the workspaces rail (ADO Closed 2026-08-16; `51f04c9`)
   - [x] Hideable left Workspaces rail with persisted preference and palette actions
   - [x] Inspector, left rail, and dock default hidden unless preference is `'true'`

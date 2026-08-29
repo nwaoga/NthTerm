@@ -29,6 +29,7 @@ export class SettingsModalComponent {
   @Input() defaultTerminalForeground = '#d8e1e8';
   @Input() defaultTerminalBackground = '#0d1320';
   @Input() terminalAnsiPalette: TerminalAnsiPaletteId = 'auto';
+  @Input() windowTransparency = 0;
   @Input() shellOptions: ShellOption[] = buildShellOptions([], resolveHostPlatform());
 
   @Output() readonly closed = new EventEmitter<void>();
@@ -40,6 +41,7 @@ export class SettingsModalComponent {
   @Output() readonly defaultTerminalForegroundChange = new EventEmitter<string>();
   @Output() readonly defaultTerminalBackgroundChange = new EventEmitter<string>();
   @Output() readonly terminalAnsiPaletteChange = new EventEmitter<TerminalAnsiPaletteId>();
+  @Output() readonly windowTransparencyChange = new EventEmitter<number>();
 
   protected readonly systemThemes = SYSTEM_THEMES;
   protected readonly terminalAnsiPaletteOptions = TERMINAL_ANSI_PALETTE_OPTIONS;
@@ -123,6 +125,11 @@ export class SettingsModalComponent {
     ) {
       this.terminalAnsiPaletteChange.emit(value);
     }
+  }
+
+  protected setWindowTransparency(value: string | number): void {
+    const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
+    this.windowTransparencyChange.emit(Number.isFinite(parsed) ? parsed : 0);
   }
 
   protected getNewSessionStartHint(): string {

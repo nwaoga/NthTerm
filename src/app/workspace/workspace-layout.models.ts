@@ -12,14 +12,18 @@ export const FOCUS_ZOOM_THRESHOLD = 0.5;
 
 /** Overview grid column count — keep in sync with terminal-overview layout. */
 export function getOverviewColumnCount(terminalCount: number): number {
-  if (terminalCount <= 1) {
+  const count = Math.max(0, terminalCount);
+  if (count <= 1) {
     return 1;
   }
-  if (terminalCount <= 4) {
-    return 2;
+  return Math.ceil(Math.sqrt(count));
+}
+
+/** Overview grid row count for an equal-cell fill layout. */
+export function getOverviewRowCount(terminalCount: number): number {
+  const count = Math.max(0, terminalCount);
+  if (count <= 1) {
+    return 1;
   }
-  if (terminalCount <= 6) {
-    return 3;
-  }
-  return 5;
+  return Math.ceil(count / getOverviewColumnCount(count));
 }

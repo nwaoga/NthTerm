@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const path = require('node:path');
 
 const { getWindowsPowerShell, resolveShell } = require('./resolve-shell');
 
@@ -22,6 +23,23 @@ test('resolveShell preserves named shell preferences', () => {
   assert.deepEqual(resolveShell('cmd', { platform: 'win32' }), { file: 'cmd.exe', args: [] });
   assert.deepEqual(resolveShell('bash', { platform: 'linux' }), { file: '/bin/bash', args: [] });
   assert.deepEqual(resolveShell('zsh', { platform: 'darwin' }), { file: '/bin/zsh', args: [] });
+});
+
+test('resolveShell prefers Git Bash on Windows when it is installed', () => {
+  const gitBash = path.join(process.env.ProgramFiles || 'C:\\Program Files', 'Git', 'bin', 'bash.exe');
+  const shell = resolveShell('bash', {
+    platform: 'win32',
+    pathExists: (filePath) => filePath === gitBash,
+  });
+
+  assert.deepEqual(shell, { file: gitBash, args: ['--login', '-i'] });
+});
+
+test('resolveShell falls back to bash.exe on Windows when Git Bash is missing', () => {
+  assert.deepEqual(resolveShell('bash', { platform: 'win32', pathExists: () => false }), {
+    file: 'bash.exe',
+    args: [],
+  });
 });
 
 test('resolveShell defaults to zsh on macOS', () => {

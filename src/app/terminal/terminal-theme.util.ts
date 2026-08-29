@@ -64,6 +64,12 @@ export function toXtermTheme(
   };
 }
 
+export function hexToRgba(hex: string, alpha: number): string {
+  const parsed = parseHex(hex);
+  const clamped = Math.min(1, Math.max(0, alpha));
+  return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${clamped})`;
+}
+
 export function themesEqual(
   left: TerminalColorTheme | null | undefined,
   right: TerminalColorTheme | null | undefined

@@ -66,7 +66,7 @@ describe('WorkspaceAreaComponent', () => {
     getTerminalTone: () => 'violet',
     focusedPaneId: 'terminal-1',
     usesDefaultTerminalTheme: () => true,
-    updateFocusedTerminalShell: () => undefined,
+    updateFocusedTerminalShell: jasmine.createSpy('updateFocusedTerminalShell'),
     updateFocusedTerminalName: jasmine.createSpy('updateFocusedTerminalName'),
     updateTerminalName: jasmine.createSpy('updateTerminalName'),
     updateTerminalThemeColors: jasmine.createSpy('updateTerminalThemeColors'),
@@ -318,6 +318,9 @@ describe('WorkspaceAreaComponent', () => {
 
     expect(fixture.nativeElement.querySelector('app-terminal-overview')).not.toBeNull();
     expect(fixture.nativeElement.querySelectorAll('app-terminal-preview-card').length).toBe(4);
+    const overview = fixture.nativeElement.querySelector('.terminal-overview') as HTMLElement;
+    expect(overview.style.getPropertyValue('--overview-columns').trim()).toBe('2');
+    expect(overview.style.getPropertyValue('--overview-rows').trim()).toBe('2');
 
     fixture.nativeElement.querySelector('[data-terminal-id="terminal-3"]').click();
     await fixture.whenStable();
@@ -347,6 +350,9 @@ describe('WorkspaceAreaComponent', () => {
     );
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-terminal-overview')).not.toBeNull();
+    const overview = fixture.nativeElement.querySelector('.terminal-overview') as HTMLElement;
+    expect(overview.style.getPropertyValue('--overview-columns').trim()).toBe('2');
+    expect(overview.style.getPropertyValue('--overview-rows').trim()).toBe('2');
 
     document.dispatchEvent(
       new KeyboardEvent('keydown', { key: '2', ctrlKey: true, bubbles: true })
@@ -433,6 +439,21 @@ describe('WorkspaceAreaComponent', () => {
     expect(text).toContain('Terminal Settings');
     expect(text).toContain('Colors');
     expect(text).not.toContain('Workspace shell profile');
+  });
+
+  it('restarts the focused terminal when the inspector shell changes', async () => {
+    const fixture = TestBed.createComponent(WorkspaceAreaComponent);
+    fixture.detectChanges();
+    fixture.debugElement.queryAll(By.css('.inspector-tabs button'))[1].nativeElement.click();
+    fixture.detectChanges();
+
+    const select = fixture.debugElement.query(By.css('.inspector-shell-field .preference-select'));
+    select.nativeElement.value = 'cmd';
+    select.nativeElement.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+
+    expect(workspaceService.updateFocusedTerminalShell).toHaveBeenCalledWith('cmd');
+    expect(terminalService.relaunchTerminal).toHaveBeenCalled();
   });
 
   it('renames the focused terminal from terminal settings', () => {
