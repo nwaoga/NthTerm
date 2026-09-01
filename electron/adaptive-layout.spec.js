@@ -117,6 +117,14 @@ test('2-up layout assigns visible grid areas to all four terminals', () => {
   assert.match(shellCss, /\.terminal-overview-grid \{/);
 });
 
+test('toolbar host stacks above the workspace so add-terminal menus paint over xterm', () => {
+  assert.match(
+    shellCss,
+    /\.app-shell-toolbar-host \{[\s\S]*?z-index:\s*40;[\s\S]*?overflow:\s*visible;/
+  );
+  assert.match(shellCss, /\.view-menu-dropdown \{[\s\S]*?z-index:\s*40;/);
+});
+
 test('the full toolbar remains draggable outside genuine controls', () => {
   assert.match(
     shellCss,

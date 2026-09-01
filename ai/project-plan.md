@@ -18,7 +18,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ## Current State (2026-09-01)
 
-**Phase:** Cutting `0.1.0-rc.3`. Post-RC2 collapsed chrome, inspector shell apply-on-change, fill-stage Overview tiling, window transparency, and How to use docs are on `main` and going into this unsigned RC.
+**Phase:** `0.1.0-rc.4` published. Add Terminal chevron menu stacks above xterm; empty SQLite DBs seed as Studio Stack. Existing saved workspaces are unchanged.
 
 **Working today:**
 - Public RC marketing page at `https://nwaoga.github.io/NthTerm/` (static `site/`, GitHub Pages)
@@ -62,7 +62,29 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** Inspector shell apply + fill-stage Overview + window transparency on `main`; ADO [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172), [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173), and [#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174) Closed. Cutting `0.1.0-rc.3`.
+**Last shipped:** Unsigned `0.1.0-rc.4` (Add Terminal menu stacking + Studio Stack empty-db seed).
+
+## Handover — 2026-09-01 (cut 0.1.0-rc.4)
+
+**Milestone:** `0.1.0-rc.4` unsigned Win/mac candidate after the Add Terminal dropdown-behind-terminal bug.
+
+### Done
+- Toolbar host stacks above the workspace so the Add Terminal shell menu paints over xterm.
+- Empty SQLite databases seed **Studio Stack** instead of Cloud POS. Existing AppData workspaces are not renamed.
+- Version bump, CHANGELOG, README, and GitHub Pages CTAs pointed at `v0.1.0-rc.4`.
+
+### Next (when ready)
+1. Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist.
+2. Otherwise: pick the next product story from day-to-day use.
+
+### Guardrails
+- `output/` is gitignored; do not force-add capture junk.
+- Preserve compact inspector (Workspace | Terminal), stacked focus/overview, and fill-stage Overview tiling.
+- Keep new code in feature folders/services; do not grow god files.
+- Do not map Windows Bash to `System32\bash.exe` when Git Bash is installed.
+- Do not rely on xterm `allowTransparency` for glass; Electron `setOpacity` plus a clear `#00000000` window background is required.
+
+**Reference design:** `docs/target-ui-reference.png` (Phase 4 visual baseline).
 
 ## Handover — 2026-09-01 (cut 0.1.0-rc.3)
 
@@ -217,7 +239,8 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 8. ~~[#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172)~~ — Done. Inspector shell change restarts the PTY; Windows Bash prefers Git Bash.
 9. ~~[#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173)~~ — Done. Fill-stage Overview tiling grid that resizes with the window.
 10. ~~[#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174)~~ — Done. Window transparency slider including the terminal surface.
-11. Cut unsigned `0.1.0-rc.3` (2026-09-01) from current `main`.
+11. ~~Cut unsigned `0.1.0-rc.3` (2026-09-01) from current `main`.~~
+12. Cut unsigned `0.1.0-rc.4` (2026-09-01) — Add Terminal menu stacking + Studio Stack empty-db seed.
 
 ### Stacked polish (#140)
 
@@ -241,7 +264,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Brand-first hero + short SWE-facing pitch (frontend / backend / Docker stack)
 - Real product shots: Focus (`site/media/focus.png`) + Overview (`site/media/overview.png`) from Angular reference preview
 - Feature triad mini-mocks: Focus, Workspaces, Stacked PTYs
-- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.3`
+- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.4`
 - Unsigned build callout (SmartScreen / Gatekeeper)
 - GitHub + Issues + Releases footer links
 - Visual language: midnight/purple glass; Cursor-like sparse page rhythm

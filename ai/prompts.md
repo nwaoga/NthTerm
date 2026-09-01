@@ -13,11 +13,11 @@
 - Prefer small incremental stories and commits.
 
 ## Current Prompt Focus
-- **Cutting:** `0.1.0-rc.3` from current `main` (collapsed chrome, fill-stage Overview tiling, window transparency, How to use docs).
+- **Milestone complete:** `0.1.0-rc.4` is tagged and published (Add Terminal shell-menu stacking, Studio Stack empty-db seed).
 - Landing page uses real Focus/Overview product shots from `site/media/` (Angular reference preview — Studio Stack demo); feature triad still uses CSS mini-mocks.
 - #138/#139/#140/#141/#156/#172/#173/#174 Closed (ADO + repo). PR #1 and cloud setup PR #2 merged to `main`.
 - Public RC page: `https://nwaoga.github.io/NthTerm/` (`site/` via GitHub Pages — static marketing only, not the Angular app).
-- Release target: https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.3 (unsigned Win + macOS assets).
+- Release: https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.4 (unsigned Win + macOS assets).
 - **Deferred:** Authenticode / Apple notarization / `electron-updater` until certificates exist.
 - Preserve the compact inspector hierarchy (Workspace | Terminal) and stacked focus/overview layout.
 - Renderer refactor is complete; keep new code in feature folders/services and do not grow god files.
@@ -26,7 +26,7 @@
 ## Handoff Summary
 - Product name: NthTerm
 - Themes: Midnight, Coffee, and White app chrome, with separate terminal color themes and ANSI palettes
-- Current milestone: `0.1.0-rc.3` being cut; prior `0.1.0-rc.2` remains the last published tag until this RC lands
+- Current milestone: `0.1.0-rc.4` published; Windows verify passed; macOS packaged smoke on CI; GitHub Release live
 - Public site: `https://nwaoga.github.io/NthTerm/` — GitHub Pages from `site/` (`media/focus.png`, `media/overview.png`); workflow `.github/workflows/pages.yml`
 - Backlog: signing / notarization / auto-update only (no open RC publish items after this cut)
 - Mac smoke evidence: `docs/verification/macos-smoke-v0.1.0-rc.2.json` from Actions run `31277571206`

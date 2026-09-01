@@ -1,6 +1,6 @@
 {
   "name": "nthterm",
-  "version": "0.1.0-rc.3",
+  "version": "0.1.0-rc.4",
   "description": "A rich desktop terminal workspace manager built with Angular, Electron, xterm.js, node-pty, and SQLite.",
   "main": "electron/main.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "rc:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-rc.ps1",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:electron": "node --test electron/terminal-spawn-coordinator.spec.js electron/terminal-spawn-env.spec.js electron/terminal-start-registry.spec.js electron/resolve-shell.spec.js electron/wsl-distros.spec.js electron/patch-node-pty-windows.spec.js electron/branding-assets.spec.js electron/release-assets.spec.js electron/macos-smoke.spec.js electron/adaptive-layout.spec.js electron/window-chrome.spec.js",
+    "test:electron": "node --test electron/terminal-spawn-coordinator.spec.js electron/terminal-spawn-env.spec.js electron/terminal-start-registry.spec.js electron/resolve-shell.spec.js electron/wsl-distros.spec.js electron/patch-node-pty-windows.spec.js electron/branding-assets.spec.js electron/release-assets.spec.js electron/macos-smoke.spec.js electron/adaptive-layout.spec.js electron/window-chrome.spec.js electron/workspace-store.spec.js",
     "test:ci": "npm run test:electron && ng test --watch=false --browsers=ChromeHeadless",
     "postinstall": "node electron/patch-node-pty-windows.js"
   },

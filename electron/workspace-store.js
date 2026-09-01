@@ -56,7 +56,7 @@ class WorkspaceStore {
 
     if (!this.listWorkspaces().length) {
       const workspace = this.createWorkspace({
-        name: 'Cloud POS',
+        name: 'Studio Stack',
         cwd: process.cwd(),
         shell: '',
         templateId: 'empty-workspace',
@@ -64,7 +64,7 @@ class WorkspaceStore {
         accent: 'violet',
         layoutMode: 'grid-2x2',
         launchProfile: 'manual',
-        sessionSnapshot: this.buildDefaultSnapshot('Cloud POS', process.cwd()),
+        sessionSnapshot: this.buildDefaultSnapshot('Studio Stack', process.cwd()),
       });
       this.setActiveWorkspace(workspace.id);
     }

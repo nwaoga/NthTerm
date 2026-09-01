@@ -96,6 +96,8 @@ describe('ShellToolbarComponent', () => {
     fixture.debugElement.query(By.css('.split-action-menu')).nativeElement.click();
     fixture.detectChanges();
 
+    expect(fixture.debugElement.query(By.css('.split-action .view-menu-dropdown.shell-menu-dropdown'))).not.toBeNull();
+
     const menuItems = fixture.debugElement.queryAll(By.css('.shell-menu-dropdown .view-menu-item'));
     menuItems[2].nativeElement.click();
 

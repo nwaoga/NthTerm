@@ -577,6 +577,9 @@ app-root[data-host-platform='darwin'] .status-bar {
   grid-column: 1 / -1;
   grid-row: 1;
   min-width: 0;
+  position: relative;
+  z-index: 40;
+  overflow: visible;
 }
 
 .app-left-rail-host {
@@ -1560,7 +1563,7 @@ app-workspace-area .content-layout {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  z-index: 20;
+  z-index: 40;
   min-width: 210px;
   padding: 6px;
   border: 1px solid var(--shell-border-strong);

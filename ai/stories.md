@@ -4,6 +4,9 @@
 - [ ] Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist
 
 ## Done
+- [x] Cut unsigned `0.1.0-rc.4` (2026-09-01) — Add Terminal menu above xterm; empty-db seed Studio Stack
+  - [x] Bump package/changelog; point README + `site/` at `v0.1.0-rc.4`
+  - [x] Tag `v0.1.0-rc.4` to trigger CI Win+mac artifacts
 - [x] Cut unsigned `0.1.0-rc.3` (2026-09-01) — post-RC2 collapsed chrome, Overview tiling, window transparency
   - [x] Bump package/changelog; point README + `site/` at `v0.1.0-rc.3`
   - [x] Refresh landing Focus/Overview shots for collapsed chrome + tiling Overview

@@ -1,5 +1,16 @@
 ## Unreleased
 
+## 0.1.0-rc.4 - 2026-09-01
+
+Unsigned Windows + macOS release candidate after the Add Terminal shell-menu stacking fix.
+
+- Keep the Add Terminal chevron menu above the xterm canvas so shell choices are not hidden behind the terminal.
+- Seed empty SQLite databases as **Studio Stack** instead of Cloud POS. Existing saved workspaces are unchanged.
+
+### Known limitation
+
+Artifacts remain unsigned. Windows SmartScreen and macOS Gatekeeper warnings are expected until Authenticode signing and Apple notarization are configured. In-app auto-update is deferred; upgrade by installing the newer build over the existing install (AppData / Application Support is preserved).
+
 ## 0.1.0-rc.3 - 2026-09-01
 
 Unsigned Windows + macOS release candidate after collapsed chrome, fill-stage Overview tiling, window transparency, and public How to use docs.
