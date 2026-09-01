@@ -4,6 +4,10 @@
 - [ ] Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist
 
 ## Done
+- [x] Cut unsigned `0.1.0-rc.3` (2026-09-01) — post-RC2 collapsed chrome, Overview tiling, window transparency
+  - [x] Bump package/changelog; point README + `site/` at `v0.1.0-rc.3`
+  - [x] Refresh landing Focus/Overview shots for collapsed chrome + tiling Overview
+  - [x] Tag `v0.1.0-rc.3` to trigger CI Win+mac artifacts
 - [x] [#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174) Window transparency slider including the terminal surface (ADO Closed 2026-08-29)
   - [x] Settings 0–80% slider persisted as `nthterm.preferences.windowTransparency`
   - [x] CSS glass + clear Electron background; Windows acrylic off while sliding

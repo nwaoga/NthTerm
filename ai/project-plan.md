@@ -16,9 +16,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-08-29)
+## Current State (2026-09-01)
 
-**Phase:** `0.1.0-rc.2` published. Feature roadmap, unsigned Win/mac packaging, public landing page, stacked UX polish, macOS smoke automation, post-RC2 collapsed chrome, inspector shell apply-on-change, fill-stage Overview tiling, and window transparency are on `main`.
+**Phase:** Cutting `0.1.0-rc.3`. Post-RC2 collapsed chrome, inspector shell apply-on-change, fill-stage Overview tiling, window transparency, and How to use docs are on `main` and going into this unsigned RC.
 
 **Working today:**
 - Public RC marketing page at `https://nwaoga.github.io/NthTerm/` (static `site/`, GitHub Pages)
@@ -62,7 +62,25 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** Inspector shell apply + fill-stage Overview + window transparency on `main`; ADO [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172), [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173), and [#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174) Closed.
+**Last shipped:** Inspector shell apply + fill-stage Overview + window transparency on `main`; ADO [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172), [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173), and [#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174) Closed. Cutting `0.1.0-rc.3`.
+
+## Handover — 2026-09-01 (cut 0.1.0-rc.3)
+
+**Milestone:** `0.1.0-rc.3` is being cut from current `main`. Prior published release remains `v0.1.0-rc.2` until this tag and GitHub Release land.
+
+### Done
+- Version bump to `0.1.0-rc.3`; CHANGELOG, README, and GitHub Pages CTAs pointed at `v0.1.0-rc.3`.
+- Product notes cover collapsed chrome (#156), inspector Git Bash apply (#172), fill-stage Overview (#173), window transparency (#174), How to use docs, landing shots, and spawn/sizing fixes.
+- Landing Focus/Overview shots refreshed 2026-09-01 from Angular reference preview (collapsed chrome, fill-stage tiling, glass).
+
+### Next (when ready)
+1. Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist.
+2. Otherwise: pick the next product story from day-to-day use.
+
+### Guardrails
+- `output/` is gitignored; do not force-add capture junk.
+- Preserve compact inspector (Workspace | Terminal), stacked focus/overview, and fill-stage Overview tiling.
+- Keep new code in feature folders/services; do not grow god files.
 
 ## Handover — 2026-08-29 (shell apply, overview tiling, transparency)
 
@@ -81,9 +99,8 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Live Electron: inspector Bash → Git Bash; Overview tiles fill the stage; transparency slider shows the desktop through chrome and the terminal.
 
 ### Next (when ready)
-1. Cut a beta from current `main` (e.g. `0.1.0-beta.1`), run `rc:verify`, tag, publish unsigned Win/mac assets.
-2. Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist.
-3. Otherwise: pick the next product story from day-to-day use (landing screenshot refresh for collapsed chrome + tiling Overview + glass is a good follow-on).
+1. Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist.
+2. Otherwise: pick the next product story from day-to-day use.
 
 ### Guardrails
 - `output/` is gitignored; do not force-add capture junk.
@@ -199,6 +216,8 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 7. ~~[#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156)~~ — Done. Collapsed workspace chrome, hideable workspaces rail, status-bar cleanup (`51f04c9`).
 8. ~~[#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172)~~ — Done. Inspector shell change restarts the PTY; Windows Bash prefers Git Bash.
 9. ~~[#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173)~~ — Done. Fill-stage Overview tiling grid that resizes with the window.
+10. ~~[#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174)~~ — Done. Window transparency slider including the terminal surface.
+11. Cut unsigned `0.1.0-rc.3` (2026-09-01) from current `main`.
 
 ### Stacked polish (#140)
 
@@ -222,7 +241,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Brand-first hero + short SWE-facing pitch (frontend / backend / Docker stack)
 - Real product shots: Focus (`site/media/focus.png`) + Overview (`site/media/overview.png`) from Angular reference preview
 - Feature triad mini-mocks: Focus, Workspaces, Stacked PTYs
-- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.2`
+- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.3`
 - Unsigned build callout (SmartScreen / Gatekeeper)
 - GitHub + Issues + Releases footer links
 - Visual language: midnight/purple glass; Cursor-like sparse page rhythm
@@ -232,7 +251,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Blog, newsletter, analytics suite, account/auth, auto-update pitch beyond “install over existing”
 - Live Electron acrylic chrome in marketing shots (browser reference preview used instead)
 
-Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141), [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156), [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172), [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173).
+Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141), [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156), [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172), [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173), [#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174).
 
 ## Historical Delivery Tracks
 

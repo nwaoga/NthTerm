@@ -1,8 +1,23 @@
 ## Unreleased
 
+## 0.1.0-rc.3 - 2026-09-01
+
+Unsigned Windows + macOS release candidate after collapsed chrome, fill-stage Overview tiling, window transparency, and public How to use docs.
+
+- Collapsed chrome by default (#156): hideable workspaces rail, inspector and dock start hidden, stage restore controls, and a status bar that shows workspace name plus terminal count only.
+- Inspector shell apply-on-change plus Windows Git Bash preference (#172).
+- Fill-stage Overview tiling that resizes with the window (#173).
+- Window transparency slider including the terminal surface (#174).
+- Public How to use docs on GitHub Pages with a sticky hideable sidenav.
+- Landing Focus/Overview screenshots (Studio Stack).
+- Linux CI spawn / Git Bash specs / packaged shell startup / ConPTY sizing fixes.
 - CI publishes unsigned Windows and macOS artifacts to a GitHub Release on version tags (`v*`).
-- Added a dispatchable **Publish GitHub Release** workflow to backfill a release from an existing Actions artifact run (for `v0.1.0-rc.2` and similar).
-- Added `npm run smoke:mac` and wired it into the macOS CI job for unsigned packaged-app smoke (#139); first green evidence in `docs/verification/macos-smoke-v0.1.0-rc.2.json`.
+- Added a dispatchable **Publish GitHub Release** workflow to backfill a release from an existing Actions artifact run.
+- Added `npm run smoke:mac` and wired it into the macOS CI job for unsigned packaged-app smoke (#139).
+
+### Known limitation
+
+Artifacts remain unsigned. Windows SmartScreen and macOS Gatekeeper warnings are expected until Authenticode signing and Apple notarization are configured. In-app auto-update is deferred; upgrade by installing the newer build over the existing install (AppData / Application Support is preserved).
 
 ## 0.1.0-rc.2 - 2026-08-02
 
