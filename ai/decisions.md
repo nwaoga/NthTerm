@@ -1,5 +1,10 @@
 # NthTerm Decisions
 
+## 2026-09-01 (rc.5 release prep)
+- `0.1.0-rc.5` is a release/bookkeeping cut over the already-completed Git workspace stories #175-#180 plus the VS Code npm task launcher fix; no additional runtime behavior is introduced by the version/site/doc updates.
+- Public download CTAs should point at `v0.1.0-rc.5` before pushing the tag so GitHub Pages and README are ready as soon as tag-triggered CI publishes unsigned Windows/macOS release assets.
+- ADO remains the story ledger for #175-#180, while GitHub tags/releases remain the artifact delivery path.
+
 ## 2026-06-17
 - The source code lives directly in the repository root at `D:\source\repos\NthTerm`.
 - Project continuity and planning documents now live in the repo-local `ai` folder so they can travel across machines; machine-local secrets stay in ignored local-only folders.

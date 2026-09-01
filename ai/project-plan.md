@@ -18,7 +18,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ## Current State (2026-09-01)
 
-**Phase:** `0.1.0-rc.4` published. Add Terminal chevron menu stacks above xterm; empty SQLite DBs seed as Studio Stack. Existing saved workspaces are unchanged.
+**Phase:** `0.1.0-rc.5` release prep. Git workspace tools are in the RC payload, and the site/docs/download CTAs point at `v0.1.0-rc.5`.
 
 **Working today:**
 - Public RC marketing page at `https://nwaoga.github.io/NthTerm/` (static `site/`, GitHub Pages)
@@ -31,6 +31,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - System themes for app chrome: Midnight, Coffee, White (terminal colors stay separate)
 - Settings modal (gear in toolbar) for workspace appearance, terminal defaults, and ANSI palette
 - Rich terminal ANSI output with VS Code–style palettes and explicit Git status colors
+- Git workspace tools for repository status, branches/tags/remotes/stashes, history, changed files, diff hunks, and safe commit context actions
 - Toolbar cleanup: workspace actions left-aligned; search/dock shortcut buttons removed
 - Animated terminal focus mode with visible peer previews and `Ctrl+Shift+Enter` restore
 - Stacked focus/overview terminal layout (≤10) with `Ctrl+\` overview toggle and compact stack navigation
@@ -63,6 +64,27 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
 **Last shipped:** Unsigned `0.1.0-rc.4` (Add Terminal menu stacking + Studio Stack empty-db seed).
+
+## Handover — 2026-09-01 (cut 0.1.0-rc.5)
+
+**Milestone:** `0.1.0-rc.5` unsigned Win/mac candidate for Git workspace tools.
+
+### Done
+- Version bump to `0.1.0-rc.5`; CHANGELOG, README, GitHub Pages CTAs, and release backfill workflow default point at `v0.1.0-rc.5`.
+- ADO #175-#180 are Closed and make up the Git workspace tools payload: toolbar repo status, sidebar refs/stashes, history, safe commit actions, changed files, and diff hunks.
+- VS Code npm task launchers now use shell commands for `npm run start` and `npm run test`.
+- Local validation passed: `npm run build` and `npm run test:ci` (52 Electron / 167 Angular).
+
+### Next (when ready)
+1. Commit, tag `v0.1.0-rc.5`, and push commit + tag to trigger unsigned Win/mac artifacts and GitHub Release publish.
+2. Authenticode signing / Apple notarization / `electron-updater` remain deferred until certificates exist.
+
+### Guardrails
+- `output/` is gitignored; do not force-add capture junk.
+- Preserve compact inspector (Workspace | Terminal), stacked focus/overview, fill-stage Overview tiling, and Git workspace panes.
+- Keep new code in feature folders/services; do not grow god files.
+- Do not map Windows Bash to `System32\bash.exe` when Git Bash is installed.
+- Do not rely on xterm `allowTransparency` for glass; Electron `setOpacity` plus a clear `#00000000` window background is required.
 
 ## Handover — 2026-09-01 (cut 0.1.0-rc.4)
 
@@ -240,7 +262,8 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 9. ~~[#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173)~~ — Done. Fill-stage Overview tiling grid that resizes with the window.
 10. ~~[#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174)~~ — Done. Window transparency slider including the terminal surface.
 11. ~~Cut unsigned `0.1.0-rc.3` (2026-09-01) from current `main`.~~
-12. Cut unsigned `0.1.0-rc.4` (2026-09-01) — Add Terminal menu stacking + Studio Stack empty-db seed.
+12. ~~Cut unsigned `0.1.0-rc.4` (2026-09-01) — Add Terminal menu stacking + Studio Stack empty-db seed.~~
+13. Cut unsigned `0.1.0-rc.5` (2026-09-01) — Git workspace tools (#175-#180) + VS Code task launchers.
 
 ### Stacked polish (#140)
 
@@ -264,7 +287,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Brand-first hero + short SWE-facing pitch (frontend / backend / Docker stack)
 - Real product shots: Focus (`site/media/focus.png`) + Overview (`site/media/overview.png`) from Angular reference preview
 - Feature triad mini-mocks: Focus, Workspaces, Stacked PTYs
-- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.4`
+- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.5`
 - Unsigned build callout (SmartScreen / Gatekeeper)
 - GitHub + Issues + Releases footer links
 - Visual language: midnight/purple glass; Cursor-like sparse page rhythm
@@ -274,7 +297,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Blog, newsletter, analytics suite, account/auth, auto-update pitch beyond “install over existing”
 - Live Electron acrylic chrome in marketing shots (browser reference preview used instead)
 
-Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141), [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156), [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172), [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173), [#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174).
+Closed recently: [#135](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/135), [#136](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/136), [#137](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/137), [#138](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/138), [#139](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/139), [#140](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/140), [#141](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/141), [#156](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/156), [#172](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/172), [#173](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/173), [#174](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/174), [#175](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/175), [#176](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/176), [#177](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/177), [#178](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/178), [#179](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/179), [#180](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/180).
 
 ## Historical Delivery Tracks
 

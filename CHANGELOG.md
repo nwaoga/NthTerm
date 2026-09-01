@@ -1,5 +1,20 @@
 ## Unreleased
 
+## 0.1.0-rc.5 - 2026-09-01
+
+Unsigned Windows + macOS release candidate after the Git workspace tools pass.
+
+- Added Git toolbar status so repository-backed workspaces can surface pending change count quickly (#175).
+- Added Git sidebar coverage for branches, tags, nested remotes, and stashes (#176).
+- Added Git history with an uncommitted changes row and commit metadata (#177).
+- Added a safe commit context menu for checkout, branch, tag, cherry-pick, and copy SHA actions (#178).
+- Added Git files and diff panes for status filtering, stable path sorting, hunks, and persisted files/diff divider state (#179, #180).
+- Fixed VS Code npm task launchers so Start/Test tasks invoke the project scripts reliably.
+
+### Known limitation
+
+Artifacts remain unsigned. Windows SmartScreen and macOS Gatekeeper warnings are expected until Authenticode signing and Apple notarization are configured. In-app auto-update is deferred; upgrade by installing the newer build over the existing install (AppData / Application Support is preserved).
+
 ## 0.1.0-rc.4 - 2026-09-01
 
 Unsigned Windows + macOS release candidate after the Add Terminal shell-menu stacking fix.

@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **0.1.0-rc.4** (`v0.1.0-rc.4`) — unsigned Windows and macOS release candidate (Add Terminal menu stacking, Studio Stack empty-db seed). Downloads: [GitHub Release](https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.4) and [landing page](https://nwaoga.github.io/NthTerm/). Signing / notarization deferred.
+Current milestone: **0.1.0-rc.5** (`v0.1.0-rc.5`) — unsigned Windows and macOS release candidate (Git toolbar/sidebar/history/files/diff workspace tools, VS Code task launchers). Downloads: [GitHub Release](https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.5) and [landing page](https://nwaoga.github.io/NthTerm/). Signing / notarization deferred.
 
 Working today:
 
@@ -43,6 +43,8 @@ Working today:
 - collapsible, resizable workspace dock with visibility and height remembered per workspace
 - system monitor (CPU, memory, disk, network) and session environment variables
 - command palette and global workspace search (`Ctrl+Shift+P` / `Ctrl+Shift+F`)
+- Git workspace tools for repository status, branches/tags/remotes/stashes, history, changed files, and diff hunks
+- safe Git commit context actions for checkout, branch, tag, cherry-pick, and copy SHA
 - system themes for app chrome (Midnight, Coffee, White) separate from terminal colors
 - settings modal for shell defaults, system theme, terminal colors, and ANSI syntax palette
 - rich terminal ANSI output with VS Code–style color presets
@@ -81,7 +83,7 @@ Workspaces hold up to 10 stacked terminals. Focus mode shows one interactive ter
 
 The remaining release constraint is Authenticode signing. The RC is intentionally unsigned, so Windows SmartScreen warnings are expected until a certificate is available.
 
-Latest source verification: `npm run build` and `npm run test:ci` pass with 29 Electron checks and 120 Angular specs. The xterm-driven initial bundle budget warning remains accepted for RC1.
+Latest source verification: `npm run build` and `npm run test:ci` pass with 52 Electron checks and 167 Angular specs. The xterm-driven initial bundle budget warning remains accepted for RCs.
 
 ## Design alignment checklist
 
@@ -207,7 +209,7 @@ python scripts/generate-branding-assets.py
 4. Keep the unsigned CI path available for PR validation; add a separate protected release workflow/job that injects signing secrets
 
 GitHub Actions runs the same build and test path on pull requests and pushes to `main`. The Windows and macOS release jobs upload unsigned installer/app artifacts from the workflow run.
-Pushing a version tag such as `v0.1.0-rc.4` runs the same validation and produces the unsigned Windows and macOS artifacts for that candidate.
+Pushing a version tag such as `v0.1.0-rc.5` runs the same validation and produces the unsigned Windows and macOS artifacts for that candidate.
 
 After `npm run release:win`, validate install/reinstall and AppData preservation locally:
 

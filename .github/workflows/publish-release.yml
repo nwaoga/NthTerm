@@ -1,14 +1,14 @@
 name: Publish GitHub Release
 
 # Backfill or republish a GitHub Release from an existing CI artifact run
-# (for example v0.1.0-rc.2 before tag-triggered publish existed).
+# (for example a prior RC before tag-triggered publish existed).
 on:
   workflow_dispatch:
     inputs:
       tag:
         description: Git tag to attach the release to (must already exist)
         required: true
-        default: v0.1.0-rc.2
+        default: v0.1.0-rc.5
       workflow_run_id:
         description: Actions run id that uploaded nthterm-*-unsigned artifacts
         required: true

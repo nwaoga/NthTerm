@@ -4,6 +4,16 @@
 - [ ] Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist
 
 ## Done
+- [x] Cut unsigned `0.1.0-rc.5` (2026-09-01) — Git workspace tools + VS Code task launchers
+  - [x] Bump package/changelog; point README + `site/` at `v0.1.0-rc.5`
+  - [x] [#175](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/175) Git toolbar: detect repo and show pending change count (ADO Closed 2026-08-30)
+  - [x] [#176](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/176) Git sidebar: branches, tags, nested remotes, and stashes (ADO Closed 2026-08-30)
+  - [x] [#177](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/177) Git history list with uncommitted row and commit metadata (ADO Closed 2026-08-30)
+  - [x] [#178](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/178) Commit context menu safe actions (ADO Closed 2026-08-30)
+  - [x] [#179](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/179) Git files pane: path sort, status icons, and change filters (ADO Closed 2026-08-30)
+  - [x] [#180](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/180) Git diff pane with hunks and persisted files/diff divider (ADO Closed 2026-08-30)
+  - [x] Local validation: `npm run build` and `npm run test:ci` (52 Electron / 167 Angular)
+  - [x] Tag `v0.1.0-rc.5` to trigger CI Win+mac artifacts
 - [x] Cut unsigned `0.1.0-rc.4` (2026-09-01) — Add Terminal menu above xterm; empty-db seed Studio Stack
   - [x] Bump package/changelog; point README + `site/` at `v0.1.0-rc.4`
   - [x] Tag `v0.1.0-rc.4` to trigger CI Win+mac artifacts
