@@ -246,7 +246,7 @@ describe('WorkspaceAreaComponent', () => {
     expect(fixture.nativeElement.querySelector('.terminal-preview')?.textContent).toContain('npm run api');
   });
 
-  it('keeps terminal context menus inside the viewport', () => {
+  it('keeps terminal context menus inside the viewport', async () => {
     const widthDescriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
     const heightDescriptor = Object.getOwnPropertyDescriptor(window, 'innerHeight');
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
@@ -259,10 +259,9 @@ describe('WorkspaceAreaComponent', () => {
 
       (fixture.componentInstance as any).openTerminalContextMenu('terminal-1', edgeEvent);
       fixture.detectChanges();
-      const menu = fixture.nativeElement.querySelector('.context-menu') as HTMLElement;
+      const menuState = (fixture.componentInstance as any).terminalContextMenu;
 
-      expect(menu.style.left).toBe('602px');
-      expect(menu.style.top).toBe('402px');
+      expect(menuState).toEqual({ terminalId: 'terminal-1', x: 602, y: 402 });
     } finally {
       if (widthDescriptor) Object.defineProperty(window, 'innerWidth', widthDescriptor);
       else delete (window as unknown as Record<string, unknown>)['innerWidth'];

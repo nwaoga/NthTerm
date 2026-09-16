@@ -1,5 +1,4 @@
-import { Injectable, inject } from '@angular/core';
-
+import { Injectable, inject, signal } from '@angular/core';
 import { SavedWorkspace, WorkspaceBridgeService, WorkspaceDraft } from '../workspace-bridge.service';
 import {
   CommandHistoryEntry,
@@ -32,34 +31,208 @@ import {
 @Injectable({ providedIn: 'root' })
 export class WorkspaceRuntimeService {
   private readonly preferences = inject(AppPreferencesService);
-  status = 'Loading workspace...';
-  workspaceName = '';
-  workingDirectory = '';
-  lastSavedAt = '';
-  selectedWorkspace = '';
-  selectedWorkspaceId = '';
-  workspaceShellProfile: WorkspaceShellProfile = '';
-  focusedTerminalId = '';
-  paneColSplit = 50;
-  paneRowSplit = 50;
-  paneResizeMode: 'col' | 'row' | null = null;
-  previewMode = false;
-  editingWorkspaceId = '';
-  editingWorkspaceName = '';
-  wslDistros: string[] = [];
-  workspaceAccent = 'slate';
-
-  workspaces: WorkspaceListItem[] = [];
-  terminals: RuntimeTerminal[] = [];
-  workspaceSummary: WorkspaceSummary = {
+  private readonly statusState = signal('Loading workspace...');
+  private readonly workspaceNameState = signal('');
+  private readonly workingDirectoryState = signal('');
+  private readonly lastSavedAtState = signal('');
+  private readonly selectedWorkspaceState = signal('');
+  private readonly selectedWorkspaceIdState = signal('');
+  private readonly workspaceShellProfileState = signal<WorkspaceShellProfile>('');
+  private readonly focusedTerminalIdState = signal('');
+  private readonly paneColSplitState = signal(50);
+  private readonly paneRowSplitState = signal(50);
+  private readonly paneResizeModeState = signal<'col' | 'row' | null>(null);
+  private readonly previewModeState = signal(false);
+  private readonly editingWorkspaceIdState = signal('');
+  private readonly editingWorkspaceNameState = signal('');
+  private readonly wslDistrosState = signal<string[]>([]);
+  private readonly workspaceAccentState = signal('slate');
+  private readonly workspacesState = signal<WorkspaceListItem[]>([]);
+  private readonly terminalsState = signal<RuntimeTerminal[]>([]);
+  private readonly workspaceSummaryState = signal<WorkspaceSummary>({
     layoutMode: 'grid-2',
     launchProfile: 'manual',
     paneCount: 0,
-  };
+  });
+  private readonly activeWorkspaceState = signal<SavedWorkspace | undefined>(undefined);
+  private readonly sessionHistoryState = signal<SessionHistoryEntry[]>([]);
+  private readonly recoverySnapshotState = signal<RecoverySnapshot>(this.buildEmptyRecoverySnapshot());
 
-  activeWorkspace?: SavedWorkspace;
-  sessionHistory: SessionHistoryEntry[] = [];
-  recoverySnapshot: RecoverySnapshot = this.buildEmptyRecoverySnapshot();
+  get status(): string {
+    return this.statusState();
+  }
+
+  set status(value: string) {
+    this.statusState.set(value);
+  }
+
+  get workspaceName(): string {
+    return this.workspaceNameState();
+  }
+
+  set workspaceName(value: string) {
+    this.workspaceNameState.set(value);
+  }
+
+  get workingDirectory(): string {
+    return this.workingDirectoryState();
+  }
+
+  set workingDirectory(value: string) {
+    this.workingDirectoryState.set(value);
+  }
+
+  get lastSavedAt(): string {
+    return this.lastSavedAtState();
+  }
+
+  set lastSavedAt(value: string) {
+    this.lastSavedAtState.set(value);
+  }
+
+  get selectedWorkspace(): string {
+    return this.selectedWorkspaceState();
+  }
+
+  set selectedWorkspace(value: string) {
+    this.selectedWorkspaceState.set(value);
+  }
+
+  get selectedWorkspaceId(): string {
+    return this.selectedWorkspaceIdState();
+  }
+
+  set selectedWorkspaceId(value: string) {
+    this.selectedWorkspaceIdState.set(value);
+  }
+
+  get workspaceShellProfile(): WorkspaceShellProfile {
+    return this.workspaceShellProfileState();
+  }
+
+  set workspaceShellProfile(value: WorkspaceShellProfile) {
+    this.workspaceShellProfileState.set(value);
+  }
+
+  get focusedTerminalId(): string {
+    return this.focusedTerminalIdState();
+  }
+
+  set focusedTerminalId(value: string) {
+    this.focusedTerminalIdState.set(value);
+  }
+
+  get paneColSplit(): number {
+    return this.paneColSplitState();
+  }
+
+  set paneColSplit(value: number) {
+    this.paneColSplitState.set(value);
+  }
+
+  get paneRowSplit(): number {
+    return this.paneRowSplitState();
+  }
+
+  set paneRowSplit(value: number) {
+    this.paneRowSplitState.set(value);
+  }
+
+  get paneResizeMode(): 'col' | 'row' | null {
+    return this.paneResizeModeState();
+  }
+
+  set paneResizeMode(value: 'col' | 'row' | null) {
+    this.paneResizeModeState.set(value);
+  }
+
+  get previewMode(): boolean {
+    return this.previewModeState();
+  }
+
+  set previewMode(value: boolean) {
+    this.previewModeState.set(value);
+  }
+
+  get editingWorkspaceId(): string {
+    return this.editingWorkspaceIdState();
+  }
+
+  set editingWorkspaceId(value: string) {
+    this.editingWorkspaceIdState.set(value);
+  }
+
+  get editingWorkspaceName(): string {
+    return this.editingWorkspaceNameState();
+  }
+
+  set editingWorkspaceName(value: string) {
+    this.editingWorkspaceNameState.set(value);
+  }
+
+  get wslDistros(): string[] {
+    return this.wslDistrosState();
+  }
+
+  set wslDistros(value: string[]) {
+    this.wslDistrosState.set(value);
+  }
+
+  get workspaceAccent(): string {
+    return this.workspaceAccentState();
+  }
+
+  set workspaceAccent(value: string) {
+    this.workspaceAccentState.set(value);
+  }
+
+  get workspaces(): WorkspaceListItem[] {
+    return this.workspacesState();
+  }
+
+  set workspaces(value: WorkspaceListItem[]) {
+    this.workspacesState.set(value);
+  }
+
+  get terminals(): RuntimeTerminal[] {
+    return this.terminalsState();
+  }
+
+  set terminals(value: RuntimeTerminal[]) {
+    this.terminalsState.set(value);
+  }
+
+  get workspaceSummary(): WorkspaceSummary {
+    return this.workspaceSummaryState();
+  }
+
+  set workspaceSummary(value: WorkspaceSummary) {
+    this.workspaceSummaryState.set(value);
+  }
+
+  get activeWorkspace(): SavedWorkspace | undefined {
+    return this.activeWorkspaceState();
+  }
+
+  set activeWorkspace(value: SavedWorkspace | undefined) {
+    this.activeWorkspaceState.set(value);
+  }
+
+  get sessionHistory(): SessionHistoryEntry[] {
+    return this.sessionHistoryState();
+  }
+
+  set sessionHistory(value: SessionHistoryEntry[]) {
+    this.sessionHistoryState.set(value);
+  }
+
+  get recoverySnapshot(): RecoverySnapshot {
+    return this.recoverySnapshotState();
+  }
+
+  set recoverySnapshot(value: RecoverySnapshot) {
+    this.recoverySnapshotState.set(value);
+  }
 
   private readonly workspaceBridge = inject(WorkspaceBridgeService);
 

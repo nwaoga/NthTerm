@@ -31,12 +31,12 @@ app-root {
   --shell-font-size-title: 1.02rem;
   --shell-letter-label: 0.12em;
 
-  /* Glass */
-  --shell-glass-blur: 34px;
-  --shell-glass-saturate: 1.45;
-  --shell-glass-filter: blur(var(--shell-glass-blur)) saturate(var(--shell-glass-saturate));
-  --shell-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  --shell-glass-border: rgba(255, 255, 255, 0.28);
+  /* Solid surfaces */
+  --shell-glass-blur: none;
+  --shell-glass-saturate: 1;
+  --shell-glass-filter: none;
+  --shell-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --shell-glass-border: rgba(255, 255, 255, 0.7);
   --shell-window-transparency: 0;
   --shell-fill-mix: calc((100 - var(--shell-window-transparency)) * 1%);
   --shell-terminal-surface-opacity: 1;
@@ -52,11 +52,11 @@ app-root {
   --scrollbar-corner: rgba(7, 11, 20, 0.4);
 
   /* Surface */
-  --shell-bg-base: rgba(9, 13, 22, 0.28);
-  --shell-bg-workspace: rgba(12, 17, 29, 0.16);
-  --shell-bg-panel: rgba(12, 16, 28, 0.34);
-  --shell-bg-elevated: rgba(16, 22, 37, 0.44);
-  --shell-bg-inset: rgba(10, 13, 24, 0.38);
+  --shell-bg-base: #0a0d16;
+  --shell-bg-workspace: #12111d;
+  --shell-bg-panel: #12141c;
+  --shell-bg-elevated: #1e2233;
+  --shell-bg-inset: #100d18;
 
   /* Text */
   --shell-text: #e6edf7;
@@ -220,11 +220,11 @@ app-root {
   --scrollbar-thumb-gradient-hover: linear-gradient(180deg, rgba(219, 176, 132, 0.82), rgba(184, 116, 63, 0.68));
   --scrollbar-corner: rgba(232, 224, 212, 0.6);
 
-  --shell-bg-base: rgba(232, 224, 212, 0.24);
-  --shell-bg-workspace: rgba(243, 237, 228, 0.12);
-  --shell-bg-panel: rgba(255, 252, 247, 0.32);
-  --shell-bg-elevated: rgba(255, 253, 249, 0.42);
-  --shell-bg-inset: rgba(248, 242, 233, 0.36);
+  --shell-bg-base: #e6e0d8;
+  --shell-bg-workspace: #f2e8d9;
+  --shell-bg-panel: #fff1e3;
+  --shell-bg-elevated: #fff8e6;
+  --shell-bg-inset: #fffbf5;
   --shell-text: #3f372e;
   --shell-text-strong: #2a241d;
   --shell-text-muted: #7a6f63;
@@ -371,11 +371,11 @@ app-root {
   --scrollbar-thumb-gradient-hover: linear-gradient(180deg, rgba(148, 163, 184, 0.72), rgba(71, 85, 105, 0.58));
   --scrollbar-corner: rgba(238, 241, 246, 0.8);
 
-  --shell-bg-base: rgba(238, 241, 246, 0.24);
-  --shell-bg-workspace: rgba(255, 255, 255, 0.1);
-  --shell-bg-panel: rgba(255, 255, 255, 0.32);
-  --shell-bg-elevated: rgba(255, 255, 255, 0.42);
-  --shell-bg-inset: rgba(246, 248, 252, 0.36);
+  --shell-bg-base: #f8fafc;
+  --shell-bg-workspace: #ffffff;
+  --shell-bg-panel: #f9fafb;
+  --shell-bg-elevated: #f9fafb;
+  --shell-bg-inset: #f7f9fb;
   --shell-text: #1f2937;
   --shell-text-strong: #111827;
   --shell-text-muted: #6b7280;

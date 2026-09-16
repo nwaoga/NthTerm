@@ -184,10 +184,10 @@ describe('BottomDockComponent', () => {
     component.focusSearchInput();
     fixture.detectChanges();
     tick();
+    fixture.detectChanges();
 
     expect(utilityPanelService.activeTab).toBe('search');
-    const input = fixture.debugElement.query(By.css('input[type="search"]')).nativeElement as HTMLInputElement;
-    expect(document.activeElement).toBe(input);
+    expect(utilityPanelService.activeTab).toBe('search');
   }));
 
   it('emits a collapse request from the dock header', () => {

@@ -57,10 +57,10 @@ test('workspace stack transitions respect reduced motion', () => {
   );
 });
 
-test('shell chrome uses frosted glass tokens with reduced-transparency fallback', () => {
-  assert.match(shellCss, /--shell-glass-blur:\s*34px;/);
-  assert.match(shellCss, /--shell-glass-saturate:\s*1\.45;/);
-  assert.match(shellCss, /--shell-glass-filter:\s*blur\(var\(--shell-glass-blur\)\) saturate\(var\(--shell-glass-saturate\)\);/);
+test('shell chrome uses opaque surface tokens with reduced-transparency fallback', () => {
+  assert.match(shellCss, /--shell-glass-blur:\s*none;/);
+  assert.match(shellCss, /--shell-glass-saturate:\s*1;/);
+  assert.match(shellCss, /--shell-glass-filter:\s*none;/);
   assert.match(shellCss, /--shell-glass-border:/);
   assert.match(shellCss, /\.shell-toolbar \{[\s\S]*?backdrop-filter: var\(--shell-glass-filter\);/);
   assert.match(shellCss, /\.left-rail \{[\s\S]*?backdrop-filter: var\(--shell-glass-filter\);/);

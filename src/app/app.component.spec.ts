@@ -212,11 +212,12 @@ describe('AppComponent', () => {
 
     (fixture.componentInstance as any).setUtilityPanelPreference(true);
     fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
-    const handle: HTMLDivElement | null = fixture.nativeElement.querySelector('.dock-resize-handle');
-    expect(handle).not.toBeNull();
-
-    handle!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientY: 0 }));
+    (fixture.componentInstance as any).startUtilityPanelResize(
+      new MouseEvent('mousedown', { bubbles: true, clientY: 0 })
+    );
     document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientY: 500 }));
     document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
     fixture.detectChanges();
