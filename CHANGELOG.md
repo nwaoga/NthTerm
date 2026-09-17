@@ -1,5 +1,7 @@
 ## Unreleased
 
+- In-app auto-update via `electron-updater` against unsigned GitHub Releases (check on launch, Settings + status bar + command palette; prerelease RCs included).
+
 ## 0.1.0-rc.6 - 2026-09-17
 
 Unsigned Windows + macOS release candidate after the Angular 22 and Vitest toolchain pass.

@@ -40,7 +40,13 @@ test('electron-builder config wires Windows and macOS branding without signing s
   assert.equal(build.nsis.installerHeader, 'build/installerHeader.bmp');
   assert.equal(build.nsis.installerSidebar, 'build/installerSidebar.bmp');
   assert.equal(build.nsis.uninstallerSidebar, 'build/uninstallerSidebar.bmp');
-  assert.equal(build.publish, null);
+  assert.deepEqual(build.publish, [
+    {
+      provider: 'github',
+      owner: 'nwaoga',
+      repo: 'NthTerm',
+    },
+  ]);
   assert.ok(build.files.includes('build/icon.ico'));
   assert.ok(build.files.includes('build/icon.png'));
   assert.equal(Object.prototype.hasOwnProperty.call(build.win, 'certificateFile'), false);
@@ -48,6 +54,7 @@ test('electron-builder config wires Windows and macOS branding without signing s
   assert.equal(build.nsis.perMachine, false);
   assert.equal(build.nsis.oneClick, false);
   assert.equal(packageJson.scripts['release:mac'], 'npm run build && electron-builder --mac');
+  assert.ok(packageJson.dependencies['electron-updater']);
 });
 
 test('packaged renderer keeps its stylesheet as a normal file-protocol resource', () => {

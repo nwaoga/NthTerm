@@ -38,6 +38,7 @@ import { WorkspaceBridgeService } from './workspace-bridge.service';
 import { WorkspaceLayoutService } from './workspace/workspace-layout.service';
 import { WorkspaceRuntimeService } from './workspace/workspace-runtime.service';
 import { MAX_TERMINALS_PER_WORKSPACE } from './workspace/workspace-snapshot';
+import { UpdateNotifierService } from './updates/update-notifier.service';
 
 const COMPACT_INSPECTOR_MAX_WIDTH = 1100;
 
@@ -101,6 +102,7 @@ export class AppComponent implements AfterViewInit {
   private readonly appBridge = inject(AppBridgeService);
   private readonly hostCoordinator = inject(TerminalHostCoordinatorService);
   private readonly inspector = inject(InspectorPresenterService);
+  protected readonly updates = inject(UpdateNotifierService);
   private removeBeforeQuitListener?: () => void;
   private uptimeIntervalId?: number;
 
@@ -130,7 +132,10 @@ export class AppComponent implements AfterViewInit {
         if (result !== 'unchanged') await this.hostCoordinator.syncAndRestore();
       },
       appendOutput: (msg, level) => this.util.appendOutput(msg, level),
+      checkForUpdates: () => this.updates.checkForUpdates(),
+      restartToUpdate: () => this.updates.restartToUpdate(),
     });
+    this.updates.start();
   }
 
   async ngAfterViewInit(): Promise<void> {
@@ -192,6 +197,14 @@ export class AppComponent implements AfterViewInit {
 
   protected closeSettings(): void {
     this.settingsOpen = false;
+  }
+
+  protected onCheckForUpdates(): void {
+    void this.updates.checkForUpdates();
+  }
+
+  protected onRestartToUpdate(): void {
+    void this.updates.restartToUpdate();
   }
 
   protected setUtilityPanelPreference(visible: boolean): void {

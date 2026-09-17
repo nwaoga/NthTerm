@@ -52,4 +52,15 @@ contextBridge.exposeInMainWorld('nthTermDesktop', {
       return () => ipcRenderer.removeListener('app:before-quit', wrapped);
     },
   },
+  updates: {
+    getVersion: () => ipcRenderer.invoke('updates:get-version'),
+    getStatus: () => ipcRenderer.invoke('updates:get-status'),
+    check: () => ipcRenderer.invoke('updates:check'),
+    quitAndInstall: () => ipcRenderer.invoke('updates:quit-and-install'),
+    onStatus: (listener) => {
+      const wrapped = (_event, payload) => listener(payload);
+      ipcRenderer.on('updates:status', wrapped);
+      return () => ipcRenderer.removeListener('updates:status', wrapped);
+    },
+  },
 });

@@ -1,10 +1,15 @@
 # NthTerm Stories
 
 ## Backlog
-- [ ] Authenticode signing / Apple notarization / `electron-updater` — deferred until certificates exist
+- [ ] Authenticode signing / Apple notarization — deferred until certificates exist (updater path already live)
 - [ ] Finish Angular 22 consumer cleanup (direct signal reads where useful; opaque-vs-frosted chrome decision)
 
 ## Done
+- [x] In-app auto-update via unsigned GitHub Releases (`electron-updater`) (2026-09-17)
+  - [x] [#199](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/199) In-app auto-update via unsigned GitHub Releases (ADO Closed 2026-09-17)
+  - [x] GitHub publish metadata (`latest.yml` / `latest-mac.yml`) uploaded with CI release artifacts
+  - [x] Packaged launch checks for updates (prereleases allowed); Settings + status bar + palette actions
+  - [x] Signing remains a later CI-only follow-up; SmartScreen/Gatekeeper still expected
 - [x] Cut unsigned `0.1.0-rc.6` (2026-09-17) — Angular 22 + Vitest (#197)
   - [x] [#198](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/198) Cut unsigned 0.1.0-rc.6 (ADO Closed 2026-09-17)
   - [x] Bump package/changelog; point README + `site/` at `v0.1.0-rc.6`

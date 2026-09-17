@@ -4199,6 +4199,48 @@ app-terminal-preview-card {
   transform: translateY(-50%);
 }
 
+.status-update-note,
+.status-update-action {
+  -webkit-app-region: no-drag;
+  margin-left: auto;
+  color: var(--shell-accent);
+  font-weight: 600;
+}
+
+.status-update-action {
+  border: 1px solid color-mix(in srgb, var(--shell-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--shell-accent) 14%, transparent);
+  color: var(--shell-accent);
+  border-radius: 8px;
+  padding: 0.2rem 0.7rem;
+  cursor: pointer;
+}
+
+.status-update-action:hover {
+  background: color-mix(in srgb, var(--shell-accent) 22%, transparent);
+}
+
+.settings-update-button {
+  border: 1px solid var(--shell-border);
+  background: var(--shell-bg-elevated);
+  color: var(--shell-fg);
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.settings-update-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.settings-update-button-primary {
+  border-color: color-mix(in srgb, var(--shell-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--shell-accent) 16%, transparent);
+  color: var(--shell-accent);
+  font-weight: 600;
+}
+
 .command-palette-backdrop {
   position: fixed;
   inset: 0;

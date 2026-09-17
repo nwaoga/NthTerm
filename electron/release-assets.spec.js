@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { expectedReleaseAssetNames } = require('./release-assets');
+const { expectedReleaseAssetNames, expectedUpdaterMetadataNames } = require('./release-assets');
 
 const root = path.join(__dirname, '..');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -16,6 +16,10 @@ test('expectedReleaseAssetNames matches electron-builder Win/mac matrix', () => 
     'NthTerm-0.1.0-rc.2-mac-x64.dmg',
     'NthTerm-0.1.0-rc.2-mac-x64.zip',
   ]);
+});
+
+test('expectedUpdaterMetadataNames lists electron-updater channel files', () => {
+  assert.deepEqual(expectedUpdaterMetadataNames(), ['latest.yml', 'latest-mac.yml']);
 });
 
 test('expectedReleaseAssetNames rejects empty version', () => {
@@ -37,6 +41,9 @@ test('CI publishes a GitHub Release from unsigned Win/mac artifacts on version t
   assert.match(workflow, /startsWith\(github\.ref, 'refs\/tags\/v'\)/);
   assert.match(workflow, /nthterm-windows-unsigned/);
   assert.match(workflow, /nthterm-macos-unsigned/);
+  assert.match(workflow, /release\/\*\.yml/);
+  assert.match(workflow, /artifacts\/windows\/\*/);
+  assert.match(workflow, /artifacts\/macos\/\*/);
 });
 
 test('dispatch workflow can backfill a GitHub Release from a prior artifact run', () => {

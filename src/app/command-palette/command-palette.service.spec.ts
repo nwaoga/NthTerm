@@ -80,6 +80,8 @@ describe('CommandPaletteService', () => {
             rerunCommand: async () => undefined,
             focusPane: async () => undefined,
             appendOutput: () => undefined,
+            checkForUpdates: async () => undefined,
+            restartToUpdate: async () => undefined,
         };
 
         service.setDispatcher(dispatcher);
@@ -114,6 +116,8 @@ describe('CommandPaletteService', () => {
             rerunCommand: async () => undefined,
             focusPane: async () => undefined,
             appendOutput: () => undefined,
+            checkForUpdates: async () => undefined,
+            restartToUpdate: async () => undefined,
         };
 
         service.setDispatcher(dispatcher);
@@ -149,6 +153,8 @@ describe('CommandPaletteService', () => {
             rerunCommand: async () => undefined,
             focusPane: async () => undefined,
             appendOutput: () => undefined,
+            checkForUpdates: async () => undefined,
+            restartToUpdate: async () => undefined,
         };
 
         service.setDispatcher(dispatcher);
@@ -207,6 +213,8 @@ describe('CommandPaletteService', () => {
             rerunCommand: async () => undefined,
             focusPane: async () => undefined,
             appendOutput: () => undefined,
+            checkForUpdates: async () => undefined,
+            restartToUpdate: async () => undefined,
         };
 
         service.setDispatcher(dispatcher);

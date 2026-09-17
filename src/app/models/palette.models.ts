@@ -38,4 +38,6 @@ export interface PaletteActionDispatcher {
   rerunCommand(command: string): Promise<void>;
   focusPane(paneId: string): Promise<void>;
   appendOutput(message: string, level?: import('./utility.models').OutputLine['level']): void;
+  checkForUpdates(): Promise<void>;
+  restartToUpdate(): Promise<void>;
 }

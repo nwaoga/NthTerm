@@ -20,7 +20,7 @@
     "rc:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-rc.ps1",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:electron": "node --test electron/terminal-spawn-coordinator.spec.js electron/terminal-spawn-env.spec.js electron/terminal-start-registry.spec.js electron/resolve-shell.spec.js electron/wsl-distros.spec.js electron/patch-node-pty-windows.spec.js electron/branding-assets.spec.js electron/release-assets.spec.js electron/macos-smoke.spec.js electron/adaptive-layout.spec.js electron/window-chrome.spec.js electron/workspace-store.spec.js",
+    "test:electron": "node --test electron/terminal-spawn-coordinator.spec.js electron/terminal-spawn-env.spec.js electron/terminal-start-registry.spec.js electron/resolve-shell.spec.js electron/wsl-distros.spec.js electron/patch-node-pty-windows.spec.js electron/branding-assets.spec.js electron/release-assets.spec.js electron/macos-smoke.spec.js electron/adaptive-layout.spec.js electron/window-chrome.spec.js electron/workspace-store.spec.js electron/auto-update.spec.js",
     "test:ci": "npm run test:electron && ng test --watch=false",
     "postinstall": "node electron/patch-node-pty-windows.js"
   },
@@ -100,7 +100,13 @@
       "installerSidebar": "build/installerSidebar.bmp",
       "uninstallerSidebar": "build/uninstallerSidebar.bmp"
     },
-    "publish": null
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "nwaoga",
+        "repo": "NthTerm"
+      }
+    ]
   },
   "dependencies": {
     "@angular/animations": "^22.1.6",
@@ -113,6 +119,7 @@
     "@angular/router": "^22.1.6",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
+    "electron-updater": "^6.8.9",
     "node-pty": "^1.1.0",
     "rxjs": "~7.8.0",
     "sql.js": "^1.14.1",

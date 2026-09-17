@@ -1,5 +1,12 @@
 # NthTerm Decisions
 
+## 2026-09-17 (unsigned GitHub auto-update)
+- Ship in-app updates now with `electron-updater` against unsigned GitHub Releases (`nwaoga/NthTerm`) so early adopters can upgrade without manually downloading installers.
+- Keep builds unsigned; SmartScreen/Gatekeeper warnings remain acceptable until certificates are funded.
+- Configure electron-builder `publish` to the GitHub provider so `latest.yml` / `latest-mac.yml` are emitted and attached by CI; softprops still publishes the Release assets.
+- Allow prerelease updates so RC tags participate in the update channel.
+- Signing later is CI/secrets work only — the updater bridge and UI do not need a rewrite.
+
 ## 2026-09-17 (rc.6 release prep)
 - `0.1.0-rc.6` packages the Angular 22 alignment and Vitest migration (#197) as an unsigned Win/mac candidate on top of the rc.5 Git workspace tools payload.
 - Public download CTAs should point at `v0.1.0-rc.6` before pushing the tag so GitHub Pages and README are ready as soon as tag-triggered CI publishes unsigned Windows/macOS release assets.

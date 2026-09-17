@@ -27,7 +27,12 @@ describe('SettingsModalComponent', () => {
             .queryAll(By.css('.preference-section-title'))
             .map((element) => element.nativeElement.textContent.trim());
 
-        expect(titles).toEqual(['Workspace appearance', 'Terminal appearance', 'New workspaces']);
+        expect(titles).toEqual([
+            'Workspace appearance',
+            'Terminal appearance',
+            'New workspaces',
+            'Updates',
+        ]);
     });
 
     it('emits preference changes and closes from the header button', () => {
@@ -89,5 +94,26 @@ describe('SettingsModalComponent', () => {
         checkbox.nativeElement.dispatchEvent(new Event('change'));
 
         expect(panelSpy).toHaveBeenCalledWith(false);
+    });
+
+    it('emits update check and restart actions', () => {
+        const fixture = TestBed.createComponent(SettingsModalComponent);
+        const component = fixture.componentInstance;
+        const checkSpy = vi.fn().mockName('checkForUpdatesRequested');
+        const restartSpy = vi.fn().mockName('restartToUpdateRequested');
+
+        component.open = true;
+        component.appVersion = '0.1.0-rc.6';
+        component.updateReady = true;
+        component.checkForUpdatesRequested.subscribe(checkSpy);
+        component.restartToUpdateRequested.subscribe(restartSpy);
+        fixture.detectChanges();
+
+        const buttons = fixture.debugElement.queryAll(By.css('.settings-update-button'));
+        buttons[0].nativeElement.click();
+        buttons[1].nativeElement.click();
+
+        expect(checkSpy).toHaveBeenCalled();
+        expect(restartSpy).toHaveBeenCalled();
     });
 });

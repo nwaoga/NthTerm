@@ -151,6 +151,34 @@
           }
           <p class="preference-hint">{{ getNewSessionStartHint() }}</p>
         </section>
+
+        <section class="preference-section" aria-labelledby="settings-updates">
+          <div class="preference-section-heading">
+            <p class="preference-section-title" id="settings-updates">Updates</p>
+            <p class="preference-section-copy">Check GitHub Releases for a newer unsigned build and restart to install.</p>
+          </div>
+          <p class="preference-hint">Installed version: {{ appVersion || 'unknown' }}</p>
+          <p class="preference-hint">{{ updateStatusLabel }}</p>
+          <div class="theme-color-row">
+            <button
+              type="button"
+              class="settings-update-button"
+              [disabled]="updateChecking"
+              (click)="checkForUpdates()"
+            >
+              Check for updates
+            </button>
+            @if (updateReady) {
+              <button
+                type="button"
+                class="settings-update-button settings-update-button-primary"
+                (click)="restartToUpdate()"
+              >
+                Restart to update
+              </button>
+            }
+          </div>
+        </section>
       </div>
     </div>
   </div>

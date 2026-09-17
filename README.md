@@ -81,7 +81,7 @@ Keyboard shortcuts:
 
 Workspaces hold up to 10 stacked terminals. Focus mode shows one interactive terminal; overview shows lightweight preview cards for the whole stack. Stack navigation chrome hides when a workspace has only one terminal.
 
-The remaining release constraint is Authenticode signing. The RC is intentionally unsigned, so Windows SmartScreen warnings are expected until a certificate is available.
+The remaining release constraint is Authenticode signing / Apple notarization. Builds are intentionally unsigned, so Windows SmartScreen and macOS Gatekeeper warnings are expected until certificates are available. Packaged apps can still check GitHub Releases and install updates in-app via `electron-updater` (prerelease RCs included).
 
 Latest source verification: `npm run build` and `npm run test:ci` pass with 52 Electron checks and 167 Angular Vitest specs. The xterm-driven initial bundle budget warning remains accepted for RCs.
 
@@ -191,11 +191,12 @@ python scripts/generate-branding-assets.py
 **Unsigned (current default):**
 
 - Local: `npm run package`, `npm run release:win`, or `npm run release:mac`
-- CI: GitHub Actions uploads `nthterm-windows-unsigned` and `nthterm-macos-unsigned` without certificate secrets
+- CI: GitHub Actions uploads `nthterm-windows-unsigned` and `nthterm-macos-unsigned` without certificate secrets (includes `latest.yml` / `latest-mac.yml` updater metadata)
 - Version tags (`v*`): CI also publishes those artifacts to a GitHub Release (prerelease, unsigned)
 - Backfill: workflow **Publish GitHub Release** can attach artifacts from an existing Actions run to a tag
 - Public downloads: https://github.com/nwaoga/NthTerm/releases
-- Electron Builder is configured with `"publish": null`, Windows has no certificate fields, and macOS sets `"identity": null`
+- Electron Builder `publish` points at the GitHub provider for updater metadata; Windows has no certificate fields, and macOS sets `"identity": null`
+- Packaged apps check GitHub Releases on launch (`electron-updater`, prereleases allowed) and can restart to install; Settings and the status bar expose the same controls
 - Windows SmartScreen / macOS Gatekeeper may warn on first launch of unsigned builds; that is expected until signing/notarization is enabled
 
 **Signed (future readiness — not enabled yet):**
@@ -207,6 +208,7 @@ python scripts/generate-branding-assets.py
    - `CSC_KEY_PASSWORD` — certificate password
    - optional: `WIN_CSC_LINK` / `WIN_CSC_KEY_PASSWORD` for Windows-only signing
 4. Keep the unsigned CI path available for PR validation; add a separate protected release workflow/job that injects signing secrets
+5. Reuse the existing in-app updater path — signing is CI/config, not an Angular rewrite
 
 GitHub Actions runs the same build and test path on pull requests and pushes to `main`. The Windows and macOS release jobs upload unsigned installer/app artifacts from the workflow run.
 Pushing a version tag such as `v0.1.0-rc.6` runs the same validation and produces the unsigned Windows and macOS artifacts for that candidate.

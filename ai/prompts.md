@@ -18,7 +18,7 @@
 - #138/#139/#140/#141/#156/#172/#173/#174/#175/#176/#177/#178/#179/#180/#197/#198 Closed (ADO + repo). PR #1 and cloud setup PR #2 merged to `main`.
 - Public RC page: `https://nwaoga.github.io/NthTerm/` (`site/` via GitHub Pages — static marketing only, not the Angular app).
 - Release target: https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.6 (unsigned Win + macOS assets after tag CI publishes).
-- **Deferred:** Authenticode / Apple notarization / `electron-updater` until certificates exist.
+- **Deferred:** Authenticode / Apple notarization until certificates exist (in-app updater already uses unsigned GitHub Releases).
 - Preserve the compact inspector hierarchy (Workspace | Terminal) and stacked focus/overview layout.
 - Renderer refactor is complete; keep new code in feature folders/services and do not grow god files.
 - Angular unit tests use Vitest + jsdom; do not reintroduce Karma.
@@ -29,7 +29,7 @@
 - Themes: Midnight, Coffee, and White app chrome, with separate terminal color themes and ANSI palettes
 - Current milestone: `0.1.0-rc.6` release prep; local build/test passed; macOS packaged smoke runs on tag CI
 - Public site: `https://nwaoga.github.io/NthTerm/` — GitHub Pages from `site/` (`media/focus.png`, `media/overview.png`); workflow `.github/workflows/pages.yml`
-- Backlog: finish Angular 22 consumer cleanup; signing / notarization / auto-update remain deferred
+- Backlog: finish Angular 22 consumer cleanup; signing / notarization remain deferred (updater already ships unsigned)
 - Mac smoke evidence: `docs/verification/macos-smoke-v0.1.0-rc.2.json` from Actions run `31277571206`
 - Local verify bar: `npm run build` + `npm run test:ci` (52 Electron / 167 Angular Vitest)
 - Renderer: feature-oriented Angular shell with workspace-owned stable terminals, stacked focus/overview, compact inspector projections, and utility command history attributed by terminal ID

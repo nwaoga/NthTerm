@@ -141,6 +141,8 @@ export class CommandPaletteService {
       { id: 'hide-left-rail', kind: 'action', group: 'View', label: 'Hide Workspaces Rail', detail: 'Collapse the left workspaces rail' },
       { id: 'show-left-rail', kind: 'action', group: 'View', label: 'Show Workspaces Rail', detail: 'Restore the left workspaces rail' },
       { id: 'open-palette', kind: 'action', group: 'Navigation', label: 'Open Command Palette', detail: 'Show workspace commands and search', shortcut: 'Ctrl+Shift+P' },
+      { id: 'check-for-updates', kind: 'action', group: 'Help', label: 'Check for Updates', detail: 'Look for a newer GitHub Release build' },
+      { id: 'restart-to-update', kind: 'action', group: 'Help', label: 'Restart to Update', detail: 'Install a downloaded update and relaunch' },
     ];
   }
 
@@ -308,6 +310,12 @@ export class CommandPaletteService {
         break;
       case 'open-palette':
         dispatcher.openCommandPalette();
+        break;
+      case 'check-for-updates':
+        await dispatcher.checkForUpdates();
+        break;
+      case 'restart-to-update':
+        await dispatcher.restartToUpdate();
         break;
     }
   }

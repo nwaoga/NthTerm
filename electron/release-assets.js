@@ -20,6 +20,12 @@ function expectedReleaseAssetNames(version, productName = 'NthTerm') {
   ];
 }
 
+/** electron-updater channel metadata emitted next to installers when publish.provider is github. */
+function expectedUpdaterMetadataNames() {
+  return ['latest.yml', 'latest-mac.yml'];
+}
+
 module.exports = {
   expectedReleaseAssetNames,
+  expectedUpdaterMetadataNames,
 };

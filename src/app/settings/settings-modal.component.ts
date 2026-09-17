@@ -31,6 +31,10 @@ export class SettingsModalComponent {
   @Input() terminalAnsiPalette: TerminalAnsiPaletteId = 'auto';
   @Input() windowTransparency = 0;
   @Input() shellOptions: ShellOption[] = buildShellOptions([], resolveHostPlatform());
+  @Input() appVersion = '';
+  @Input() updateStatusLabel = 'Updates';
+  @Input() updateReady = false;
+  @Input() updateChecking = false;
 
   @Output() readonly closed = new EventEmitter<void>();
   @Output() readonly utilityPanelPreferenceChange = new EventEmitter<boolean>();
@@ -42,6 +46,8 @@ export class SettingsModalComponent {
   @Output() readonly defaultTerminalBackgroundChange = new EventEmitter<string>();
   @Output() readonly terminalAnsiPaletteChange = new EventEmitter<TerminalAnsiPaletteId>();
   @Output() readonly windowTransparencyChange = new EventEmitter<number>();
+  @Output() readonly checkForUpdatesRequested = new EventEmitter<void>();
+  @Output() readonly restartToUpdateRequested = new EventEmitter<void>();
 
   protected readonly systemThemes = SYSTEM_THEMES;
   protected readonly terminalAnsiPaletteOptions = TERMINAL_ANSI_PALETTE_OPTIONS;
@@ -130,6 +136,14 @@ export class SettingsModalComponent {
   protected setWindowTransparency(value: string | number): void {
     const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
     this.windowTransparencyChange.emit(Number.isFinite(parsed) ? parsed : 0);
+  }
+
+  protected checkForUpdates(): void {
+    this.checkForUpdatesRequested.emit();
+  }
+
+  protected restartToUpdate(): void {
+    this.restartToUpdateRequested.emit();
   }
 
   protected getNewSessionStartHint(): string {

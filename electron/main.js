@@ -23,6 +23,7 @@ const {
   createBrowserWindowOptions,
   createDarwinApplicationMenuTemplate,
 } = require('./window-chrome');
+const { createAutoUpdateController } = require('./auto-update');
 
 const spawnCoordinator = new TerminalSpawnCoordinator({
   spawnFn: (file, args, options) => pty.spawn(file, args, options),
@@ -33,6 +34,7 @@ const terminalStarts = new TerminalStartRegistry();
 const workspaceStore = new WorkspaceStore();
 let isQuitting = false;
 let mainWindow = null;
+let autoUpdateController = null;
 
 function installApplicationMenu() {
   if (process.platform !== 'darwin') {
@@ -325,6 +327,15 @@ function registerAppHandlers() {
   });
 }
 
+function createAutoUpdater() {
+  try {
+    return require('electron-updater').autoUpdater;
+  } catch (error) {
+    console.warn('electron-updater is unavailable:', error?.message || error);
+    return null;
+  }
+}
+
 app.whenReady()
   .then(async () => {
     await workspaceStore.init(app.getPath('userData'));
@@ -333,7 +344,12 @@ app.whenReady()
     registerWorkspaceHandlers();
     registerSystemHandlers();
     registerAppHandlers();
+    autoUpdateController = createAutoUpdateController({
+      autoUpdater: createAutoUpdater(),
+    });
+    autoUpdateController.registerHandlers();
     createWindow();
+    autoUpdateController.startLaunchCheck();
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {

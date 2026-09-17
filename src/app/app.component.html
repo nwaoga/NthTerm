@@ -61,6 +61,10 @@
     [terminalAnsiPalette]="terminalAnsiPalette"
     [windowTransparency]="windowTransparency"
     [shellOptions]="ws.getShellOptions()"
+    [appVersion]="updates.currentVersion()"
+    [updateStatusLabel]="updates.statusLabel()"
+    [updateReady]="updates.canRestart()"
+    [updateChecking]="updates.phase() === 'checking' || updates.phase() === 'downloading'"
     (closed)="closeSettings()"
     (utilityPanelPreferenceChange)="setUtilityPanelPreference($event)"
     (newSessionStartModeChange)="setNewSessionStartMode($event)"
@@ -71,5 +75,7 @@
     (defaultTerminalBackgroundChange)="setDefaultTerminalBackground($event)"
     (terminalAnsiPaletteChange)="setTerminalAnsiPalette($event)"
     (windowTransparencyChange)="setWindowTransparency($event)"
+    (checkForUpdatesRequested)="onCheckForUpdates()"
+    (restartToUpdateRequested)="onRestartToUpdate()"
   />
 </main>

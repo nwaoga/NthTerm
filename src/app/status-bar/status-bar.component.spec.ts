@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
+import { UpdateNotifierService } from '../updates/update-notifier.service';
 import { StatusBarComponent } from './status-bar.component';
 
 describe('StatusBarComponent', () => {
@@ -16,6 +17,15 @@ describe('StatusBarComponent', () => {
         {
           provide: WorkspaceRuntimeService,
           useValue: workspaceService,
+        },
+        {
+          provide: UpdateNotifierService,
+          useValue: {
+            canRestart: () => false,
+            phase: () => 'idle',
+            statusLabel: () => 'Updates',
+            restartToUpdate: async () => undefined,
+          },
         },
       ],
     }).compileComponents();

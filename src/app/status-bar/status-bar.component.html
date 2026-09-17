@@ -3,4 +3,15 @@
     <span>{{ ws.workspaceName }}</span>
     <span>{{ ws.terminals.length }} terminals</span>
   </div>
+  @if (updates.canRestart()) {
+    <button
+      type="button"
+      class="status-update-action"
+      (click)="restartToUpdate()"
+    >
+      Update ready — Restart
+    </button>
+  } @else if (updates.phase() === 'downloading' || updates.phase() === 'available' || updates.phase() === 'checking') {
+    <span class="status-update-note">{{ updates.statusLabel() }}</span>
+  }
 </footer>

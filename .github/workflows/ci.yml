@@ -69,6 +69,7 @@ jobs:
             release/*.exe
             release/*.zip
             release/*.blockmap
+            release/*.yml
           if-no-files-found: error
           retention-days: 14
 
@@ -112,6 +113,7 @@ jobs:
             release/*.dmg
             release/*.zip
             release/*.blockmap
+            release/*.yml
             release/macos-smoke-validation.json
           if-no-files-found: error
           retention-days: 14
