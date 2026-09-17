@@ -8,7 +8,7 @@ on:
       tag:
         description: Git tag to attach the release to (must already exist)
         required: true
-        default: v0.1.0-rc.5
+        default: v0.1.0-rc.6
       workflow_run_id:
         description: Actions run id that uploaded nthterm-*-unsigned artifacts
         required: true

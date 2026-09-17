@@ -22,7 +22,7 @@ NthTerm is headed toward a rich desktop workspace experience for developers and 
 
 ## Current status
 
-Current milestone: **0.1.0-rc.5** (`v0.1.0-rc.5`) — unsigned Windows and macOS release candidate (Git toolbar/sidebar/history/files/diff workspace tools, VS Code task launchers). Downloads: [GitHub Release](https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.5) and [landing page](https://nwaoga.github.io/NthTerm/). Signing / notarization deferred.
+Current milestone: **0.1.0-rc.6** (`v0.1.0-rc.6`) — unsigned Windows and macOS release candidate (Angular 22 + Vitest unit tests, Git workspace tools). Downloads: [GitHub Release](https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.6) and [landing page](https://nwaoga.github.io/NthTerm/). Signing / notarization deferred.
 
 Working today:
 
@@ -209,7 +209,7 @@ python scripts/generate-branding-assets.py
 4. Keep the unsigned CI path available for PR validation; add a separate protected release workflow/job that injects signing secrets
 
 GitHub Actions runs the same build and test path on pull requests and pushes to `main`. The Windows and macOS release jobs upload unsigned installer/app artifacts from the workflow run.
-Pushing a version tag such as `v0.1.0-rc.5` runs the same validation and produces the unsigned Windows and macOS artifacts for that candidate.
+Pushing a version tag such as `v0.1.0-rc.6` runs the same validation and produces the unsigned Windows and macOS artifacts for that candidate.
 
 After `npm run release:win`, validate install/reinstall and AppData preservation locally:
 

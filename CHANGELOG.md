@@ -1,5 +1,19 @@
 ## Unreleased
 
+## 0.1.0-rc.6 - 2026-09-17
+
+Unsigned Windows + macOS release candidate after the Angular 22 and Vitest toolchain pass.
+
+- Aligned the app on Angular 22 with TypeScript 6, including signal-backed workspace runtime state behind the existing service API.
+- Migrated Angular unit tests from Karma/Jasmine to Vitest via `@angular/build:unit-test` and jsdom (#197).
+- Switched application builders to `@angular/build` and removed Karma/Jasmine packages.
+- Added jsdom stubs for xterm (`matchMedia` / canvas) so terminal session specs keep passing under Vitest.
+- Cut unsigned Win/mac release candidate packaging and public download CTAs for `v0.1.0-rc.6` (#198).
+
+### Known limitation
+
+Artifacts remain unsigned. Windows SmartScreen and macOS Gatekeeper warnings are expected until Authenticode signing and Apple notarization are configured. In-app auto-update is deferred; upgrade by installing the newer build over the existing install (AppData / Application Support is preserved).
+
 ## 0.1.0-rc.5 - 2026-09-01
 
 Unsigned Windows + macOS release candidate after the Git workspace tools pass.

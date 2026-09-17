@@ -18,7 +18,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ## Current State (2026-09-17)
 
-**Phase:** Angular 22 modernization in progress on `main` after unsigned `0.1.0-rc.5`. Renderer unit tests now run on Vitest; remaining work is signal-consumer cleanup and chrome opacity product decision.
+**Phase:** `0.1.0-rc.6` release prep. Angular 22 + Vitest are in the RC payload, and the site/docs/download CTAs point at `v0.1.0-rc.6`.
 
 **Working today:**
 - Angular unit tests via Vitest (`@angular/build:unit-test` + jsdom); Electron specs remain `node --test`
@@ -64,7 +64,28 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** Unsigned `0.1.0-rc.5` (Git workspace tools + VS Code task launchers). Post-tag: Angular 22 package alignment + Vitest migration on `main`.
+**Last shipped:** Unsigned `0.1.0-rc.5` (Git workspace tools + VS Code task launchers).
+
+## Handover — 2026-09-17 (cut 0.1.0-rc.6)
+
+**Milestone:** `0.1.0-rc.6` unsigned Win/mac candidate for Angular 22 + Vitest.
+
+### Done
+- Version bump to `0.1.0-rc.6`; CHANGELOG, README, GitHub Pages CTAs, and release backfill workflow default point at `v0.1.0-rc.6`.
+- Angular 22 package alignment and signal-backed workspace runtime (existing service API preserved).
+- ADO [#197](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/197) Closed — Karma/Jasmine → Vitest migration.
+- ADO [#198](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/198) Closed — cut unsigned `0.1.0-rc.6`.
+- Local validation: `npm run build` and `npm run test:ci` (52 Electron / 167 Angular Vitest).
+
+### Next (when ready)
+1. Tag `v0.1.0-rc.6` and push commit + tag to trigger unsigned Win/mac artifacts and GitHub Release publish.
+2. Finish Angular 22 consumer/signal cleanup where it reduces complexity; decide opaque vs frosted chrome docs.
+3. Authenticode signing / Apple notarization / `electron-updater` remain deferred until certificates exist.
+
+### Guardrails
+- Prefer Vitest specs under `src/app/**`; keep Electron specs on `node --test`.
+- Do not reintroduce Karma.
+- Preserve compact inspector, stacked focus/overview, and Git workspace panes.
 
 ## Handover — 2026-09-17 (Vitest migration)
 
@@ -286,6 +307,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 11. ~~Cut unsigned `0.1.0-rc.3` (2026-09-01) from current `main`.~~
 12. ~~Cut unsigned `0.1.0-rc.4` (2026-09-01) — Add Terminal menu stacking + Studio Stack empty-db seed.~~
 13. Cut unsigned `0.1.0-rc.5` (2026-09-01) — Git workspace tools (#175-#180) + VS Code task launchers.
+14. Cut unsigned `0.1.0-rc.6` (2026-09-17) — Angular 22 + Vitest (#197).
 
 ### Stacked polish (#140)
 
@@ -309,7 +331,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Brand-first hero + short SWE-facing pitch (frontend / backend / Docker stack)
 - Real product shots: Focus (`site/media/focus.png`) + Overview (`site/media/overview.png`) from Angular reference preview
 - Feature triad mini-mocks: Focus, Workspaces, Stacked PTYs
-- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.5`
+- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.6`
 - Unsigned build callout (SmartScreen / Gatekeeper)
 - GitHub + Issues + Releases footer links
 - Visual language: midnight/purple glass; Cursor-like sparse page rhythm

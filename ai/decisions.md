@@ -1,5 +1,9 @@
 # NthTerm Decisions
 
+## 2026-09-17 (rc.6 release prep)
+- `0.1.0-rc.6` packages the Angular 22 alignment and Vitest migration (#197) as an unsigned Win/mac candidate on top of the rc.5 Git workspace tools payload.
+- Public download CTAs should point at `v0.1.0-rc.6` before pushing the tag so GitHub Pages and README are ready as soon as tag-triggered CI publishes unsigned Windows/macOS release assets.
+
 ## 2026-09-17 (Vitest migration)
 - Angular unit tests move from Karma/Jasmine to Vitest via `@angular/build:unit-test` and jsdom before finishing the remaining Angular 22 consumer/signal cleanup.
 - Application builders also move to `@angular/build` (`application`, `dev-server`, `extract-i18n`, `unit-test`) so the Vitest runner is first-class.
