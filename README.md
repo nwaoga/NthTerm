@@ -83,7 +83,7 @@ Workspaces hold up to 10 stacked terminals. Focus mode shows one interactive ter
 
 The remaining release constraint is Authenticode signing. The RC is intentionally unsigned, so Windows SmartScreen warnings are expected until a certificate is available.
 
-Latest source verification: `npm run build` and `npm run test:ci` pass with 52 Electron checks and 167 Angular specs. The xterm-driven initial bundle budget warning remains accepted for RCs.
+Latest source verification: `npm run build` and `npm run test:ci` pass with 52 Electron checks and 167 Angular Vitest specs. The xterm-driven initial bundle budget warning remains accepted for RCs.
 
 ## Design alignment checklist
 

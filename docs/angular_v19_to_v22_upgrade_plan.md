@@ -18,6 +18,11 @@ Angular signals behind property accessors.
 ## Still Required
 
 - Run the full project validation suite before merging: `npm run build` and `npm run test:ci`.
-- Review Angular 22 deprecation warnings from the Webpack dev-server path.
+- Review Angular 22 deprecation warnings from the Webpack/Vite dev-server path.
 - Decide whether the opaque surface styling is the desired product direction, since the README still describes frosted glass chrome.
 - Avoid claiming the component tree has been fully migrated to direct signal reads until each consumer is intentionally converted and tested.
+
+## Test runner
+
+Angular unit tests now run under Vitest (`@angular/build:unit-test` + jsdom) instead of Karma/Jasmine.
+Electron main-process specs remain on Node's built-in `node --test` runner.

@@ -7,62 +7,64 @@ import { UtilityPanelService } from '../utility-panel/utility-panel.service';
 import { WorkspaceRuntimeService } from '../workspace/workspace-runtime.service';
 
 describe('ReferenceReviewContentService', () => {
-  let service: ReferenceReviewContentService;
-  let workspace: WorkspaceRuntimeService;
-  let utility: UtilityPanelService;
-  let system: SystemMonitorService;
-  let terminal: jasmine.SpyObj<TerminalSessionService>;
+    let service: ReferenceReviewContentService;
+    let workspace: WorkspaceRuntimeService;
+    let utility: UtilityPanelService;
+    let system: SystemMonitorService;
+    let terminal: Pick<TerminalSessionService, 'setPreviewSessionInfo'>;
 
-  beforeEach(() => {
-    terminal = jasmine.createSpyObj('TerminalSessionService', ['setPreviewSessionInfo']);
+    beforeEach(() => {
+        terminal = {
+            setPreviewSessionInfo: vi.fn().mockName('TerminalSessionService.setPreviewSessionInfo'),
+        };
 
-    TestBed.configureTestingModule({
-      providers: [
-        ReferenceReviewContentService,
-        WorkspaceRuntimeService,
-        UtilityPanelService,
-        SystemMonitorService,
-      ],
+        TestBed.configureTestingModule({
+            providers: [
+                ReferenceReviewContentService,
+                WorkspaceRuntimeService,
+                UtilityPanelService,
+                SystemMonitorService,
+            ],
+        });
+
+        service = TestBed.inject(ReferenceReviewContentService);
+        workspace = TestBed.inject(WorkspaceRuntimeService);
+        utility = TestBed.inject(UtilityPanelService);
+        system = TestBed.inject(SystemMonitorService);
     });
 
-    service = TestBed.inject(ReferenceReviewContentService);
-    workspace = TestBed.inject(WorkspaceRuntimeService);
-    utility = TestBed.inject(UtilityPanelService);
-    system = TestBed.inject(SystemMonitorService);
-  });
+    it('seeds the full Studio Stack review state for preview mode', () => {
+        service.applyFullPreviewState(workspace, utility, system, terminal as TerminalSessionService);
 
-  it('seeds the full Studio Stack review state for preview mode', () => {
-    service.applyFullPreviewState(workspace, utility, system, terminal);
+        expect(workspace.previewMode).toBe(true);
+        expect(workspace.workspaceName).toBe('Studio Stack');
+        expect(workspace.terminals.length).toBe(4);
+        expect(workspace.sessionHistory.length).toBe(2);
+        expect(workspace.recoverySnapshot.lastStopReason).toBe('Clean restore');
+        expect(workspace.lastSavedAt).toBe('Today at 09:12:05');
+        expect(utility.problems.length).toBe(2);
+        expect(utility.outputLines[0].message).toContain('OrderService');
+        expect(system.systemMetrics?.memoryTotalGb).toBe(16);
+        expect(system.environmentVariables.length).toBe(3);
+        expect(terminal.setPreviewSessionInfo).toHaveBeenCalled();
+        expect(utility.activeTab).toBe('output');
+    });
 
-    expect(workspace.previewMode).toBeTrue();
-    expect(workspace.workspaceName).toBe('Studio Stack');
-    expect(workspace.terminals.length).toBe(4);
-    expect(workspace.sessionHistory.length).toBe(2);
-    expect(workspace.recoverySnapshot.lastStopReason).toBe('Clean restore');
-    expect(workspace.lastSavedAt).toBe('Today at 09:12:05');
-    expect(utility.problems.length).toBe(2);
-    expect(utility.outputLines[0].message).toContain('OrderService');
-    expect(system.systemMetrics?.memoryTotalGb).toBe(16);
-    expect(system.environmentVariables.length).toBe(3);
-    expect(terminal.setPreviewSessionInfo).toHaveBeenCalled();
-    expect(utility.activeTab).toBe('output');
-  });
+    it('adds supplemental review content without replacing existing dock output', () => {
+        utility.outputLines = [
+            {
+                id: 'existing',
+                timestamp: new Date().toISOString(),
+                level: 'info',
+                message: 'Workspace shell initialized',
+            },
+        ];
 
-  it('adds supplemental review content without replacing existing dock output', () => {
-    utility.outputLines = [
-      {
-        id: 'existing',
-        timestamp: new Date().toISOString(),
-        level: 'info',
-        message: 'Workspace shell initialized',
-      },
-    ];
+        service.applySupplementalReviewContent(workspace, utility, system, terminal as TerminalSessionService);
 
-    service.applySupplementalReviewContent(workspace, utility, system, terminal);
-
-    expect(utility.problems.length).toBe(2);
-    expect(utility.outputLines.length).toBe(1);
-    expect(utility.outputLines[0].message).toBe('Workspace shell initialized');
-    expect(workspace.sessionHistory.length).toBe(2);
-  });
+        expect(utility.problems.length).toBe(2);
+        expect(utility.outputLines.length).toBe(1);
+        expect(utility.outputLines[0].message).toBe('Workspace shell initialized');
+        expect(workspace.sessionHistory.length).toBe(2);
+    });
 });

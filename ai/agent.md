@@ -13,7 +13,7 @@
 
 ## Angular Testing Guidance
 
-- Put specs close to the feature under `src/app/**`.
+- Prefer focused Vitest specs close to the feature under `src/app/**` (`ng test` / `@angular/build:unit-test`).
 - Mock Electron bridges, PTY services, and other heavy runtime dependencies in unit tests.
 - Prefer focused tests for component outputs, service state transitions, and restore/workspace branching logic.
 

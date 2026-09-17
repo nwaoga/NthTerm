@@ -3,138 +3,138 @@ import { TestBed } from '@angular/core/testing';
 import { AppPreferencesService, windowTransparencyToSurfaceAlpha, windowTransparencyToTerminalOpacity } from './app-preferences.service';
 
 describe('AppPreferencesService', () => {
-  let service: AppPreferencesService;
+    let service: AppPreferencesService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(AppPreferencesService);
-    localStorage.clear();
-  });
-
-  it('persists and clamps bottom panel height', () => {
-    service.writeBottomPanelHeight(640);
-
-    expect(service.readBottomPanelHeight()).toBe(520);
-  });
-
-  it('returns the default height when storage is empty', () => {
-    expect(service.readBottomPanelHeight()).toBe(280);
-  });
-
-  it('keeps dock visibility and height preferences per workspace', () => {
-    expect(service.readBottomPanelVisible()).toBeFalse();
-
-    service.writeWorkspaceBottomPanelVisible('workspace-1', false);
-    service.writeWorkspaceBottomPanelHeight('workspace-1', 360);
-    service.writeWorkspaceBottomPanelVisible('workspace-2', true);
-    service.writeWorkspaceBottomPanelHeight('workspace-2', 220);
-
-    expect(service.readWorkspaceBottomPanelVisible('workspace-1')).toBeFalse();
-    expect(service.readWorkspaceBottomPanelHeight('workspace-1')).toBe(360);
-    expect(service.readWorkspaceBottomPanelVisible('workspace-2')).toBeTrue();
-    expect(service.readWorkspaceBottomPanelHeight('workspace-2')).toBe(220);
-    expect(service.readWorkspaceBottomPanelHeight('missing', 300)).toBe(300);
-    expect(service.readWorkspaceBottomPanelVisible('missing')).toBeFalse();
-  });
-
-  it('persists the bottom panel visibility preference', () => {
-    expect(service.readBottomPanelVisible()).toBeFalse();
-
-    service.writeBottomPanelVisible(true);
-    expect(service.readBottomPanelVisible()).toBeTrue();
-
-    service.writeBottomPanelVisible(false);
-    expect(service.readBottomPanelVisible()).toBeFalse();
-  });
-
-  it('persists the inspector panel visibility preference', () => {
-    expect(service.readInspectorPanelVisible()).toBeFalse();
-
-    service.writeInspectorPanelVisible(true);
-    expect(service.readInspectorPanelVisible()).toBeTrue();
-
-    service.writeInspectorPanelVisible(false);
-    expect(service.readInspectorPanelVisible()).toBeFalse();
-  });
-
-  it('persists the left rail visibility preference', () => {
-    expect(service.readLeftRailVisible()).toBeFalse();
-
-    service.writeLeftRailVisible(true);
-    expect(service.readLeftRailVisible()).toBeTrue();
-
-    service.writeLeftRailVisible(false);
-    expect(service.readLeftRailVisible()).toBeFalse();
-  });
-
-  it('defaults new sessions to the focused terminal directory', () => {
-    expect(service.readNewSessionStartMode()).toBe('focused-tab');
-    expect(service.readNewSessionCustomPath()).toBe('');
-  });
-
-  it('persists the new session start mode and trimmed custom path', () => {
-    service.writeNewSessionStartMode('custom');
-    service.writeNewSessionCustomPath('  C:\\Projects\\NthTerm  ');
-
-    expect(service.readNewSessionStartMode()).toBe('custom');
-    expect(service.readNewSessionCustomPath()).toBe('C:\\Projects\\NthTerm');
-  });
-
-  it('persists the default shell preference', () => {
-    expect(service.readDefaultShell()).toBe('');
-
-    service.writeDefaultShell('powershell');
-    expect(service.readDefaultShell()).toBe('powershell');
-
-    service.writeDefaultShell('zsh');
-    expect(service.readDefaultShell()).toBe('zsh');
-
-    service.writeDefaultShell('wsl:Ubuntu');
-    expect(service.readDefaultShell()).toBe('wsl:Ubuntu');
-  });
-
-  it('persists default terminal colors and system theme separately', () => {
-    service.writeDefaultTerminalTheme({
-      foreground: '#abcdef',
-      background: '#112233',
+    beforeEach(() => {
+        TestBed.configureTestingModule({});
+        service = TestBed.inject(AppPreferencesService);
+        localStorage.clear();
     });
-    service.writeSystemTheme('white');
 
-    expect(service.readDefaultTerminalTheme()).toEqual({
-      foreground: '#abcdef',
-      background: '#112233',
-      cursor: '#abcdef',
+    it('persists and clamps bottom panel height', () => {
+        service.writeBottomPanelHeight(640);
+
+        expect(service.readBottomPanelHeight()).toBe(520);
     });
-    expect(service.readSystemTheme()).toBe('white');
-  });
 
-  it('persists and clamps window transparency', () => {
-    expect(service.readWindowTransparency()).toBe(0);
+    it('returns the default height when storage is empty', () => {
+        expect(service.readBottomPanelHeight()).toBe(280);
+    });
 
-    service.writeWindowTransparency(45);
-    expect(service.readWindowTransparency()).toBe(45);
+    it('keeps dock visibility and height preferences per workspace', () => {
+        expect(service.readBottomPanelVisible()).toBe(false);
 
-    expect(service.writeWindowTransparency(200)).toBe(80);
-    expect(service.readWindowTransparency()).toBe(80);
-    expect(service.writeWindowTransparency(-10)).toBe(0);
-    expect(windowTransparencyToSurfaceAlpha(40)).toBe(0.6);
-    expect(windowTransparencyToSurfaceAlpha(0)).toBe(1);
-    expect(windowTransparencyToTerminalOpacity(0)).toBe(1);
-    expect(windowTransparencyToTerminalOpacity(40)).toBe(0.36);
-  });
+        service.writeWorkspaceBottomPanelVisible('workspace-1', false);
+        service.writeWorkspaceBottomPanelHeight('workspace-1', 360);
+        service.writeWorkspaceBottomPanelVisible('workspace-2', true);
+        service.writeWorkspaceBottomPanelHeight('workspace-2', 220);
 
-  it('persists the terminal ansi palette preference', () => {
-    expect(service.readTerminalAnsiPalette()).toBe('auto');
+        expect(service.readWorkspaceBottomPanelVisible('workspace-1')).toBe(false);
+        expect(service.readWorkspaceBottomPanelHeight('workspace-1')).toBe(360);
+        expect(service.readWorkspaceBottomPanelVisible('workspace-2')).toBe(true);
+        expect(service.readWorkspaceBottomPanelHeight('workspace-2')).toBe(220);
+        expect(service.readWorkspaceBottomPanelHeight('missing', 300)).toBe(300);
+        expect(service.readWorkspaceBottomPanelVisible('missing')).toBe(false);
+    });
 
-    service.writeTerminalAnsiPalette('dracula');
-    expect(service.readTerminalAnsiPalette()).toBe('dracula');
-  });
+    it('persists the bottom panel visibility preference', () => {
+        expect(service.readBottomPanelVisible()).toBe(false);
 
-  it('migrates legacy system theme ids to the new palette', () => {
-    localStorage.setItem('nthterm.preferences.systemTheme', 'slate');
-    expect(service.readSystemTheme()).toBe('white');
+        service.writeBottomPanelVisible(true);
+        expect(service.readBottomPanelVisible()).toBe(true);
 
-    localStorage.setItem('nthterm.preferences.systemTheme', 'ember');
-    expect(service.readSystemTheme()).toBe('coffee');
-  });
+        service.writeBottomPanelVisible(false);
+        expect(service.readBottomPanelVisible()).toBe(false);
+    });
+
+    it('persists the inspector panel visibility preference', () => {
+        expect(service.readInspectorPanelVisible()).toBe(false);
+
+        service.writeInspectorPanelVisible(true);
+        expect(service.readInspectorPanelVisible()).toBe(true);
+
+        service.writeInspectorPanelVisible(false);
+        expect(service.readInspectorPanelVisible()).toBe(false);
+    });
+
+    it('persists the left rail visibility preference', () => {
+        expect(service.readLeftRailVisible()).toBe(false);
+
+        service.writeLeftRailVisible(true);
+        expect(service.readLeftRailVisible()).toBe(true);
+
+        service.writeLeftRailVisible(false);
+        expect(service.readLeftRailVisible()).toBe(false);
+    });
+
+    it('defaults new sessions to the focused terminal directory', () => {
+        expect(service.readNewSessionStartMode()).toBe('focused-tab');
+        expect(service.readNewSessionCustomPath()).toBe('');
+    });
+
+    it('persists the new session start mode and trimmed custom path', () => {
+        service.writeNewSessionStartMode('custom');
+        service.writeNewSessionCustomPath('  C:\\Projects\\NthTerm  ');
+
+        expect(service.readNewSessionStartMode()).toBe('custom');
+        expect(service.readNewSessionCustomPath()).toBe('C:\\Projects\\NthTerm');
+    });
+
+    it('persists the default shell preference', () => {
+        expect(service.readDefaultShell()).toBe('');
+
+        service.writeDefaultShell('powershell');
+        expect(service.readDefaultShell()).toBe('powershell');
+
+        service.writeDefaultShell('zsh');
+        expect(service.readDefaultShell()).toBe('zsh');
+
+        service.writeDefaultShell('wsl:Ubuntu');
+        expect(service.readDefaultShell()).toBe('wsl:Ubuntu');
+    });
+
+    it('persists default terminal colors and system theme separately', () => {
+        service.writeDefaultTerminalTheme({
+            foreground: '#abcdef',
+            background: '#112233',
+        });
+        service.writeSystemTheme('white');
+
+        expect(service.readDefaultTerminalTheme()).toEqual({
+            foreground: '#abcdef',
+            background: '#112233',
+            cursor: '#abcdef',
+        });
+        expect(service.readSystemTheme()).toBe('white');
+    });
+
+    it('persists and clamps window transparency', () => {
+        expect(service.readWindowTransparency()).toBe(0);
+
+        service.writeWindowTransparency(45);
+        expect(service.readWindowTransparency()).toBe(45);
+
+        expect(service.writeWindowTransparency(200)).toBe(80);
+        expect(service.readWindowTransparency()).toBe(80);
+        expect(service.writeWindowTransparency(-10)).toBe(0);
+        expect(windowTransparencyToSurfaceAlpha(40)).toBe(0.6);
+        expect(windowTransparencyToSurfaceAlpha(0)).toBe(1);
+        expect(windowTransparencyToTerminalOpacity(0)).toBe(1);
+        expect(windowTransparencyToTerminalOpacity(40)).toBe(0.36);
+    });
+
+    it('persists the terminal ansi palette preference', () => {
+        expect(service.readTerminalAnsiPalette()).toBe('auto');
+
+        service.writeTerminalAnsiPalette('dracula');
+        expect(service.readTerminalAnsiPalette()).toBe('dracula');
+    });
+
+    it('migrates legacy system theme ids to the new palette', () => {
+        localStorage.setItem('nthterm.preferences.systemTheme', 'slate');
+        expect(service.readSystemTheme()).toBe('white');
+
+        localStorage.setItem('nthterm.preferences.systemTheme', 'ember');
+        expect(service.readSystemTheme()).toBe('coffee');
+    });
 });

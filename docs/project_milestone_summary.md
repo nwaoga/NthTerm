@@ -22,3 +22,7 @@ This branch contains the start of an Angular 22 and state modernization pass.
 - Convert component consumers to direct signal reads only where it reduces complexity.
 - Update design documentation if opaque surfaces replace the previous frosted glass direction.
 - Remove this note once the migration has a permanent changelog or architecture entry.
+
+## Test runner note (2026-09-17)
+
+Angular specs now run on Vitest via `@angular/build:unit-test` (jsdom). Karma/Jasmine packages were removed.

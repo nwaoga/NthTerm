@@ -1,5 +1,11 @@
 # NthTerm Decisions
 
+## 2026-09-17 (Vitest migration)
+- Angular unit tests move from Karma/Jasmine to Vitest via `@angular/build:unit-test` and jsdom before finishing the remaining Angular 22 consumer/signal cleanup.
+- Application builders also move to `@angular/build` (`application`, `dev-server`, `extract-i18n`, `unit-test`) so the Vitest runner is first-class.
+- Electron main-process specs stay on Node's built-in `node --test` runner; only the Angular renderer suite changes.
+- jsdom stubs for `matchMedia` and canvas live in `src/test-setup.ts` so xterm-backed specs keep passing without a real browser.
+
 ## 2026-09-01 (rc.5 release prep)
 - `0.1.0-rc.5` is a release/bookkeeping cut over the already-completed Git workspace stories #175-#180 plus the VS Code npm task launcher fix; no additional runtime behavior is introduced by the version/site/doc updates.
 - Public download CTAs should point at `v0.1.0-rc.5` before pushing the tag so GitHub Pages and README are ready as soon as tag-triggered CI publishes unsigned Windows/macOS release assets.

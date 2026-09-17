@@ -16,11 +16,12 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-09-01)
+## Current State (2026-09-17)
 
-**Phase:** `0.1.0-rc.5` release prep. Git workspace tools are in the RC payload, and the site/docs/download CTAs point at `v0.1.0-rc.5`.
+**Phase:** Angular 22 modernization in progress on `main` after unsigned `0.1.0-rc.5`. Renderer unit tests now run on Vitest; remaining work is signal-consumer cleanup and chrome opacity product decision.
 
 **Working today:**
+- Angular unit tests via Vitest (`@angular/build:unit-test` + jsdom); Electron specs remain `node --test`
 - Public RC marketing page at `https://nwaoga.github.io/NthTerm/` (static `site/`, GitHub Pages)
 - Electron + Angular shell with concurrent PTY-backed pane sessions across visible splits
 - Tab-owned terminal sessions that stay alive across tab switches and are parked/reattached without PTY teardown
@@ -63,7 +64,27 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** Unsigned `0.1.0-rc.4` (Add Terminal menu stacking + Studio Stack empty-db seed).
+**Last shipped:** Unsigned `0.1.0-rc.5` (Git workspace tools + VS Code task launchers). Post-tag: Angular 22 package alignment + Vitest migration on `main`.
+
+## Handover — 2026-09-17 (Vitest migration)
+
+**Milestone:** Move Angular renderer unit tests to Vitest before finishing Angular 22 consumer cleanup.
+
+### Done
+- `@angular/build:unit-test` with Vitest + jsdom; Karma/Jasmine packages removed.
+- Specs refactored to Vitest APIs; `src/test-setup.ts` stubs `matchMedia`/canvas for xterm.
+- App builders switched to `@angular/build`.
+- Local validation: `npm run build` and `npm run test:ci` (52 Electron / 167 Angular Vitest).
+
+### Next (when ready)
+1. Finish Angular 22 consumer/signal cleanup where it reduces complexity.
+2. Decide opaque shell surfaces vs README frosted-glass direction.
+3. Authenticode signing / Apple notarization / `electron-updater` remain deferred until certificates exist.
+
+### Guardrails
+- Prefer Vitest specs under `src/app/**`; keep Electron specs on `node --test`.
+- Do not reintroduce Karma.
+- Preserve compact inspector, stacked focus/overview, and Git workspace panes.
 
 ## Handover — 2026-09-01 (cut 0.1.0-rc.5)
 
