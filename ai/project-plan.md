@@ -75,6 +75,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Specs refactored to Vitest APIs; `src/test-setup.ts` stubs `matchMedia`/canvas for xterm.
 - App builders switched to `@angular/build`.
 - Local validation: `npm run build` and `npm run test:ci` (52 Electron / 167 Angular Vitest).
+- ADO [#197](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/197) created and Closed; commit `af9b256` on `main`.
 
 ### Next (when ready)
 1. Finish Angular 22 consumer/signal cleanup where it reduces complexity.

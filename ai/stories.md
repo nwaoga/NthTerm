@@ -6,10 +6,12 @@
 
 ## Done
 - [x] Migrate Angular unit tests from Karma/Jasmine to Vitest (2026-09-17)
+  - [x] [#197](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/197) Migrate Angular unit tests from Karma/Jasmine to Vitest (ADO Closed 2026-09-17)
   - [x] `@angular/build:unit-test` + `vitest` + `jsdom`; remove Karma/Jasmine packages
   - [x] Refactor specs to Vitest APIs; add `src/test-setup.ts` for xterm jsdom stubs
   - [x] Switch app builders to `@angular/build`
   - [x] Local validation: `npm run build` and `npm run test:ci` (52 Electron / 167 Angular Vitest)
+  - [x] Commit `af9b256` on `main`
 - [x] Cut unsigned `0.1.0-rc.5` (2026-09-01) — Git workspace tools + VS Code task launchers
   - [x] Bump package/changelog; point README + `site/` at `v0.1.0-rc.5`
   - [x] [#175](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/175) Git toolbar: detect repo and show pending change count (ADO Closed 2026-08-30)
