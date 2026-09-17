@@ -78,7 +78,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Local validation: `npm run build` and `npm run test:ci` (52 Electron / 167 Angular Vitest).
 
 ### Next (when ready)
-1. Tag `v0.1.0-rc.6` and push commit + tag to trigger unsigned Win/mac artifacts and GitHub Release publish.
+1. ~~Tag `v0.1.0-rc.6` and push commit + tag~~ — Done (`f93e233`, tag `v0.1.0-rc.6`).
 2. Finish Angular 22 consumer/signal cleanup where it reduces complexity; decide opaque vs frosted chrome docs.
 3. Authenticode signing / Apple notarization / `electron-updater` remain deferred until certificates exist.
 
