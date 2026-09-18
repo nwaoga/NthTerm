@@ -77,7 +77,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Local validation: `npm run build` and `npm run test:ci` (56 Electron / 170 Angular Vitest).
 
 ### Next (when ready)
-1. ~~Tag `v0.1.0-rc.7` and push commit + tag~~ — Done (tag `v0.1.0-rc.7`).
+1. ~~Tag `v0.1.0-rc.7` and push commit + tag~~ — Done (`65e1336`, tag `v0.1.0-rc.7`).
 2. Install rc.7 once over rc.6; cut a later RC to smoke in-app update.
 3. Finish Angular 22 consumer/signal cleanup; signing remains deferred.
 
