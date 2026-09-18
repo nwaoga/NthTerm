@@ -59,7 +59,6 @@
     [defaultTerminalForeground]="defaultTerminalForeground"
     [defaultTerminalBackground]="defaultTerminalBackground"
     [terminalAnsiPalette]="terminalAnsiPalette"
-    [windowTransparency]="windowTransparency"
     [shellOptions]="ws.getShellOptions()"
     [appVersion]="updates.currentVersion()"
     [updateStatusLabel]="updates.statusLabel()"
@@ -74,7 +73,6 @@
     (defaultTerminalForegroundChange)="setDefaultTerminalForeground($event)"
     (defaultTerminalBackgroundChange)="setDefaultTerminalBackground($event)"
     (terminalAnsiPaletteChange)="setTerminalAnsiPalette($event)"
-    (windowTransparencyChange)="setWindowTransparency($event)"
     (checkForUpdatesRequested)="onCheckForUpdates()"
     (restartToUpdateRequested)="onRestartToUpdate()"
   />

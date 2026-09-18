@@ -44,8 +44,6 @@ contextBridge.exposeInMainWorld('nthTermDesktop', {
   app: {
     quitReady: () => ipcRenderer.invoke('app:quit-ready'),
     applyTitleBarTheme: (theme) => ipcRenderer.invoke('app:apply-title-bar-theme', theme),
-    setWindowTransparency: (transparency) =>
-      ipcRenderer.invoke('app:set-window-transparency', transparency),
     onBeforeQuit: (listener) => {
       const wrapped = () => listener();
       ipcRenderer.on('app:before-quit', wrapped);

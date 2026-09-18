@@ -38,7 +38,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Stacked focus/overview terminal layout (≤10) with `Ctrl+\` overview toggle and compact stack navigation
 - Overview fills the stage with an equal-cell tiling grid (`ceil(sqrt(n))`): 2-up split, 3-up 2×2 with an empty cell, cards resize with the window
 - Changing the inspector shell restarts that PTY immediately; Windows Bash prefers Git Bash when installed
-- Settings window-transparency slider (0–80%) thins CSS glass and Electron native window opacity so chrome and terminals show the desktop together
+- Settings window-transparency slider removed; acrylic/vibrancy chrome remains with opaque readable surfaces
 - Bottom dock resize keeps output and system monitor panels aligned
 - Frameless desktop window with per-theme Windows title bar overlay
 - Electron Builder packaging configuration for local unpacked builds and Windows release artifacts

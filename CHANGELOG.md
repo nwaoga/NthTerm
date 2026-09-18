@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Fixed shell history and line editing: arrow/navigation keys are forwarded to the PTY again (they were stripped by input sanitization meant only for command-history capture).
+- Removed the Settings **Window transparency** slider and whole-window opacity fade (#174); acrylic/vibrancy chrome remains, surfaces stay opaque and readable.
+
 ## 0.1.0-rc.7 - 2026-09-18
 
 Unsigned Windows + macOS release candidate that ships in-app updates.

@@ -11,7 +11,6 @@ export interface AppApi {
   quitReady(): Promise<void>;
   onBeforeQuit(listener: () => void): () => void;
   applyTitleBarTheme?(theme: ShellTitleBarThemePayload): Promise<void>;
-  setWindowTransparency?(transparency: number): Promise<void>;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,10 +25,6 @@ export class AppBridgeService {
 
   applyTitleBarTheme(theme: ShellTitleBarThemePayload): void {
     window.nthTermDesktop?.app?.applyTitleBarTheme?.(theme);
-  }
-
-  setWindowTransparency(transparency: number): void {
-    void window.nthTermDesktop?.app?.setWindowTransparency?.(transparency);
   }
 
   private getApi(): AppApi {

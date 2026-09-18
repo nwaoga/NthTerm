@@ -38,39 +38,20 @@ function resolveAppIconPath(options = {}) {
   return undefined;
 }
 
-const MIN_WINDOW_TRANSPARENCY = 0;
-const MAX_WINDOW_TRANSPARENCY = 80;
-
-function clampWindowTransparency(value) {
-  if (!Number.isFinite(value)) {
-    return MIN_WINDOW_TRANSPARENCY;
-  }
-
-  return Math.min(MAX_WINDOW_TRANSPARENCY, Math.max(MIN_WINDOW_TRANSPARENCY, Math.round(value)));
-}
-
-function nativeOpacityForTransparency(transparency) {
-  return Math.max(0.3, 1 - clampWindowTransparency(transparency) / 100);
-}
-
-function windowsBackgroundMaterialForTransparency(transparency) {
-  return clampWindowTransparency(transparency) > 0 ? 'none' : 'acrylic';
-}
-
-function applyNativeWindowTransparency(window, transparency, platform = process.platform) {
+/** Keep acrylic/vibrancy glass chrome with a fully opaque window (no setOpacity fade). */
+function applyOpaqueWindowChrome(window, platform = process.platform) {
   if (!window || window.isDestroyed?.()) {
     return;
   }
 
-  const next = clampWindowTransparency(transparency);
   window.setBackgroundColor('#00000000');
 
   if (platform === 'win32' && typeof window.setBackgroundMaterial === 'function') {
-    window.setBackgroundMaterial(windowsBackgroundMaterialForTransparency(next));
+    window.setBackgroundMaterial('acrylic');
   }
 
   if (typeof window.setOpacity === 'function') {
-    window.setOpacity(nativeOpacityForTransparency(next));
+    window.setOpacity(1);
   }
 }
 
@@ -126,10 +107,7 @@ module.exports = {
   DEFAULT_TITLE_BAR_THEME,
   MAC_TRAFFIC_LIGHT_POSITION,
   resolveAppIconPath,
-  clampWindowTransparency,
-  nativeOpacityForTransparency,
-  windowsBackgroundMaterialForTransparency,
-  applyNativeWindowTransparency,
+  applyOpaqueWindowChrome,
   createBrowserWindowOptions,
   createDarwinApplicationMenuTemplate,
 };

@@ -5,6 +5,9 @@
 - [ ] Finish Angular 22 consumer cleanup (direct signal reads where useful; opaque-vs-frosted chrome decision)
 
 ## Done
+- [x] Remove Settings window-transparency slider / whole-window opacity fade (2026-09-18)
+  - [x] Drop preference, IPC, CSS fade, and Settings control; clear legacy localStorage key on launch
+  - [x] Keep acrylic/vibrancy chrome with opaque surfaces
 - [x] Cut unsigned `0.1.0-rc.7` (2026-09-18) — first RC with in-app GitHub auto-update (#199)
   - [x] [#216](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/216) Cut unsigned 0.1.0-rc.7 (ADO Closed 2026-09-18)
   - [x] Bump package/changelog; point README + `site/` at `v0.1.0-rc.7`

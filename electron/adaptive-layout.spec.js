@@ -68,8 +68,9 @@ test('shell chrome uses opaque surface tokens with reduced-transparency fallback
   assert.match(shellCss, /\.terminal-host \{[\s\S]*?backdrop-filter: none;/);
   assert.match(shellCss, /--shell-fill-mix:/);
   assert.match(shellCss, /color-mix\(in srgb, var\(--shell-bg-base\) var\(--shell-fill-mix\), transparent\)/);
-  assert.match(mainSource, /app:set-window-transparency/);
-  assert.match(mainSource, /applyNativeWindowTransparency/);
+  assert.match(mainSource, /applyOpaqueWindowChrome/);
+  assert.doesNotMatch(mainSource, /app:set-window-transparency/);
+  assert.doesNotMatch(mainSource, /applyNativeWindowTransparency/);
   assert.match(shellCss, /\.left-rail \{[\s\S]*?background:\s*var\(--shell-rail-bg\);/);
   assert.match(shellCss, /--shell-rail-bg:\s*rgba\(/);
   assert.doesNotMatch(shellCss, /--shell-rail-bg:\s*linear-gradient/);
@@ -149,19 +150,16 @@ test('terminal surfaces suppress accidental horizontal xterm scroll tracks', () 
   );
 });
 
-test('xterm surface fades with window transparency because the canvas is opaque', () => {
+test('terminal surfaces stay fully opaque without a window-transparency fade', () => {
   assert.match(
     shellCss,
     /\.terminal-host \{[\s\S]*?background: transparent;/
   );
+  assert.doesNotMatch(shellCss, /--shell-window-transparency/);
+  assert.doesNotMatch(shellCss, /--shell-terminal-surface-opacity/);
   assert.match(
     shellCss,
-    /\.terminal-host \.xterm \{[\s\S]*?opacity: var\(--shell-terminal-surface-opacity, 1\);/
-  );
-  assert.match(shellCss, /--shell-terminal-surface-opacity:/);
-  assert.match(
-    shellCss,
-    /\.workspace-stage-body::before \{[\s\S]*?opacity: calc\(\(100 - var\(--shell-window-transparency\)\) \/ 100\);/
+    /\.workspace-stage-body::before \{[\s\S]*?opacity: 1;/
   );
   assert.doesNotMatch(shellCss, /\.terminal-focus-card::before \{/);
 });

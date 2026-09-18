@@ -19,7 +19,7 @@ const {
 } = require('./terminal-start-registry');
 const {
   DEFAULT_TITLE_BAR_THEME,
-  applyNativeWindowTransparency,
+  applyOpaqueWindowChrome,
   createBrowserWindowOptions,
   createDarwinApplicationMenuTemplate,
 } = require('./window-chrome');
@@ -114,7 +114,7 @@ function createWindow() {
 
   mainWindow = window;
   applyTitleBarTheme(window, DEFAULT_TITLE_BAR_THEME);
-  applyNativeWindowTransparency(window, 0);
+  applyOpaqueWindowChrome(window);
 
   const rendererUrl = process.env.NTH_TERM_RENDERER_URL;
 
@@ -320,10 +320,6 @@ function registerAppHandlers() {
 
   ipcMain.handle('app:apply-title-bar-theme', (_event, theme) => {
     applyTitleBarTheme(mainWindow, theme);
-  });
-
-  ipcMain.handle('app:set-window-transparency', (_event, transparency) => {
-    applyNativeWindowTransparency(mainWindow, transparency);
   });
 }
 

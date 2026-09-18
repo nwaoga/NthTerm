@@ -4,12 +4,10 @@ const path = require('node:path');
 
 const {
   MAC_TRAFFIC_LIGHT_POSITION,
-  applyNativeWindowTransparency,
+  applyOpaqueWindowChrome,
   createBrowserWindowOptions,
   createDarwinApplicationMenuTemplate,
-  nativeOpacityForTransparency,
   resolveAppIconPath,
-  windowsBackgroundMaterialForTransparency,
 } = require('./window-chrome');
 
 test('Windows window options use acrylic overlay chrome', () => {
@@ -28,13 +26,7 @@ test('Windows window options use acrylic overlay chrome', () => {
   assert.equal(options.trafficLightPosition, undefined);
 });
 
-test('native window transparency clears the Electron fill and drops acrylic while sliding', () => {
-  assert.equal(windowsBackgroundMaterialForTransparency(0), 'acrylic');
-  assert.equal(windowsBackgroundMaterialForTransparency(40), 'none');
-  assert.equal(nativeOpacityForTransparency(0), 1);
-  assert.equal(nativeOpacityForTransparency(40), 0.6);
-  assert.equal(nativeOpacityForTransparency(80), 0.3);
-
+test('opaque window chrome keeps acrylic and full opacity', () => {
   const calls = [];
   const fakeWindow = {
     setBackgroundColor: (value) => calls.push(['background', value]),
@@ -42,12 +34,12 @@ test('native window transparency clears the Electron fill and drops acrylic whil
     setOpacity: (value) => calls.push(['opacity', value]),
   };
 
-  applyNativeWindowTransparency(fakeWindow, 40, 'win32');
+  applyOpaqueWindowChrome(fakeWindow, 'win32');
 
   assert.deepEqual(calls, [
     ['background', '#00000000'],
-    ['material', 'none'],
-    ['opacity', 0.6],
+    ['material', 'acrylic'],
+    ['opacity', 1],
   ]);
 });
 

@@ -1,5 +1,12 @@
 # NthTerm Decisions
 
+## 2026-09-18 (remove window transparency)
+- Removed the Settings window-transparency slider and Electron `setOpacity` fade. Acrylic/vibrancy chrome stays; stage/terminal surfaces stay fully opaque. Legacy `nthterm.preferences.windowTransparency` is cleared on launch.
+
+## 2026-09-18 (shell history / arrow keys)
+- PTY input sanitization must not strip CSI/SS3 navigation sequences (`↑` history, left/right edit, etc.). Only focus-report and bracketed-paste markers are removed before `sendInput`.
+- Broader sequence stripping stays on the command-history capture path so dock history still records plain text.
+
 ## 2026-09-18 (electron-builder publish never)
 - With `build.publish` set to the GitHub provider, CI defaults electron-builder to `--publish always`, which failed both Win/mac artifact jobs on the first `v0.1.0-rc.7` tag run.
 - Keep generating `latest.yml` / `latest-mac.yml` via the GitHub publish config, but pass `--publish never` on package/release scripts so softprops still owns the Release upload.
@@ -108,7 +115,7 @@
 - Output, problems, search, and command-history entries now share a more consistent card language, while the system monitor keeps the same telemetry data but presents it with stronger reference-like emphasis.
 - `#111` center workspace composition now uses a staged workspace surface with tab strip metadata, tone-aware terminal cards, running-state pills, pane meta lines, and preview-mode terminal content aligned to the reference Studio Stack layout.
 - Pane status/meta presentation moved into `WorkspaceRuntimeService` so the center grid stays data-driven instead of hard-coding per-tab strings in the template.
-- Terminal input is sanitized in the renderer before forwarding to the PTY so focus-reporting and bracketed-paste control sequences do not pollute command history or swallow typed commands.
+- Terminal input forwarded to the PTY only strips focus-reporting and bracketed-paste markers; navigation CSI/SS3 (arrows, etc.) must reach the shell. Broader stripping is limited to local command-history capture.
 - Preview seeding and live workspace startup now follow separate paths so a real restored workspace does not remain stuck in preview mode after launch.
 - The workspace dock height is now user-resizable and persisted locally, with terminal fit-sync triggered during drag so pane terminals keep a usable viewport while the bottom band changes size.
 - Terminal session ownership now follows `tabId` rather than `paneId`, which lets live shells survive tab switches by parking inactive xterm surfaces off-screen and reattaching them when their tab becomes visible again.

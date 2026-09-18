@@ -37,9 +37,7 @@ app-root {
   --shell-glass-filter: none;
   --shell-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   --shell-glass-border: rgba(255, 255, 255, 0.7);
-  --shell-window-transparency: 0;
-  --shell-fill-mix: calc((100 - var(--shell-window-transparency)) * 1%);
-  --shell-terminal-surface-opacity: 1;
+  --shell-fill-mix: 100%;
 }
 
 :root[data-shell-theme='midnight'] {
@@ -115,7 +113,7 @@ app-root {
   --shell-pill-active-fg: #ffffff;
   --shell-pill-hover-bg: rgba(30, 34, 52, 0.82);
   --shell-pill-hover-border: rgba(186, 152, 255, 0.24);
-  --shell-modal-bg: rgba(12, 16, 29, 0.44);
+  --shell-modal-bg: rgba(12, 16, 29, 0.94);
   --shell-backdrop: rgba(4, 8, 16, 0.36);
   --shell-input-bg: rgba(8, 11, 20, 0.82);
   --shell-input-fg: #eff3f9;
@@ -270,7 +268,7 @@ app-root {
   --shell-pill-active-fg: #2a241d;
   --shell-pill-hover-bg: rgba(244, 232, 216, 0.78);
   --shell-pill-hover-border: rgba(184, 116, 63, 0.28);
-  --shell-modal-bg: rgba(255, 252, 247, 0.44);
+  --shell-modal-bg: rgba(255, 252, 247, 0.96);
   --shell-backdrop: rgba(58, 46, 34, 0.24);
   --shell-input-bg: rgba(255, 253, 249, 0.9);
   --shell-input-fg: #2a241d;
@@ -421,7 +419,7 @@ app-root {
   --shell-pill-active-fg: #0f172a;
   --shell-pill-hover-bg: rgba(241, 245, 249, 0.78);
   --shell-pill-hover-border: rgba(59, 130, 246, 0.24);
-  --shell-modal-bg: rgba(255, 255, 255, 0.44);
+  --shell-modal-bg: rgba(255, 255, 255, 0.96);
   --shell-backdrop: rgba(15, 23, 42, 0.2);
   --shell-input-bg: rgba(255, 255, 255, 0.92);
   --shell-input-fg: #111827;
@@ -1897,7 +1895,7 @@ app-workspace-area .content-layout {
   inset: 0;
   border-radius: inherit;
   background: var(--shell-stage-bg);
-  opacity: calc((100 - var(--shell-window-transparency)) / 100);
+  opacity: 1;
   pointer-events: none;
   z-index: 0;
 }
@@ -2140,8 +2138,6 @@ app-terminal-overview {
     --shell-glass-saturate: 1;
     --shell-glass-filter: none;
     --shell-glass-highlight: none;
-    --shell-window-transparency: 0;
-    --shell-terminal-surface-opacity: 1;
   }
 
   :root[data-shell-theme='midnight'] {
@@ -2268,7 +2264,7 @@ app-terminal-overview {
   position: absolute;
   inset: 0;
   background: var(--shell-terminal-header-bg);
-  opacity: calc((100 - var(--shell-window-transparency)) / 100);
+  opacity: 1;
   pointer-events: none;
   z-index: 0;
 }
@@ -3122,7 +3118,6 @@ app-terminal-preview-card {
   flex: 1 1 auto;
   width: 100%;
   height: 100%;
-  opacity: var(--shell-terminal-surface-opacity, 1);
 }
 
 .terminal-host .xterm,

@@ -61,24 +61,6 @@ describe('SettingsModalComponent', () => {
         expect(closedSpy).toHaveBeenCalled();
     });
 
-    it('emits window transparency from the appearance slider', () => {
-        const fixture = TestBed.createComponent(SettingsModalComponent);
-        const component = fixture.componentInstance;
-        const transparencySpy = vi.fn().mockName('windowTransparencyChange');
-
-        component.open = true;
-        component.windowTransparencyChange.subscribe(transparencySpy);
-        fixture.detectChanges();
-
-        const slider = fixture.debugElement.query(By.css('.preference-range'));
-        slider.nativeElement.value = '40';
-        slider.nativeElement.dispatchEvent(new Event('input'));
-        slider.nativeElement.dispatchEvent(new Event('change'));
-        fixture.detectChanges();
-
-        expect(transparencySpy).toHaveBeenCalledWith(40);
-    });
-
     it('emits utility panel preference changes', () => {
         const fixture = TestBed.createComponent(SettingsModalComponent);
         const component = fixture.componentInstance;

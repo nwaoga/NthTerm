@@ -162,7 +162,6 @@ describe('AppComponent', () => {
                     useValue: {
                         onBeforeQuit: () => () => undefined,
                         quitReady: async () => undefined,
-                        setWindowTransparency: () => undefined,
                     },
                 },
                 {

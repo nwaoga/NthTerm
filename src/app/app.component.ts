@@ -59,11 +59,6 @@ export class AppComponent implements AfterViewInit {
   @HostBinding('attr.data-host-platform')
   protected readonly hostPlatform = resolveHostPlatform();
 
-  @HostBinding('style.--shell-window-transparency')
-  protected get windowTransparencyStyle(): string {
-    return String(this.windowTransparency);
-  }
-
   @ViewChild(CommandPaletteComponent) private commandPalette?: CommandPaletteComponent;
   @ViewChild('bottomDock') private bottomDock?: BottomDockComponent;
 
@@ -81,7 +76,6 @@ export class AppComponent implements AfterViewInit {
   protected defaultTerminalForeground = '#d8e1e8';
   protected defaultTerminalBackground = '#0d1320';
   protected terminalAnsiPalette: TerminalAnsiPaletteId = 'auto';
-  protected windowTransparency = 0;
 
   private inspectorPanelPreference = true;
   private compactViewport = this.isCompactViewport();
@@ -153,9 +147,8 @@ export class AppComponent implements AfterViewInit {
     this.defaultTerminalForeground = defaultTerminalTheme.foreground;
     this.defaultTerminalBackground = defaultTerminalTheme.background;
     this.terminalAnsiPalette = this.preferences.readTerminalAnsiPalette();
-    this.windowTransparency = this.preferences.readWindowTransparency();
+    this.preferences.clearLegacyWindowTransparency();
     this.shellTheme.apply(this.systemTheme);
-    this.applyWindowTransparency();
     if (!window.nthTermDesktop?.workspace) {
       this.loadPreviewState();
       this.restoreWorkspaceDockPreference();
@@ -262,23 +255,6 @@ export class AppComponent implements AfterViewInit {
     this.systemTheme = theme;
     this.preferences.writeSystemTheme(theme);
     this.shellTheme.apply(theme);
-  }
-
-  protected setWindowTransparency(value: number): void {
-    this.windowTransparency = this.preferences.writeWindowTransparency(value);
-    this.applyWindowTransparency();
-    this.terminal.refreshAllTerminalThemes();
-  }
-
-  private applyWindowTransparency(): void {
-    const reduced =
-      typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-transparency: reduce)').matches;
-    const transparency = reduced ? 0 : this.windowTransparency;
-    if (typeof document !== 'undefined') {
-      document.documentElement.style.setProperty('--shell-window-transparency', String(transparency));
-      document.documentElement.style.setProperty('--shell-terminal-surface-opacity', '1');
-    }
-    this.appBridge.setWindowTransparency(transparency);
   }
 
   protected setDefaultTerminalForeground(value: string): void {

@@ -32,11 +32,26 @@ interface TerminalState {
   lastRows?: number;
 }
 
-export function sanitizeTerminalInput(data: string): string {
+/**
+ * Light sanitization for bytes forwarded to the PTY.
+ * Strips focus-report and bracketed-paste markers only — keep CSI/SS3
+ * (arrows, home/end, etc.) so shell line editing and history work.
+ */
+export function sanitizePtyInput(data: string): string {
   return data
     .replace(/\u0000/g, '')
     .replace(/\u001b\[200~/g, '')
     .replace(/\u001b\[201~/g, '')
+    .replace(/\u001b\[I/g, '')
+    .replace(/\u001b\[O/g, '');
+}
+
+/**
+ * Heavier sanitization for local command-history capture.
+ * Drops navigation/control sequences so edited lines record as plain text.
+ */
+export function sanitizeCommandCapture(data: string): string {
+  return sanitizePtyInput(data)
     .replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '')
     .replace(/\u001bO./g, '');
 }
@@ -377,10 +392,10 @@ export class TerminalSessionService {
     terminal.loadAddon(fitAddon);
     terminal.open(container);
     terminal.onData((data) => {
-      const sanitizedData = sanitizeTerminalInput(data);
-      this.trackTerminalInput(state, sanitizedData);
-      if (state.sessionId && sanitizedData) {
-        void this.terminalBridge.sendInput(state.sessionId, sanitizedData);
+      const ptyData = sanitizePtyInput(data);
+      this.trackTerminalInput(state, sanitizeCommandCapture(data));
+      if (state.sessionId && ptyData) {
+        void this.terminalBridge.sendInput(state.sessionId, ptyData);
       }
     });
 

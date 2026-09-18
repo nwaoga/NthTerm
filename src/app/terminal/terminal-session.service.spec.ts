@@ -1,5 +1,5 @@
 import type { Mock } from 'vitest';
-import { sanitizeTerminalInput, PREVIEW_REFRESH_INTERVAL_MS } from './terminal-session.service';
+import { sanitizePtyInput, sanitizeCommandCapture, PREVIEW_REFRESH_INTERVAL_MS } from './terminal-session.service';
 import { NgZone } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
@@ -15,18 +15,32 @@ class ResizeObserverStub {
     disconnect(): void { }
 }
 
-describe('sanitizeTerminalInput', () => {
-    it('removes focus-reporting control sequences before forwarding input', () => {
-        expect(sanitizeTerminalInput('\u001b[Ipwd\r')).toBe('pwd\r');
-        expect(sanitizeTerminalInput('\u001b[O')).toBe('');
+describe('sanitizePtyInput', () => {
+    it('removes focus-reporting and bracketed-paste markers but keeps arrow keys', () => {
+        expect(sanitizePtyInput('\u001b[Ipwd\r')).toBe('pwd\r');
+        expect(sanitizePtyInput('\u001b[O')).toBe('');
+        expect(sanitizePtyInput('\u0000\u001b[200~pwd\u001b[201~\r')).toBe('pwd\r');
+        expect(sanitizePtyInput('\u001b[A')).toBe('\u001b[A');
+        expect(sanitizePtyInput('\u001bOA')).toBe('\u001bOA');
+        expect(sanitizePtyInput('\u001b[D\u001b[Dgit status\u001b[1;5C\r')).toBe(
+            '\u001b[D\u001b[Dgit status\u001b[1;5C\r'
+        );
+    });
+});
+
+describe('sanitizeCommandCapture', () => {
+    it('removes focus-reporting control sequences before capturing commands', () => {
+        expect(sanitizeCommandCapture('\u001b[Ipwd\r')).toBe('pwd\r');
+        expect(sanitizeCommandCapture('\u001b[O')).toBe('');
     });
 
     it('unwraps bracketed paste markers and null bytes', () => {
-        expect(sanitizeTerminalInput('\u0000\u001b[200~pwd\u001b[201~\r')).toBe('pwd\r');
+        expect(sanitizeCommandCapture('\u0000\u001b[200~pwd\u001b[201~\r')).toBe('pwd\r');
     });
 
     it('removes arrow and navigation sequences from captured commands', () => {
-        expect(sanitizeTerminalInput('\u001b[D\u001b[Dgit status\u001b[1;5C\r')).toBe('git status\r');
+        expect(sanitizeCommandCapture('\u001b[D\u001b[Dgit status\u001b[1;5C\r')).toBe('git status\r');
+        expect(sanitizeCommandCapture('\u001b[A')).toBe('');
     });
 });
 
