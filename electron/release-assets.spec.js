@@ -34,6 +34,13 @@ test('package version projects the current RC asset filenames', () => {
   assert.match(packageJson.build.mac.artifactName, /\$\{productName\}-\$\{version\}-\$\{os\}-\$\{arch\}\.\$\{ext\}/);
 });
 
+test('release scripts keep electron-builder publish off so softprops owns the GitHub Release', () => {
+  assert.match(packageJson.scripts['release:win'], /--publish never/);
+  assert.match(packageJson.scripts['release:mac'], /--publish never/);
+  assert.match(packageJson.scripts.release, /--publish never/);
+  assert.equal(packageJson.build.publish?.[0]?.provider, 'github');
+});
+
 test('CI publishes a GitHub Release from unsigned Win/mac artifacts on version tags', () => {
   const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'ci.yml'), 'utf8');
   assert.match(workflow, /publish-github-release:/);

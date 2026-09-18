@@ -53,7 +53,7 @@ test('electron-builder config wires Windows and macOS branding without signing s
   assert.equal(Object.prototype.hasOwnProperty.call(build.win, 'certificateSubjectName'), false);
   assert.equal(build.nsis.perMachine, false);
   assert.equal(build.nsis.oneClick, false);
-  assert.equal(packageJson.scripts['release:mac'], 'npm run build && electron-builder --mac');
+  assert.equal(packageJson.scripts['release:mac'], 'npm run build && electron-builder --mac --publish never');
   assert.ok(packageJson.dependencies['electron-updater']);
 });
 

@@ -6,6 +6,7 @@ Unsigned Windows + macOS release candidate that ships in-app updates.
 
 - Added in-app auto-update via `electron-updater` against unsigned GitHub Releases (#199): check on launch, Settings + status bar + command palette, prerelease RCs included.
 - CI now uploads `latest.yml` / `latest-mac.yml` with release artifacts so packaged apps can discover newer builds.
+- Keep electron-builder `--publish never` so GitHub publish metadata is generated without uploading from the build jobs (softprops still publishes the Release).
 - Cut unsigned Win/mac release candidate packaging and public download CTAs for `v0.1.0-rc.7` (#216).
 
 ### Known limitation

@@ -1,5 +1,9 @@
 # NthTerm Decisions
 
+## 2026-09-18 (electron-builder publish never)
+- With `build.publish` set to the GitHub provider, CI defaults electron-builder to `--publish always`, which failed both Win/mac artifact jobs on the first `v0.1.0-rc.7` tag run.
+- Keep generating `latest.yml` / `latest-mac.yml` via the GitHub publish config, but pass `--publish never` on package/release scripts so softprops still owns the Release upload.
+
 ## 2026-09-18 (rc.7 release prep)
 - `0.1.0-rc.7` is the first unsigned Win/mac candidate that includes the `electron-updater` client and publishes `latest.yml` / `latest-mac.yml` with release assets (#199).
 - Users on `0.1.0-rc.6` or earlier must install rc.7 once manually; subsequent RCs can update in-app.
