@@ -5,6 +5,10 @@
 - [ ] Finish Angular 22 consumer cleanup (direct signal reads where useful; opaque-vs-frosted chrome decision)
 
 ## Done
+- [x] Cut unsigned `0.1.0-rc.7` (2026-09-18) — first RC with in-app GitHub auto-update (#199)
+  - [x] [#216](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/216) Cut unsigned 0.1.0-rc.7 (ADO Closed 2026-09-18)
+  - [x] Bump package/changelog; point README + `site/` at `v0.1.0-rc.7`
+  - [x] Tag `v0.1.0-rc.7` to trigger CI Win+mac artifacts including `latest.yml`
 - [x] In-app auto-update via unsigned GitHub Releases (`electron-updater`) (2026-09-17)
   - [x] [#199](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/199) In-app auto-update via unsigned GitHub Releases (ADO Closed 2026-09-17)
   - [x] GitHub publish metadata (`latest.yml` / `latest-mac.yml`) uploaded with CI release artifacts

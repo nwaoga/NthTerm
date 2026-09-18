@@ -1,6 +1,16 @@
 ## Unreleased
 
-- In-app auto-update via `electron-updater` against unsigned GitHub Releases (check on launch, Settings + status bar + command palette; prerelease RCs included).
+## 0.1.0-rc.7 - 2026-09-18
+
+Unsigned Windows + macOS release candidate that ships in-app updates.
+
+- Added in-app auto-update via `electron-updater` against unsigned GitHub Releases (#199): check on launch, Settings + status bar + command palette, prerelease RCs included.
+- CI now uploads `latest.yml` / `latest-mac.yml` with release artifacts so packaged apps can discover newer builds.
+- Cut unsigned Win/mac release candidate packaging and public download CTAs for `v0.1.0-rc.7` (#216).
+
+### Known limitation
+
+Artifacts remain unsigned. Windows SmartScreen and macOS Gatekeeper warnings are expected until Authenticode signing and Apple notarization are configured. In-app updates work for builds that include the updater client; install this RC once if upgrading from `0.1.0-rc.6` or earlier.
 
 ## 0.1.0-rc.6 - 2026-09-17
 

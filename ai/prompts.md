@@ -13,11 +13,11 @@
 - Prefer small incremental stories and commits.
 
 ## Current Prompt Focus
-- **Milestone in progress:** `0.1.0-rc.6` is being cut for Angular 22 + Vitest (#197).
+- **Milestone in progress:** `0.1.0-rc.7` ships in-app unsigned GitHub auto-update (#199) on top of Angular 22 + Vitest.
 - Landing page uses real Focus/Overview product shots from `site/media/` (Angular reference preview — Studio Stack demo); feature triad still uses CSS mini-mocks.
-- #138/#139/#140/#141/#156/#172/#173/#174/#175/#176/#177/#178/#179/#180/#197/#198 Closed (ADO + repo). PR #1 and cloud setup PR #2 merged to `main`.
+- #138/#139/#140/#141/#156/#172/#173/#174/#175/#176/#177/#178/#179/#180/#197/#198/#199 Closed (ADO + repo). PR #1 and cloud setup PR #2 merged to `main`.
 - Public RC page: `https://nwaoga.github.io/NthTerm/` (`site/` via GitHub Pages — static marketing only, not the Angular app).
-- Release target: https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.6 (unsigned Win + macOS assets after tag CI publishes).
+- Release target: https://github.com/nwaoga/NthTerm/releases/tag/v0.1.0-rc.7 (unsigned Win + macOS assets after tag CI publishes).
 - **Deferred:** Authenticode / Apple notarization until certificates exist (in-app updater already uses unsigned GitHub Releases).
 - Preserve the compact inspector hierarchy (Workspace | Terminal) and stacked focus/overview layout.
 - Renderer refactor is complete; keep new code in feature folders/services and do not grow god files.
@@ -27,11 +27,11 @@
 ## Handoff Summary
 - Product name: NthTerm
 - Themes: Midnight, Coffee, and White app chrome, with separate terminal color themes and ANSI palettes
-- Current milestone: `0.1.0-rc.6` release prep; local build/test passed; macOS packaged smoke runs on tag CI
+- Current milestone: `0.1.0-rc.7` — first updater-enabled RC; install once over rc.6, then later RCs can self-update
 - Public site: `https://nwaoga.github.io/NthTerm/` — GitHub Pages from `site/` (`media/focus.png`, `media/overview.png`); workflow `.github/workflows/pages.yml`
 - Backlog: finish Angular 22 consumer cleanup; signing / notarization remain deferred (updater already ships unsigned)
 - Mac smoke evidence: `docs/verification/macos-smoke-v0.1.0-rc.2.json` from Actions run `31277571206`
-- Local verify bar: `npm run build` + `npm run test:ci` (52 Electron / 167 Angular Vitest)
+- Local verify bar: `npm run build` + `npm run test:ci` (56 Electron / 170 Angular Vitest)
 - Renderer: feature-oriented Angular shell with workspace-owned stable terminals, stacked focus/overview, compact inspector projections, and utility command history attributed by terminal ID
-- Electron: frameless window with Windows acrylic / macOS vibrancy chrome, queued Windows PTY lifecycle, stable-terminal start deduplication, platform-aware shells, and SQLite persistence
-- Upgrade policy for now: install newer build over existing install; AppData / Application Support preserved. `electron-updater` after code signing.
+- Electron: frameless window with Windows acrylic / macOS vibrancy chrome, queued Windows PTY lifecycle, stable-terminal start deduplication, platform-aware shells, SQLite persistence, and GitHub Release auto-update
+- Upgrade policy: packaged builds with the updater client check GitHub Releases; AppData / Application Support preserved across installs

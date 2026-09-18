@@ -16,9 +16,9 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 
 ---
 
-## Current State (2026-09-17)
+## Current State (2026-09-18)
 
-**Phase:** `0.1.0-rc.6` release prep. Angular 22 + Vitest are in the RC payload, and the site/docs/download CTAs point at `v0.1.0-rc.6`.
+**Phase:** `0.1.0-rc.7` release prep. In-app GitHub auto-update (#199), Angular 22, and Vitest are in the RC payload; site/docs/download CTAs point at `v0.1.0-rc.7`.
 
 **Working today:**
 - Angular unit tests via Vitest (`@angular/build:unit-test` + jsdom); Electron specs remain `node --test`
@@ -64,7 +64,27 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Inactive tool placeholders were removed from the workspace rail
 - Terminal arrangement now follows pane count automatically instead of exposing 2-Up and 2x2 implementation modes
 
-**Last shipped:** Unsigned `0.1.0-rc.5` (Git workspace tools + VS Code task launchers).
+**Last shipped:** Unsigned `0.1.0-rc.6` (Angular 22 + Vitest). Updater landed on `main` after that tag.
+
+## Handover — 2026-09-18 (cut 0.1.0-rc.7)
+
+**Milestone:** `0.1.0-rc.7` unsigned Win/mac candidate — first build with in-app GitHub auto-update.
+
+### Done
+- Version bump to `0.1.0-rc.7`; CHANGELOG, README, GitHub Pages CTAs, and release backfill workflow default point at `v0.1.0-rc.7`.
+- Includes `electron-updater` client + CI `latest.yml` / `latest-mac.yml` (#199).
+- ADO [#216](https://dev.azure.com/blakboi/NthTerm/_workitems/edit/216) Closed — cut unsigned `0.1.0-rc.7`.
+- Local validation: `npm run build` and `npm run test:ci` (56 Electron / 170 Angular Vitest).
+
+### Next (when ready)
+1. ~~Tag `v0.1.0-rc.7` and push commit + tag~~ — Done (tag `v0.1.0-rc.7`).
+2. Install rc.7 once over rc.6; cut a later RC to smoke in-app update.
+3. Finish Angular 22 consumer/signal cleanup; signing remains deferred.
+
+### Guardrails
+- Prefer Vitest specs under `src/app/**`; keep Electron specs on `node --test`.
+- Do not reintroduce Karma.
+- Preserve compact inspector, stacked focus/overview, and Git workspace panes.
 
 ## Handover — 2026-09-17 (cut 0.1.0-rc.6)
 
@@ -308,6 +328,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 12. ~~Cut unsigned `0.1.0-rc.4` (2026-09-01) — Add Terminal menu stacking + Studio Stack empty-db seed.~~
 13. Cut unsigned `0.1.0-rc.5` (2026-09-01) — Git workspace tools (#175-#180) + VS Code task launchers.
 14. Cut unsigned `0.1.0-rc.6` (2026-09-17) — Angular 22 + Vitest (#197).
+15. Cut unsigned `0.1.0-rc.7` (2026-09-18) — in-app GitHub auto-update (#199).
 
 ### Stacked polish (#140)
 
@@ -331,7 +352,7 @@ Users should be able to create, save, restore, and manage terminal workspaces wi
 - Brand-first hero + short SWE-facing pitch (frontend / backend / Docker stack)
 - Real product shots: Focus (`site/media/focus.png`) + Overview (`site/media/overview.png`) from Angular reference preview
 - Feature triad mini-mocks: Focus, Workspaces, Stacked PTYs
-- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.6`
+- Download CTAs: Windows + macOS → GitHub Release `v0.1.0-rc.7`
 - Unsigned build callout (SmartScreen / Gatekeeper)
 - GitHub + Issues + Releases footer links
 - Visual language: midnight/purple glass; Cursor-like sparse page rhythm

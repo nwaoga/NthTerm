@@ -1,5 +1,10 @@
 # NthTerm Decisions
 
+## 2026-09-18 (rc.7 release prep)
+- `0.1.0-rc.7` is the first unsigned Win/mac candidate that includes the `electron-updater` client and publishes `latest.yml` / `latest-mac.yml` with release assets (#199).
+- Users on `0.1.0-rc.6` or earlier must install rc.7 once manually; subsequent RCs can update in-app.
+- Public download CTAs should point at `v0.1.0-rc.7` before pushing the tag.
+
 ## 2026-09-17 (unsigned GitHub auto-update)
 - Ship in-app updates now with `electron-updater` against unsigned GitHub Releases (`nwaoga/NthTerm`) so early adopters can upgrade without manually downloading installers.
 - Keep builds unsigned; SmartScreen/Gatekeeper warnings remain acceptable until certificates are funded.
